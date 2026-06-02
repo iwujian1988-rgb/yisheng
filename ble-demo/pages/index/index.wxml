@@ -1,0 +1,66 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 标题 -->
+  <view class="header">
+    <text class="title">病历传输Demo</text>
+    <text class="subtitle">硬件蓝牙验证</text>
+  </view>
+
+  <!-- 蓝牙状态 -->
+  <view class="card">
+    <view class="card-title">蓝牙状态</view>
+    <view class="status-row">
+      <text class="status-label">连接状态:</text>
+      <text class="status-value {{connected ? 'success' : ''}}">{{statusText}}</text>
+    </view>
+    <view class="status-row" wx:if="{{deviceId}}">
+      <text class="status-label">设备ID:</text>
+      <text class="status-value small">{{deviceId}}</text>
+    </view>
+    <button class="btn btn-primary" bindtap="onConnectTap">
+      {{connected ? '断开连接' : '搜索设备'}}
+    </button>
+  </view>
+
+  <!-- 文本输入 -->
+  <view class="card">
+    <view class="card-title">输入文本</view>
+    <textarea
+      class="textarea"
+      placeholder="请输入要传输的文本（中文、英文、数字、标点）"
+      value="{{inputText}}"
+      bindinput="onTextInput"
+      maxlength="5000"
+      auto-height
+    />
+    <view class="char-count">{{inputText.length}}/5000</view>
+  </view>
+
+  <!-- 转换结果 -->
+  <view class="card" wx:if="{{convertedText}}">
+    <view class="card-title">转换结果（VUC格式）</view>
+    <text class="result-text">{{convertedText}}</text>
+  </view>
+
+  <!-- 发送按钮 -->
+  <view class="action-area">
+    <button
+      class="btn btn-send {{connected && inputText ? '' : 'disabled'}}"
+      bindtap="onSendTap"
+      disabled="{{!connected || !inputText}}"
+    >
+      发送到硬件
+    </button>
+  </view>
+
+  <!-- 日志 -->
+  <view class="card log-card" wx:if="{{logs.length > 0}}">
+    <view class="card-title">操作日志</view>
+    <scroll-view class="log-scroll" scroll-y>
+      <view class="log-item" wx:for="{{logs}}" wx:key="index">
+        <text class="log-time">{{item.time}}</text>
+        <text class="log-message">{{item.message}}</text>
+      </view>
+    </scroll-view>
+  </view>
+</view>

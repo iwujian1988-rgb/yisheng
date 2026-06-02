@@ -1,0 +1,211 @@
+/* pages/home/home.wxss */
+.container {
+  min-height: 100vh;
+  padding: 30rpx;
+  background: #F5F7FA;
+}
+
+/* 状态栏 */
+.status-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.status-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #CCCCCC;
+  margin-right: 12rpx;
+}
+
+.status-dot.connected {
+  background: #52C41A;
+}
+
+.status-text {
+  font-size: 28rpx;
+  color: #666666;
+}
+
+/* 卡片 */
+.card {
+  background: white;
+  border-radius: 24rpx;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.device-id {
+  font-size: 24rpx;
+  color: #999999;
+  background: #F5F7FA;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+/* 设备卡片 */
+.device-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #666666;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+.info-value.success {
+  color: #52C41A;
+}
+
+/* 输入卡片 */
+.char-count {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.text-input {
+  width: 100%;
+  min-height: 200rpx;
+  font-size: 30rpx;
+  line-height: 1.8;
+  color: #333333;
+}
+
+.input-actions {
+  margin-top: 16rpx;
+}
+
+.clear-btn {
+  font-size: 26rpx;
+  color: #4A90E2;
+}
+
+/* 预览卡片 */
+.preview-text {
+  display: block;
+  font-size: 24rpx;
+  line-height: 1.8;
+  color: #666666;
+  word-break: break-all;
+  font-family: monospace;
+}
+
+/* 按钮 */
+.btn {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  border: none;
+}
+
+.btn::after {
+  border: none;
+}
+
+.btn-connect {
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  color: white;
+}
+
+.btn-disconnect {
+  background: #F5F7FA;
+  color: #666666;
+}
+
+.send-row {
+  display: flex;
+  gap: 20rpx;
+  padding: 0 30rpx 24rpx;
+}
+
+.btn-cancel {
+  width: 160rpx;
+  height: 100rpx;
+  background: #F5F7FA;
+  color: #666666;
+  font-size: 32rpx;
+  font-weight: 500;
+  border-radius: 24rpx;
+  border: none;
+}
+
+.btn-cancel::after {
+  border: none;
+}
+
+.btn-send {
+  flex: 1;
+  height: 100rpx;
+  background: #E5E5E5;
+  color: #999999;
+  font-size: 36rpx;
+  font-weight: 600;
+  border-radius: 24rpx;
+}
+
+.btn-send.active {
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  color: white;
+}
+
+.btn-send::after {
+  border: none;
+}
+
+/* 日志卡片 */
+.log-card {
+  max-height: 400rpx;
+}
+
+.log-scroll {
+  height: 300rpx;
+}
+
+.log-item {
+  display: flex;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.log-item:last-child {
+  border-bottom: none;
+}
+
+.log-time {
+  font-size: 22rpx;
+  color: #999999;
+  width: 140rpx;
+  flex-shrink: 0;
+}
+
+.log-msg {
+  font-size: 26rpx;
+  color: #333333;
+  flex: 1;
+  word-break: break-all;
+}

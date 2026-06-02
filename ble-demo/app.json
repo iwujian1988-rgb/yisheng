@@ -1,0 +1,22 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "病历传输Demo",
+    "navigationBarBackgroundColor": "#4A90E2",
+    "navigationBarTextStyle": "white"
+  },
+  "permission": {
+    "scope.bluetooth": {
+      "desc": "需要使用蓝牙连接硬件设备"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getBluetoothAdapterState",
+    "openBluetoothAdapter",
+    "closeBluetoothAdapter"
+  ],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

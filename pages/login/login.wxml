@@ -1,0 +1,93 @@
+<!--pages/login/login.wxml-->
+<view class="login-container">
+  <!-- Logo和标题 -->
+  <view class="logo-section">
+    <image class="logo" src="/assets/images/logo.png" mode="aspectFit"></image>
+    <text class="app-name">病历传输</text>
+    <text class="app-desc">医疗数据快速传输工具</text>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="form-section">
+    <!-- 账号/手机号输入 -->
+    <view class="input-wrapper">
+      <input
+        class="input"
+        type="text"
+        placeholder="请输入手机号/账号"
+        placeholder-class="input-placeholder"
+        value="{{account}}"
+        bindinput="onAccountInput"
+        maxlength="30"
+      />
+    </view>
+
+    <!-- 密码输入 -->
+    <view class="input-wrapper password-wrapper">
+      <input
+        class="input password-input"
+        type="{{showPassword ? 'text' : 'password'}}"
+        placeholder="请输入密码"
+        placeholder-class="input-placeholder"
+        value="{{password}}"
+        bindinput="onPasswordInput"
+        maxlength="20"
+      />
+      <image
+        class="eye-icon"
+        src="{{showPassword ? '/assets/icons/eye-open.png' : '/assets/icons/eye-close.png'}}"
+        mode="aspectFit"
+        bindtap="togglePassword"
+      />
+    </view>
+
+    <!-- 忘记密码 -->
+    <view class="forget-pwd" bindtap="goToForgetPwd">
+      <text>忘记密码？</text>
+    </view>
+
+    <!-- 登录按钮 -->
+    <button
+      class="btn btn-primary {{canLogin ? '' : 'disabled'}}"
+      disabled="{{!canLogin || isLoading}}"
+      bindtap="onLogin"
+      loading="{{isLoading}}"
+    >
+      {{isLoading ? '登录中...' : '登 录'}}
+    </button>
+
+    <!-- 分割线 -->
+    <view class="divider-text">
+      <text>或</text>
+    </view>
+
+    <!-- 微信一键登录 -->
+    <button
+      class="btn btn-outline wechat-login-btn"
+      open-type="getUserInfo"
+      bindgetuserinfo="onWechatLogin"
+    >
+      <image class="wechat-icon" src="/assets/icons/wechat.png" mode="aspectFit"></image>
+      <text>微信一键登录</text>
+    </button>
+  </view>
+
+  <!-- 协议勾选 -->
+  <view class="agreement-section">
+    <checkbox-group bindchange="onAgreementChange">
+      <label class="agreement-label">
+        <checkbox value="agree" checked="{{agreed}}" color="#4A90E2" />
+        <text class="agreement-text">我已阅读并同意</text>
+        <text class="agreement-link" bindtap="goToAgreement" data-type="user">《用户协议》</text>
+        <text class="agreement-text">和</text>
+        <text class="agreement-link" bindtap="goToAgreement" data-type="privacy">《隐私政策》</text>
+      </label>
+    </checkbox-group>
+  </view>
+
+  <!-- 注册入口 -->
+  <view class="register-section">
+    <text class="register-text">还没有账号？</text>
+    <text class="register-link" bindtap="goToRegister">立即注册</text>
+  </view>
+</view>

@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>首页 - 病历传输</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: #F5F7FA;
+        }
+
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            margin: 20px auto;
+            background: #F5F7FA;
+            border-radius: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 14px;
+            color: #333;
+            background: #FFFFFF;
+            flex-shrink: 0;
+        }
+
+        /* 头部 */
+        .header {
+            background: #FFFFFF;
+            padding: 16px 20px;
+            flex-shrink: 0;
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: white;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            padding-bottom: 100px;
+        }
+
+        /* 设备状态卡片 */
+        .device-card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .device-card.connected {
+            border-color: #52C41A;
+            background: linear-gradient(135deg, #F6FFED 0%, #FFFFFF 100%);
+        }
+
+        .device-card.disconnected {
+            border-color: #D9D9D9;
+        }
+
+        .device-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .device-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .device-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .device-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .device-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #52C41A;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.offline {
+            background: #D9D9D9;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: #52C41A;
+        }
+
+        .status-text.offline {
+            color: #999;
+        }
+
+        .device-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .device-name {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .device-battery {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #52C41A;
+        }
+
+        .device-battery svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .device-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .device-btn {
+            flex: 1;
+            height: 36px;
+            border: 1px solid #D9D9D9;
+            background: #FFFFFF;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .device-btn:hover {
+            border-color: #4A90E2;
+            color: #4A90E2;
+        }
+
+        .device-btn.primary {
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            border-color: transparent;
+            color: #FFFFFF;
+        }
+
+        /* 文本输入区域 */
+        .input-area {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .textarea-wrapper {
+            position: relative;
+        }
+
+        .textarea {
+            width: 100%;
+            min-height: 160px;
+            padding: 12px;
+            padding-right: 50px;
+            background: #F5F7FA;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            font-size: 15px;
+            color: #333;
+            resize: none;
+            transition: all 0.3s;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+
+        .textarea:focus {
+            outline: none;
+            background: #FFFFFF;
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .textarea::placeholder {
+            color: #CCCCCC;
+        }
+
+        .clear-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            background: #F5F7FA;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .clear-btn:hover {
+            background: #E5E5E5;
+        }
+
+        .clear-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: #999;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .char-count.warning {
+            color: #FAAD14;
+        }
+
+        .char-count.error {
+            color: #F5222D;
+        }
+
+        /* 快捷操作按钮 */
+        .quick-actions {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .action-icon {
+            width: 56px;
+            height: 56px;
+            background: #FFFFFF;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover .action-icon {
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.2);
+        }
+
+        .action-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: #4A90E2;
+        }
+
+        .action-label {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* 发送按钮 */
+        .send-btn {
+            width: 100%;
+            height: 52px;
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .send-btn:hover:not(.disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+        }
+
+        .send-btn.disabled {
+            background: #D9D9D9;
+            cursor: not-allowed;
+        }
+
+        .send-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        /* AI功能区 */
+        .ai-section {
+            display: flex;
+            gap: 12px;
+        }
+
+        .ai-btn {
+            flex: 1;
+            height: 48px;
+            background: #FFFFFF;
+            border: 1px solid #E5E5E5;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+
+        .ai-btn:hover {
+            border-color: #4A90E2;
+            color: #4A90E2;
+        }
+
+        .ai-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* 底部导航栏 */
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: #FFFFFF;
+            border-top: 1px solid #F0F0F0;
+            display: flex;
+            padding-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .tab-item.active {
+            color: #4A90E2;
+        }
+
+        .tab-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .tab-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: currentColor;
+        }
+
+        .tab-label {
+            font-size: 11px;
+        }
+
+        /* 提示框 */
+        .toast {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* 发送成功弹窗 */
+        .success-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 200;
+        }
+
+        .success-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-content {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            width: 260px;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .success-modal.show .success-content {
+            transform: scale(1);
+        }
+
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, #52C41A 0%, #389E0D 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+        }
+
+        .success-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 24px;
+        }
+
+        .success-btn {
+            width: 100%;
+            height: 48px;
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 400px) {
+            .phone-container {
+                width: 100%;
+                height: 100vh;
+                margin: 0;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+        </div>
+
+        <!-- 头部 -->
+        <div class="header">
+            <div class="app-title">
+                <div class="app-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H6v-2h4V7h2v4h4v2h-4v4z"/>
+                    </svg>
+                </div>
+                <span>病历快速传输</span>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 设备状态卡片 -->
+            <div class="device-card connected" id="deviceCard">
+                <div class="device-header">
+                    <div class="device-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z"/>
+                        </svg>
+                    </div>
+                    <span class="device-title">设备状态</span>
+                </div>
+                <div class="device-status">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span class="status-text" id="statusText">已连接</span>
+                </div>
+                <div class="device-info">
+                    <span class="device-name" id="deviceName">BL-0824</span>
+                    <div class="device-battery" id="deviceBattery">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zM13 18h-2v-2h2v2zm0-4h-2V9h2v5z"/>
+                        </svg>
+                        <span>85%</span>
+                    </div>
+                </div>
+                <div class="device-actions">
+                    <button class="device-btn" id="reconnectBtn">重新连接</button>
+                    <button class="device-btn" id="manageBtn">管理</button>
+                </div>
+            </div>
+
+            <!-- 文本输入区域 -->
+            <div class="input-area">
+                <div class="textarea-wrapper">
+                    <textarea class="textarea" id="textArea" placeholder="请输入要传输的文字..." maxlength="5000"></textarea>
+                    <div class="clear-btn" id="clearBtn" style="display: none;">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="char-count" id="charCount">0/5000字</div>
+            </div>
+
+            <!-- 快捷操作按钮 -->
+            <div class="quick-actions">
+                <div class="action-btn" id="ocrBtn">
+                    <div class="action-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17M5 17h14"/>
+                        </svg>
+                    </div>
+                    <span class="action-label">拍照识别</span>
+                </div>
+                <div class="action-btn" id="voiceBtn">
+                    <div class="action-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </div>
+                    <span class="action-label">录音识别</span>
+                </div>
+                <div class="action-btn" id="pasteBtn">
+                    <div class="action-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        </svg>
+                    </div>
+                    <span class="action-label">粘贴文字</span>
+                </div>
+            </div>
+
+            <!-- 发送按钮 -->
+            <button class="send-btn disabled" id="sendBtn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+                <span>发送到电脑</span>
+            </button>
+
+            <!-- AI功能区 -->
+            <div class="ai-section">
+                <button class="ai-btn" id="aiChatBtn">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                    </svg>
+                    <span>AI对话</span>
+                </button>
+                <button class="ai-btn" id="templateBtn">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                    </svg>
+                    <span>模板库</span>
+                </button>
+                <button class="ai-btn" id="testBtn">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                    <span>测试</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 底部导航栏 -->
+        <div class="tab-bar">
+            <div class="tab-item active">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                    </svg>
+                </div>
+                <span class="tab-label">首页</span>
+            </div>
+            <div class="tab-item">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                    </svg>
+                </div>
+                <span class="tab-label">AI</span>
+            </div>
+            <div class="tab-item">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                    </svg>
+                </div>
+                <span class="tab-label">模板</span>
+            </div>
+            <div class="tab-item">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+                <span class="tab-label">我的</span>
+            </div>
+        </div>
+
+        <!-- 提示框 -->
+        <div class="toast" id="toast"></div>
+
+        <!-- 发送成功弹窗 -->
+        <div class="success-modal" id="successModal">
+            <div class="success-content">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                </div>
+                <div class="success-title">发送成功</div>
+                <button class="success-btn" id="successBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取元素
+        const textArea = document.getElementById('textArea');
+        const charCount = document.getElementById('charCount');
+        const clearBtn = document.getElementById('clearBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const toast = document.getElementById('toast');
+        const successModal = document.getElementById('successModal');
+        const successBtn = document.getElementById('successBtn');
+
+        // 设备相关
+        const deviceCard = document.getElementById('deviceCard');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const deviceName = document.getElementById('deviceName');
+        const deviceBattery = document.getElementById('deviceBattery');
+        const reconnectBtn = document.getElementById('reconnectBtn');
+        const manageBtn = document.getElementById('manageBtn');
+
+        // 设备连接状态（演示用）
+        let isConnected = true;
+
+        // 显示提示
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // 更新字数统计
+        function updateCharCount() {
+            const length = textArea.value.length;
+            const max = 5000;
+            charCount.textContent = `${length}/${max}字`;
+
+            // 更新样式
+            charCount.classList.remove('warning', 'error');
+            if (length > max * 0.9) {
+                charCount.classList.add('error');
+            } else if (length > max * 0.7) {
+                charCount.classList.add('warning');
+            }
+
+            // 显示/隐藏清除按钮
+            clearBtn.style.display = length > 0 ? 'flex' : 'none';
+
+            // 更新发送按钮状态
+            updateSendButton();
+        }
+
+        // 更新发送按钮状态
+        function updateSendButton() {
+            const hasContent = textArea.value.trim().length > 0;
+
+            if (isConnected && hasContent) {
+                sendBtn.classList.remove('disabled');
+            } else {
+                sendBtn.classList.add('disabled');
+            }
+        }
+
+        // 更新设备状态显示
+        function updateDeviceStatus() {
+            if (isConnected) {
+                deviceCard.classList.add('connected');
+                deviceCard.classList.remove('disconnected');
+                statusDot.classList.remove('offline');
+                statusText.textContent = '已连接';
+                statusText.classList.remove('offline');
+                deviceName.style.display = 'block';
+                deviceBattery.style.display = 'flex';
+                reconnectBtn.textContent = '重新连接';
+            } else {
+                deviceCard.classList.remove('connected');
+                deviceCard.classList.add('disconnected');
+                statusDot.classList.add('offline');
+                statusText.textContent = '未连接';
+                statusText.classList.add('offline');
+                deviceName.style.display = 'none';
+                deviceBattery.style.display = 'none';
+                reconnectBtn.textContent = '立即连接';
+            }
+            updateSendButton();
+        }
+
+        // 文本输入
+        textArea.addEventListener('input', updateCharCount);
+
+        // 清除按钮
+        clearBtn.addEventListener('click', () => {
+            textArea.value = '';
+            updateCharCount();
+        });
+
+        // 发送按钮
+        sendBtn.addEventListener('click', () => {
+            if (sendBtn.classList.contains('disabled')) {
+                if (!isConnected) {
+                    showToast('请先连接设备');
+                } else if (textArea.value.trim().length === 0) {
+                    showToast('请输入要传输的内容');
+                }
+                return;
+            }
+
+            // 显示成功弹窗
+            successModal.classList.add('show');
+        });
+
+        // 成功弹窗按钮
+        successBtn.addEventListener('click', () => {
+            successModal.classList.remove('show');
+            textArea.value = '';
+            updateCharCount();
+            showToast('已清空内容');
+        });
+
+        // 重新连接按钮
+        reconnectBtn.addEventListener('click', () => {
+            showToast(isConnected ? '正在重新连接...' : '正在搜索设备...');
+            setTimeout(() => {
+                isConnected = !isConnected;
+                updateDeviceStatus();
+                showToast(isConnected ? '设备已连接' : '设备已断开');
+            }, 1500);
+        });
+
+        // 管理按钮
+        manageBtn.addEventListener('click', () => {
+            showToast('跳转到设备管理页');
+        });
+
+        // 拍照识别
+        document.getElementById('ocrBtn').addEventListener('click', () => {
+            showToast('跳转到图片识别页');
+        });
+
+        // 录音识别
+        document.getElementById('voiceBtn').addEventListener('click', () => {
+            showToast('跳转到录音识别页');
+        });
+
+        // 粘贴文字
+        document.getElementById('pasteBtn').addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    textArea.value = text;
+                    updateCharCount();
+                    showToast('已粘贴内容');
+                }
+            } catch (err) {
+                showToast('请手动粘贴内容');
+            }
+        });
+
+        // AI对话
+        document.getElementById('aiChatBtn').addEventListener('click', () => {
+            showToast('跳转到AI对话页');
+        });
+
+        // 模板库
+        document.getElementById('templateBtn').addEventListener('click', () => {
+            showToast('跳转到模板库页');
+        });
+
+        // 测试
+        document.getElementById('testBtn').addEventListener('click', () => {
+            showToast('跳转到网络测试页');
+        });
+
+        // 底部导航
+        document.querySelectorAll('.tab-item').forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                const pages = ['首页', 'AI', '模板', '我的'];
+                if (index !== 0) {
+                    showToast(`切换到${pages[index]}页`);
+                }
+            });
+        });
+
+        // 初始化
+        updateDeviceStatus();
+        updateCharCount();
+    </script>
+</body>
+</html>
