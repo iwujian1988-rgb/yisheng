@@ -1,0 +1,89 @@
+/* pages/admin/device-list.wxss */
+.list-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px;
+}
+
+/* 搜索 */
+.search-bar {
+  margin-bottom: 16px;
+}
+
+.search-input {
+  height: 44px;
+  padding: 0 16px;
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #333333;
+}
+
+.search-placeholder {
+  color: #999999;
+}
+
+/* 空状态 */
+.empty-section {
+  display: flex;
+  justify-content: center;
+  padding-top: 120px;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #999999;
+}
+
+/* 列表 */
+.list-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.device-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.device-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.device-serial {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333333;
+  font-family: monospace;
+}
+
+.device-status {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.status-bound {
+  color: #4A90E2;
+  background-color: rgba(74, 144, 226, 0.1);
+}
+
+.status-unbound {
+  color: #999999;
+  background-color: #F0F0F0;
+}
+
+.device-meta {
+  display: flex;
+  gap: 16px;
+}
+
+.meta-text {
+  font-size: 13px;
+  color: #999999;
+}

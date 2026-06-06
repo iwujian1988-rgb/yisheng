@@ -1,0 +1,10 @@
+/* pages/backend/status.wxss */
+.status-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
+.card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; margin-bottom: 10px; }
+.status-row { display: flex; align-items: center; }
+.status-dot { width: 10px; height: 10px; border-radius: 5px; margin-right: 12px; flex-shrink: 0; }
+.dot-green { background-color: #52C41A; }
+.dot-red { background-color: #F5222D; }
+.dot-gray { background-color: #D9D9D9; }
+.status-label { font-size: 15px; color: #333333; flex: 1; }
+.status-value { font-size: 14px; color: #999999; }

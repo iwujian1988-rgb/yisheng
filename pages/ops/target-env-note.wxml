@@ -1,0 +1,41 @@
+<view class="env-container">
+  <view class="card">
+    <view class="env-header">
+      <view class="env-badge badge-pc">PC</view>
+      <text class="env-title">普通电脑</text>
+    </view>
+    <text class="env-desc">直接在桌面应用或网页输入框中输入文本。适合大多数场景，硬件插入 USB 口即可测试。</text>
+  </view>
+
+  <view class="card">
+    <view class="env-header">
+      <view class="env-badge badge-remote">远程</view>
+      <text class="env-title">远程桌面</text>
+    </view>
+    <text class="env-desc">通过远程桌面连接操作目标电脑。需要确认远程窗口处于激活状态，输入框已获得焦点。</text>
+  </view>
+
+  <view class="card">
+    <view class="env-header">
+      <view class="env-badge badge-vm">VM</view>
+      <text class="env-title">虚拟机</text>
+    </view>
+    <text class="env-desc">目标系统运行在虚拟机中。USB 设备可能需要手动映射到虚拟机内，输入响应可能略慢。</text>
+  </view>
+
+  <view class="card">
+    <view class="env-header">
+      <view class="env-badge badge-web">Web</view>
+      <text class="env-title">浏览器系统</text>
+    </view>
+    <text class="env-desc">目标系统是浏览器中的网页应用。需要确认网页输入框已获得焦点，部分网页可能拦截模拟输入。</text>
+  </view>
+
+  <view class="card">
+    <view class="env-header">
+      <view class="env-badge badge-unknown">?</view>
+      <text class="env-title">未知环境</text>
+    </view>
+    <text class="env-desc">不确定目标电脑的具体环境。建议先用短文本测试传输效果，再根据实际情况选择合适的模式。</text>
+  </view>
+</view>

@@ -1,0 +1,26 @@
+<!--pages/admin/service-record-detail.wxml-->
+<view class="detail-container">
+  <view class="card">
+    <text class="card-title">服务记录</text>
+    <view class="info-row">
+      <text class="info-label">用户</text>
+      <text class="info-value">{{userPhone || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">开通时间</text>
+      <text class="info-value">{{startDate || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">到期时间</text>
+      <text class="info-value">{{expiryDate || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">服务状态</text>
+      <text class="info-value">{{serviceStatus || '--'}}</text>
+    </view>
+    <view class="info-row" wx:if="{{remark}}">
+      <text class="info-label">备注</text>
+      <text class="info-value">{{remark}}</text>
+    </view>
+  </view>
+</view>

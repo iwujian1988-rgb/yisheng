@@ -1,0 +1,61 @@
+<view class="status-container">
+  <view class="status-card" wx:if="{{status === 'unpaid'}}">
+    <view class="icon-wrapper icon-unpaid">
+      <text class="status-icon-text">&#36;</text>
+    </view>
+    <text class="status-title">服务未开通</text>
+    <text class="status-desc">当前账号尚未开通服务。购买设备后，请输入激活码完成开通。</text>
+    <button class="btn btn-primary action-btn" bindtap="contactSupport">输入激活码</button>
+  </view>
+
+  <view class="status-card" wx:if="{{status === 'unbound'}}">
+    <view class="icon-wrapper icon-unbound">
+      <text class="status-icon-text">&#9881;</text>
+    </view>
+    <text class="status-title">请绑定设备</text>
+    <text class="status-desc">服务已开通，请将设备插入电脑 USB 口，并完成设备绑定。</text>
+    <button class="btn btn-primary action-btn" bindtap="goToBindDevice">绑定设备</button>
+    <text class="help-link" bindtap="goToHelp">查看绑定教程</text>
+  </view>
+
+  <view class="status-card" wx:if="{{status === 'active'}}">
+    <view class="icon-wrapper icon-unbound">
+      <text class="status-icon-text">&#10003;</text>
+    </view>
+    <text class="status-title">账号可用</text>
+    <text class="status-desc">服务和设备均已就绪，可以开始传输文本。</text>
+    <button class="btn btn-primary action-btn" bindtap="goHome">进入首页</button>
+  </view>
+
+  <view class="status-card" wx:if="{{status === 'expired'}}">
+    <view class="icon-wrapper icon-expired">
+      <text class="status-icon-text">&#9888;</text>
+    </view>
+    <text class="status-title">服务已过期</text>
+    <text class="status-desc">传输服务已到期，请续期后继续使用。</text>
+    <button class="btn btn-primary action-btn" bindtap="contactSupport">查看开通方式</button>
+  </view>
+
+  <view class="status-card" wx:if="{{status === 'conflict'}}">
+    <view class="icon-wrapper icon-conflict">
+      <text class="status-icon-text">&#9888;</text>
+    </view>
+    <text class="status-title">设备异常</text>
+    <text class="status-desc">当前账号存在设备绑定冲突，如需更换设备请进入帮助页查看处理方式。</text>
+    <button class="btn btn-primary action-btn" bindtap="goToHelp">查看帮助</button>
+    <text class="info-text">设备 SN：{{deviceSN || '未知'}}</text>
+  </view>
+
+  <view class="status-card" wx:if="{{status === 'disabled'}}">
+    <view class="icon-wrapper icon-disabled">
+      <text class="status-icon-text">&#10005;</text>
+    </view>
+    <text class="status-title">账号已停用</text>
+    <text class="status-desc">当前账号已停用，如有疑问请进入帮助页查看处理方式。</text>
+    <button class="btn btn-primary action-btn" bindtap="goToHelp">查看帮助</button>
+  </view>
+
+  <view class="bottom-section">
+    <text class="back-link" bindtap="goBack">返回上一页</text>
+  </view>
+</view>

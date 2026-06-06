@@ -1,0 +1,26 @@
+<!--pages/integration/status.wxml-->
+<view class="status-container">
+  <view class="section-title"><text class="section-text">外部服务状态</text></view>
+  <view class="service-list">
+    <view class="service-card">
+      <text class="service-name">蓝牙服务</text>
+      <text class="service-status {{bleStatus==='ok'?'status-ok':'status-err'}}">{{bleStatus==='ok'?'正常':'异常'}}</text>
+    </view>
+    <view class="service-card">
+      <text class="service-name">微信登录</text>
+      <text class="service-status {{wechatStatus==='ok'?'status-ok':'status-err'}}">{{wechatStatus==='ok'?'正常':'异常'}}</text>
+    </view>
+    <view class="service-card">
+      <text class="service-name">AI 服务</text>
+      <text class="service-status {{aiStatus==='ok'?'status-ok':'status-err'}}">{{aiStatus==='ok'?'正常':'异常'}}</text>
+    </view>
+    <view class="service-card">
+      <text class="service-name">OCR 服务</text>
+      <text class="service-status {{ocrStatus==='ok'?'status-ok':'status-err'}}">{{ocrStatus==='ok'?'正常':'异常'}}</text>
+    </view>
+    <view class="service-card">
+      <text class="service-name">ASR 服务</text>
+      <text class="service-status {{asrStatus==='ok'?'status-ok':'status-err'}}">{{asrStatus==='ok'?'正常':'异常'}}</text>
+    </view>
+  </view>
+</view>

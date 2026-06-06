@@ -1,0 +1,35 @@
+<!--pages/device/unbind-confirm.wxml-->
+<view class="unbind-container">
+  <!-- 设备信息 -->
+  <view class="card">
+    <view class="info-row">
+      <text class="info-label">设备序列号</text>
+      <text class="info-value">{{serialNo || '--'}}</text>
+    </view>
+  </view>
+
+  <!-- 风险提示 -->
+  <view class="card warn-card">
+    <text class="warn-text">解绑后该设备将无法继续使用传输功能，需要重新绑定才能恢复。请确认是否继续操作。</text>
+  </view>
+
+  <!-- 解绑原因 -->
+  <view class="card">
+    <text class="card-title">请选择解绑原因</text>
+    <radio-group bindchange="onReasonChange">
+      <label class="reason-item" wx:for="{{reasons}}" wx:key="value">
+        <radio value="{{item.value}}" checked="{{selectedReason === item.value}}" color="#4A90E2" />
+        <text class="reason-text">{{item.label}}</text>
+      </label>
+    </radio-group>
+  </view>
+
+  <!-- 确认按钮 -->
+  <button
+    class="btn btn-danger confirm-btn"
+    disabled="{{!selectedReason}}"
+    bindtap="confirmUnbind"
+  >
+    确认解绑
+  </button>
+</view>

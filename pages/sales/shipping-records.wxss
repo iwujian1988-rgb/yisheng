@@ -1,0 +1,8 @@
+/* pages/sales/shipping-records.wxss */
+.shipping-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
+.empty-section { display: flex; justify-content: center; padding-top: 120px; }
+.empty-text { font-size: 14px; color: #999999; }
+.record-list { display: flex; flex-direction: column; gap: 10px; }
+.record-card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.record-serial { font-size: 15px; color: #333333; font-family: monospace; }
+.record-status { font-size: 13px; color: #999999; }

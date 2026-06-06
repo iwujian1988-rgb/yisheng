@@ -1,0 +1,60 @@
+<view class="agreement-container">
+  <view wx:if="{{type === 'userAgreement'}}">
+    <view class="section">
+      <text class="section-title">一、服务说明</text>
+      <text class="section-text">本产品提供文本整理、模板生成、内容确认和设备传输等辅助功能。用户确认后的文本可通过已连接设备输入到电脑端。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">二、用户义务</text>
+      <text class="section-text">用户应妥善保管账号、设备和激活信息，不得将账号或设备借予无权限人员使用。因保管不当造成的风险，由用户自行承担。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">三、使用规范</text>
+      <text class="section-text">用户应确保输入和发送的内容来源合法、用途合规，并在发送到电脑前自行核对最终文本。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">四、服务变更与终止</text>
+      <text class="section-text">我们可能根据业务需要调整服务内容。涉及重要变更时，将通过适当方式提示用户。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">五、免责声明</text>
+      <text class="section-text">AI 生成、OCR 识别、录音转写和模板整理结果均需用户确认。本产品不保证自动生成内容完全准确，用户应对最终发送内容负责。</text>
+    </view>
+  </view>
+
+  <view wx:if="{{type === 'privacyPolicy'}}">
+    <view class="section">
+      <text class="section-title">一、信息收集</text>
+      <text class="section-text">我们仅收集提供服务所必需的信息，包括账号信息、设备绑定状态、服务开通状态和必要的使用状态。文本内容仅在用户主动使用相关功能时处理。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">二、文本内容处理</text>
+      <text class="section-text">设备传输功能通过本地连接完成。若用户选择保存历史记录，文本内容应以受保护方式保存，并仅用于用户查看、继续编辑或再次发送。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">三、第三方 AI 脱敏说明</text>
+      <text class="section-text">如使用 AI 整理功能，文本在发送至 AI 服务前会进行必要的脱敏处理。用户仍应在提交前检查是否包含不应发送的信息。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">四、数据安全</text>
+      <text class="section-text">我们会采用合理的技术和管理措施保护账号、设备和文本处理数据。日志记录仅保留操作类型、时间和必要状态，不应记录完整正文。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">五、信息共享</text>
+      <text class="section-text">未经用户同意，我们不会将个人信息共享给无关第三方；法律法规另有规定或用户主动选择第三方能力的情况除外。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">六、用户权利</text>
+      <text class="section-text">用户可按产品提供的入口查看、修改或删除相关信息。具体能力将随服务接入逐步开放。</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,46 @@
+<!--pages/qa/bluetooth-test-report.wxml-->
+<view class="report-container">
+  <view class="card">
+    <text class="card-title">适配器状态</text>
+    <view class="info-row">
+      <text class="info-label">蓝牙适配器</text>
+      <text class="info-value">{{adapterStatus || '--'}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="card-title">连接状态</text>
+    <view class="info-row">
+      <text class="info-label">设备连接</text>
+      <text class="info-value">{{connectionStatus || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">服务发现</text>
+      <text class="info-value">{{serviceStatus || '--'}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="card-title">写入状态</text>
+    <view class="info-row">
+      <text class="info-label">写入结果</text>
+      <text class="info-value">{{writeStatus || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">分片数量</text>
+      <text class="info-value">{{chunkCount || '--'}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="card-title">传输结果</text>
+    <view class="info-row">
+      <text class="info-label">传输状态</text>
+      <text class="info-value">{{transferResult || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">耗时</text>
+      <text class="info-value">{{elapsed || '--'}}</text>
+    </view>
+  </view>
+</view>

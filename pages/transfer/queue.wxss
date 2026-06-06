@@ -1,0 +1,99 @@
+/* pages/transfer/queue.wxss */
+.queue-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px 48px;
+}
+
+/* 空状态 */
+.empty-section {
+  display: flex;
+  justify-content: center;
+  padding-top: 120px;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #999999;
+}
+
+/* 队列列表 */
+.queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.queue-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.queue-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333333;
+}
+
+.queue-status {
+  font-size: 13px;
+}
+
+.status-active {
+  color: #4A90E2;
+}
+
+.status-done {
+  color: #52C41A;
+}
+
+.status-error {
+  color: #F5222D;
+}
+
+/* 进度条 */
+.progress-bar {
+  height: 8px;
+  background-color: #F0F0F0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #4A90E2;
+  border-radius: 4px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #999999;
+}
+
+/* 取消按钮 */
+.action-section {
+  margin-top: 32px;
+}
+
+.cancel-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #F5222D;
+  border: 1px solid #F5222D;
+}

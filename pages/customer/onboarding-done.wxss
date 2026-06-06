@@ -1,0 +1,11 @@
+/* pages/customer/onboarding-done.wxss */
+.done-container { min-height: 100vh; background-color: #F5F7FA; display: flex; flex-direction: column; align-items: center; padding: 80px 32px 48px; }
+.success-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 60px; }
+.success-circle { width: 80px; height: 80px; border-radius: 50%; background-color: #52C41A; color: #FFFFFF; font-size: 40px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+.success-title { font-size: 22px; font-weight: bold; color: #333333; margin-bottom: 10px; }
+.success-desc { font-size: 15px; color: #666666; text-align: center; line-height: 1.6; }
+.action-section { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.action-btn { width: 100%; height: 52px; border-radius: 12px; font-size: 16px; font-weight: 500; }
+.btn-primary { background-color: #4A90E2; color: #FFFFFF; }
+.btn-primary:active { opacity: 0.8; }
+.btn-outline { background-color: transparent; color: #4A90E2; border: 1px solid #4A90E2; }

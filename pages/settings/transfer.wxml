@@ -1,0 +1,72 @@
+<!--pages/settings/transfer.wxml-->
+<view class="settings-container">
+  <!-- 速度档 -->
+  <view class="section">
+    <text class="section-title">传输速度</text>
+    <view class="option-group">
+      <view
+        class="option-card {{speedMode === 'safe' ? 'option-active' : ''}}"
+        bindtap="selectSpeed"
+        data-speed="safe"
+      >
+        <text class="option-name">安全</text>
+        <text class="option-desc">速度较慢，兼容性最好</text>
+      </view>
+      <view
+        class="option-card {{speedMode === 'balanced' ? 'option-active' : ''}}"
+        bindtap="selectSpeed"
+        data-speed="balanced"
+      >
+        <text class="option-name">均衡</text>
+        <text class="option-desc">速度与稳定性兼顾</text>
+      </view>
+      <view
+        class="option-card {{speedMode === 'turbo' ? 'option-active' : ''}}"
+        bindtap="selectSpeed"
+        data-speed="turbo"
+      >
+        <text class="option-name">极速</text>
+        <text class="option-desc">速度最快，部分电脑可能不稳定</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 系统模式 -->
+  <view class="section">
+    <text class="section-title">系统模式</text>
+    <view class="option-group">
+      <view
+        class="option-card {{systemMode === 'WIN10' ? 'option-active' : ''}}"
+        bindtap="selectSystem"
+        data-system="WIN10"
+      >
+        <text class="option-name">WIN10</text>
+        <text class="option-desc">适用于 Windows 10 及更早版本</text>
+      </view>
+      <view
+        class="option-card {{systemMode === 'WIN11' ? 'option-active' : ''}}"
+        bindtap="selectSystem"
+        data-system="WIN11"
+      >
+        <text class="option-name">WIN11</text>
+        <text class="option-desc">适用于 Windows 11</text>
+      </view>
+      <view
+        class="option-card {{systemMode === 'RAW' ? 'option-active' : ''}}"
+        bindtap="selectSystem"
+        data-system="RAW"
+      >
+        <text class="option-name">RAW</text>
+        <text class="option-desc">原始输入模式，用于特殊场景调试</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 保存 -->
+  <button
+    class="btn btn-primary save-btn"
+    bindtap="saveSettings"
+  >
+    保存设置
+  </button>
+</view>

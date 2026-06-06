@@ -1,0 +1,88 @@
+/* pages/purchase/records.wxss */
+.records-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+}
+
+/* 空状态 */
+.empty-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 120px;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #E8E8E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.empty-icon-text {
+  font-size: 36px;
+  color: #999999;
+}
+
+.empty-title {
+  font-size: 16px;
+  color: #666666;
+  margin-bottom: 8px;
+}
+
+.empty-desc {
+  font-size: 14px;
+  color: #999999;
+}
+
+/* 记录列表 */
+.list-section {
+  padding: 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.record-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.record-type {
+  font-size: 15px;
+  color: #333333;
+  font-weight: 500;
+}
+
+.record-status {
+  font-size: 13px;
+}
+
+.status-active {
+  color: #52C41A;
+}
+
+.status-expired {
+  color: #F5222D;
+}
+
+.status-pending {
+  color: #FAAD14;
+}
+
+.record-time {
+  font-size: 13px;
+  color: #999999;
+}

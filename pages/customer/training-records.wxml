@@ -1,0 +1,10 @@
+<!--pages/customer/training-records.wxml-->
+<view class="records-container">
+  <view class="empty-section" wx:if="{{records.length===0}}"><text class="empty-text">暂无培训记录</text></view>
+  <view class="record-list" wx:if="{{records.length>0}}">
+    <view class="record-card" wx:for="{{records}}" wx:key="id">
+      <text class="record-title">{{item.title}}</text>
+      <text class="record-time">{{item.time}}</text>
+    </view>
+  </view>
+</view>

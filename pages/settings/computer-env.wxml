@@ -1,0 +1,23 @@
+<!--pages/settings/computer-env.wxml-->
+<view class="env-container">
+  <view class="card">
+    <text class="card-title">选择电脑输入环境</text>
+    <radio-group bindchange="onEnvChange">
+      <label class="env-item" wx:for="{{envOptions}}" wx:key="value">
+        <radio value="{{item.value}}" checked="{{selectedEnv === item.value}}" color="#4A90E2" />
+        <view class="env-info">
+          <text class="env-name">{{item.label}}</text>
+          <text class="env-desc">{{item.desc}}</text>
+        </view>
+      </label>
+    </radio-group>
+  </view>
+
+  <button
+    class="btn btn-primary save-btn"
+    disabled="{{!selectedEnv}}"
+    bindtap="saveEnv"
+  >
+    保存设置
+  </button>
+</view>

@@ -1,0 +1,19 @@
+<!--pages/error/index.wxml-->
+<view class="error-container">
+  <view class="error-section">
+    <view class="error-icon-circle">
+      <text class="error-icon-text">&#9888;</text>
+    </view>
+    <text class="error-title">{{title || '出现错误'}}</text>
+    <text class="error-message">{{message || '请稍后重试'}}</text>
+  </view>
+
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="primaryAction">
+      {{primaryText || '重试'}}
+    </button>
+    <button class="btn btn-outline action-btn" bindtap="secondaryAction">
+      {{secondaryText || '返回'}}
+    </button>
+  </view>
+</view>

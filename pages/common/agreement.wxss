@@ -1,0 +1,26 @@
+/* pages/common/agreement.wxss */
+.agreement-container {
+  min-height: 100vh;
+  background-color: #FFFFFF;
+  padding: 24px 32px 48px;
+}
+
+/* 段落 */
+.section {
+  margin-bottom: 28px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333333;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.section-text {
+  font-size: 14px;
+  color: #666666;
+  line-height: 1.8;
+  display: block;
+}

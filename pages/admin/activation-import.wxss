@@ -1,0 +1,11 @@
+/* pages/admin/activation-import.wxss */
+.import-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px 48px; }
+.card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; margin-bottom: 12px; }
+.card-title { font-size: 16px; font-weight: 500; color: #333333; display: block; margin-bottom: 12px; }
+.import-textarea { width: 100%; height: 200px; padding: 14px 16px; background-color: #F5F7FA; border-radius: 8px; font-size: 14px; font-family: monospace; color: #333333; box-sizing: border-box; line-height: 1.8; }
+.ph { color: #999999; }
+.hint-text { font-size: 13px; color: #999999; display: block; margin-top: 8px; }
+.desc-text { font-size: 14px; color: #666666; line-height: 1.8; }
+.submit-btn { width: 100%; height: 52px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #4A90E2; color: #FFFFFF; margin-top: 12px; }
+.submit-btn:active { opacity: 0.8; }
+.submit-btn[disabled] { background-color: #CCCCCC; color: #FFFFFF; }

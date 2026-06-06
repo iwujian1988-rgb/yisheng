@@ -1,0 +1,34 @@
+<!--pages/integration/ocr-provider-guide.wxml-->
+<view class="guide-container">
+  <view class="guide-header"><text class="guide-title">OCR 服务集成指南</text></view>
+  <view class="step-list">
+    <view class="step-card">
+      <text class="step-num">1</text>
+      <view class="step-content">
+        <text class="step-title">选择 OCR 供应商</text>
+        <text class="step-desc">支持多家 OCR 服务商接入</text>
+      </view>
+    </view>
+    <view class="step-card">
+      <text class="step-num">2</text>
+      <view class="step-content">
+        <text class="step-title">获取 API Key</text>
+        <text class="step-desc">在 OCR 平台申请接口密钥</text>
+      </view>
+    </view>
+    <view class="step-card">
+      <text class="step-num">3</text>
+      <view class="step-content">
+        <text class="step-title">配置识别类型</text>
+        <text class="step-desc">设置需要识别的文档类型</text>
+      </view>
+    </view>
+    <view class="step-card">
+      <text class="step-num">4</text>
+      <view class="step-content">
+        <text class="step-title">测试识别精度</text>
+        <text class="step-desc">使用样本图片验证识别准确率</text>
+      </view>
+    </view>
+  </view>
+</view>

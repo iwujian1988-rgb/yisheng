@@ -1,0 +1,25 @@
+<!--pages/demo/index.wxml-->
+<view class="demo-container">
+  <view class="header-section">
+    <text class="header-title">演示模式</text>
+    <text class="header-desc">以下功能为演示体验，数据均为模拟</text>
+  </view>
+  <view class="card-list">
+    <view class="entry-card" bindtap="goScenario">
+      <text class="card-title">场景体验</text>
+      <text class="card-desc">模拟蓝牙传输流程</text>
+    </view>
+    <view class="entry-card" bindtap="goDevice">
+      <text class="card-title">设备模拟</text>
+      <text class="card-desc">查看模拟设备状态</text>
+    </view>
+    <view class="entry-card" bindtap="goTransfer">
+      <text class="card-title">传输演示</text>
+      <text class="card-desc">模拟文本传输过程</text>
+    </view>
+    <view class="entry-card" bindtap="goAI">
+      <text class="card-title">AI 功能预览</text>
+      <text class="card-desc">体验智能辅助功能</text>
+    </view>
+  </view>
+</view>

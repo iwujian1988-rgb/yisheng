@@ -1,0 +1,29 @@
+<view class="about-container">
+  <view class="product-section">
+    <view class="logo-circle">
+      <text class="logo-text">文</text>
+    </view>
+    <text class="product-name">文本传输助手</text>
+    <text class="product-desc">AI 内容整理与离线电脑输入工具</text>
+    <text class="version-text">v{{version || '--'}}</text>
+  </view>
+
+  <view class="info-section">
+    <view class="info-card">
+      <view class="info-item" bindtap="goToServiceIntro">
+        <text class="info-label">服务说明</text>
+        <text class="info-arrow">&#10095;</text>
+      </view>
+      <view class="info-divider"></view>
+      <view class="info-item" bindtap="goToPrivacy">
+        <text class="info-label">隐私政策</text>
+        <text class="info-arrow">&#10095;</text>
+      </view>
+      <view class="info-divider"></view>
+      <view class="info-item" bindtap="goToAgreement">
+        <text class="info-label">用户协议</text>
+        <text class="info-arrow">&#10095;</text>
+      </view>
+    </view>
+  </view>
+</view>

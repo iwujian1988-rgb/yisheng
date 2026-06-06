@@ -1,0 +1,17 @@
+{
+  "name": "yisheng-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Aliyun-ready backend API for a text transfer mini program.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "check": "node --check src/server.js",
+    "smoke": "node scripts/smoke.js",
+    "worker:ocr": "node workers/ocr-worker.example.js",
+    "worker:asr": "node workers/asr-worker.example.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

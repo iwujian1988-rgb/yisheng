@@ -1,0 +1,21 @@
+<!--pages/metrics/transfer-performance.wxml-->
+<view class="perf-container">
+  <view class="stats-grid">
+    <view class="stat-card">
+      <text class="stat-num">{{avgTime}}s</text>
+      <text class="stat-label">平均耗时</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{failCount}}</text>
+      <text class="stat-label">失败次数</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{cancelCount}}</text>
+      <text class="stat-label">取消次数</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{maxChars}}</text>
+      <text class="stat-label">最长文本(字)</text>
+    </view>
+  </view>
+</view>

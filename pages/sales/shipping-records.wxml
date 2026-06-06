@@ -1,0 +1,10 @@
+<!--pages/sales/shipping-records.wxml-->
+<view class="shipping-container">
+  <view class="empty-section" wx:if="{{records.length === 0}}"><text class="empty-text">暂无发货记录</text></view>
+  <view class="record-list" wx:if="{{records.length > 0}}">
+    <view class="record-card" wx:for="{{records}}" wx:key="id">
+      <text class="record-serial">{{item.serialNo}}</text>
+      <text class="record-status">{{item.status}}</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,15 @@
+<!--pages/customer/follow-up-records.wxml-->
+<view class="follow-container">
+  <view class="filter-bar">
+    <view class="filter-item {{filter==='all'?'filter-active':''}}" bindtap="setFilter" data-filter="all"><text class="filter-text">全部</text></view>
+    <view class="filter-item {{filter==='pending'?'filter-active':''}}" bindtap="setFilter" data-filter="pending"><text class="filter-text">待回访</text></view>
+    <view class="filter-item {{filter==='done'?'filter-active':''}}" bindtap="setFilter" data-filter="done"><text class="filter-text">已完成</text></view>
+  </view>
+  <view class="empty-section" wx:if="{{records.length===0}}"><text class="empty-text">暂无回访记录</text></view>
+  <view class="record-list" wx:if="{{records.length>0}}">
+    <view class="record-card" wx:for="{{records}}" wx:key="id">
+      <text class="record-title">{{item.title}}</text>
+      <text class="record-status">{{item.status}}</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,24 @@
+<!--pages/customer/device-alert.wxml-->
+<view class="alert-container">
+  <view class="alert-card">
+    <text class="alert-title">设备异常提醒</text>
+    <text class="alert-desc">{{alertMsg}}</text>
+  </view>
+  <view class="info-section">
+    <view class="info-row">
+      <text class="info-label">设备名称</text>
+      <text class="info-value">{{deviceName}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">异常类型</text>
+      <text class="info-value">{{alertType}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">发现时间</text>
+      <text class="info-value">{{alertTime}}</text>
+    </view>
+  </view>
+  <view class="bottom-actions">
+    <view class="btn-primary" bindtap="contactSupport"><text class="btn-text">联系技术支持</text></view>
+  </view>
+</view>

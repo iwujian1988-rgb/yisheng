@@ -1,0 +1,35 @@
+<!--pages/settings/privacy.wxml-->
+<view class="privacy-container">
+  <!-- 历史记录保存 -->
+  <view class="setting-card">
+    <view class="setting-item">
+      <view class="setting-left">
+        <text class="setting-label">保存传输历史</text>
+        <text class="setting-desc">保留历史传输记录便于回看</text>
+      </view>
+      <switch checked="{{saveHistory}}" bindchange="toggleSaveHistory" color="#4A90E2" />
+    </view>
+  </view>
+
+  <!-- AI 脱敏说明 -->
+  <view class="setting-card">
+    <view class="setting-item" bindtap="goToAiRedaction">
+      <view class="setting-left">
+        <text class="setting-label">AI 脱敏说明</text>
+        <text class="setting-desc">了解文本发送至 AI 前的脱敏处理</text>
+      </view>
+      <text class="setting-arrow">&#10095;</text>
+    </view>
+  </view>
+
+  <!-- 清除本地数据 -->
+  <view class="setting-card">
+    <view class="setting-item" bindtap="clearLocalData">
+      <view class="setting-left">
+        <text class="setting-label danger">清除本地数据</text>
+        <text class="setting-desc">删除本设备上的所有历史记录和草稿</text>
+      </view>
+      <text class="setting-arrow">&#10095;</text>
+    </view>
+  </view>
+</view>

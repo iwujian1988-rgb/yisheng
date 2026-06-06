@@ -1,0 +1,33 @@
+<!-- pages/asr/index.wxml -->
+<view class="asr-container">
+  <view class="record-section">
+    <view
+      class="record-btn {{recording ? 'recording' : ''}}"
+      bindtap="toggleRecord"
+    >
+      <text class="record-icon">{{recording ? '&#9632;' : '&#9679;'}}</text>
+    </view>
+    <text class="record-status">{{recording ? '录音中，点击停止' : '点击开始录音'}}</text>
+    <text wx:if="{{recording}}" class="record-hint">请对准手机麦克风说话</text>
+  </view>
+
+  <view class="result-section">
+    <text class="result-label">转写结果</text>
+    <view class="result-box">
+      <text wx:if="{{transcribing}}" class="result-empty">正在转写...</text>
+      <text wx:elif="{{resultText}}" class="result-text">{{resultText}}</text>
+      <text wx:elif="{{errorMessage}}" class="result-empty">{{errorMessage}}</text>
+      <text wx:else class="result-empty">完成录音后开始转写</text>
+    </view>
+  </view>
+
+  <view class="action-section">
+    <button
+      class="btn btn-primary action-btn"
+      disabled="{{!resultText}}"
+      bindtap="confirmResult"
+    >
+      确认并使用
+    </button>
+  </view>
+</view>

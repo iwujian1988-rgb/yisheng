@@ -1,0 +1,97 @@
+/* pages/transfer/confirm.wxss */
+.confirm-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px 48px;
+}
+
+/* 卡片 */
+.card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333333;
+}
+
+.char-count {
+  font-size: 13px;
+  color: #999999;
+}
+
+/* 文本预览 */
+.text-preview {
+  max-height: 240px;
+}
+
+.preview-text {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #333333;
+  word-break: break-all;
+}
+
+/* 来源信息 */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 15px;
+  color: #666666;
+}
+
+.info-value {
+  font-size: 15px;
+  color: #333333;
+}
+
+/* 操作按钮 */
+.action-section {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: #4A90E2;
+  color: #FFFFFF;
+}
+
+.btn-primary:active {
+  opacity: 0.8;
+}
+
+.btn-primary[disabled] {
+  background-color: #CCCCCC;
+  color: #FFFFFF;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #4A90E2;
+  border: 1px solid #4A90E2;
+}

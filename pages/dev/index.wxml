@@ -1,0 +1,25 @@
+<!--pages/dev/index.wxml-->
+<view class="dev-container">
+  <view class="warning-card">
+    <text class="warning-text">此页面仅供开发调试使用，正式版本中不会显示</text>
+  </view>
+
+  <!-- 测试工具 -->
+  <view class="tool-card">
+    <text class="tool-title">测试工具</text>
+    <view class="tool-item" bindtap="goToTestAccount">
+      <text class="tool-label">测试账号说明</text>
+      <text class="tool-arrow">&#10095;</text>
+    </view>
+    <view class="tool-divider"></view>
+    <view class="tool-item" bindtap="goToTestStatus">
+      <text class="tool-label">查看当前测试状态</text>
+      <text class="tool-arrow">&#10095;</text>
+    </view>
+    <view class="tool-divider"></view>
+    <view class="tool-item" bindtap="clearTestData">
+      <text class="tool-label danger">清理测试数据</text>
+      <text class="tool-arrow">&#10095;</text>
+    </view>
+  </view>
+</view>

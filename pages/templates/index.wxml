@@ -1,0 +1,46 @@
+<view class="templates-container">
+  <view class="tab-bar">
+    <view
+      class="tab-item {{activeTab === item.key ? 'tab-active' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="key"
+      bindtap="switchTab"
+      data-key="{{item.key}}"
+    >
+      <text class="tab-text">{{item.name}}</text>
+    </view>
+  </view>
+
+  <view class="state-section" wx:if="{{isLoading}}">
+    <text class="state-title">正在加载模板</text>
+  </view>
+
+  <view class="state-section" wx:elif="{{loadError}}">
+    <text class="state-title">{{loadError}}</text>
+    <button class="retry-btn" bindtap="loadTemplates">重试</button>
+  </view>
+
+  <view class="state-section" wx:elif="{{filteredTemplates.length === 0}}">
+    <view class="empty-icon">
+      <text class="empty-icon-text">T</text>
+    </view>
+    <text class="state-title">暂无可用模板</text>
+    <text class="state-desc">配置后会显示在这里</text>
+  </view>
+
+  <view class="list-section" wx:else>
+    <view
+      class="template-card"
+      wx:for="{{filteredTemplates}}"
+      wx:key="id"
+      bindtap="openTemplate"
+      data-id="{{item.id}}"
+    >
+      <view class="template-main">
+        <text class="template-name">{{item.name}}</text>
+        <text class="template-desc">{{item.description || '按字段填写后生成内容'}}</text>
+      </view>
+      <text class="template-arrow">&#10095;</text>
+    </view>
+  </view>
+</view>

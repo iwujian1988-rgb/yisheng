@@ -1,0 +1,10 @@
+/* pages/integration/status.wxss */
+.status-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
+.section-title { padding: 8px 0 16px; }
+.section-text { font-size: 16px; color: #333333; font-weight: 500; }
+.service-list { display: flex; flex-direction: column; gap: 10px; }
+.service-card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.service-name { font-size: 15px; color: #333333; }
+.service-status { font-size: 14px; }
+.status-ok { color: #4CAF50; }
+.status-err { color: #F44336; }

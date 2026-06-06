@@ -1,0 +1,26 @@
+<!--pages/qa/release-check.wxml-->
+<view class="checklist-container">
+  <view class="tip-card">
+    <text class="tip-text">发布前逐项确认所有检查项已通过</text>
+  </view>
+
+  <checkbox-group class="check-card" bindchange="onCheckChange">
+    <view class="check-item" wx:for="{{items}}" wx:key="id">
+      <label class="check-label">
+        <checkbox value="{{item.id}}" checked="{{item.checked}}" color="#4A90E2" />
+        <view class="check-info">
+          <text class="check-title">{{item.title}}</text>
+          <text class="check-desc">{{item.desc}}</text>
+        </view>
+      </label>
+    </view>
+  </checkbox-group>
+
+  <!-- 进度 -->
+  <view class="progress-section">
+    <view class="progress-bar">
+      <view class="progress-fill {{allChecked ? 'fill-green' : ''}}" style="width: {{progressPercent}}%"></view>
+    </view>
+    <text class="progress-text">{{checkedCount}}/{{items.length}} 已确认 {{allChecked ? '— 全部通过' : ''}}</text>
+  </view>
+</view>

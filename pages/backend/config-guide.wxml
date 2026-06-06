@@ -1,0 +1,14 @@
+<view class="guide-container">
+  <view class="card">
+    <text class="card-title">API Base URL</text>
+    <text class="card-desc">后端接口的基础地址由部署环境决定，不同环境使用不同地址。</text>
+  </view>
+  <view class="card">
+    <text class="card-title">运行环境</text>
+    <text class="card-desc">用于区分开发、测试、生产环境。当前运行环境由构建配置决定。</text>
+  </view>
+  <view class="card">
+    <text class="card-title">鉴权方式</text>
+    <text class="card-desc">接口请求需要携带登录后获得的用户令牌；令牌过期后需要重新登录。</text>
+  </view>
+</view>

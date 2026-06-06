@@ -1,0 +1,84 @@
+/* pages/common/encryption-note.wxss */
+.encryption-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px 48px;
+}
+
+/* 卡片 */
+.card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333333;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.card-desc {
+  font-size: 14px;
+  color: #666666;
+  line-height: 1.8;
+}
+
+/* 区块头 */
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.section-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #FFFFFF;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.badge-local {
+  background-color: #52C41A;
+}
+
+.badge-cloud {
+  background-color: #4A90E2;
+}
+
+.badge-ai {
+  background-color: #722ED1;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333333;
+}
+
+.section-desc {
+  font-size: 14px;
+  color: #666666;
+  line-height: 1.8;
+}
+
+/* 确认按钮 */
+.confirm-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 24px;
+  background-color: #4A90E2;
+  color: #FFFFFF;
+}
+
+.confirm-btn:active {
+  opacity: 0.8;
+}

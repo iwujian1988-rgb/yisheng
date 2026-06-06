@@ -1,0 +1,25 @@
+<!--pages/maintenance/cleanup-confirm.wxml-->
+<view class="cleanup-container">
+  <view class="confirm-card">
+    <text class="confirm-title">数据清理</text>
+    <text class="confirm-desc">将清理过期缓存和临时数据，此操作不可撤销，请确认。</text>
+  </view>
+  <view class="info-card">
+    <view class="info-row">
+      <text class="info-label">缓存数据</text>
+      <text class="info-value">{{cacheSize}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">临时文件</text>
+      <text class="info-value">{{tempSize}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">过期日志</text>
+      <text class="info-value">{{logCount}}</text>
+    </view>
+  </view>
+  <view class="bottom-actions">
+    <view class="btn-danger" bindtap="confirmCleanup"><text class="btn-text-danger">确认清理</text></view>
+    <view class="btn-secondary" bindtap="goBack"><text class="btn-text-secondary">取消</text></view>
+  </view>
+</view>

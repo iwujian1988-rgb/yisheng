@@ -1,0 +1,22 @@
+<!--pages/analytics/index.wxml-->
+<view class="analytics-container">
+  <view class="section-title"><text class="section-text">数据分析</text></view>
+  <view class="card-list">
+    <view class="entry-card" bindtap="goUsers">
+      <text class="card-title">用户分析</text>
+      <text class="card-desc">查看用户活跃度与增长趋势</text>
+    </view>
+    <view class="entry-card" bindtap="goDevices">
+      <text class="card-title">设备分析</text>
+      <text class="card-desc">查看设备使用与在线情况</text>
+    </view>
+    <view class="entry-card" bindtap="goTransfers">
+      <text class="card-title">传输分析</text>
+      <text class="card-desc">查看传输量与成功率统计</text>
+    </view>
+    <view class="entry-card" bindtap="goSupport">
+      <text class="card-title">客服分析</text>
+      <text class="card-desc">查看工单处理与满意度</text>
+    </view>
+  </view>
+</view>

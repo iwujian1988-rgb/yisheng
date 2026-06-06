@@ -1,0 +1,11 @@
+<view class="log-container">
+  <view class="empty-section" wx:if="{{logs.length === 0}}">
+    <text class="empty-text">暂无错误日志</text>
+  </view>
+  <view class="log-list" wx:if="{{logs.length > 0}}">
+    <view class="log-card" wx:for="{{logs}}" wx:key="id">
+      <text class="log-code">{{item.code}}</text>
+      <text class="log-time">{{item.time}}</text>
+    </view>
+  </view>
+</view>

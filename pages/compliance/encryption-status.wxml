@@ -1,0 +1,23 @@
+<view class="encrypt-container">
+  <view class="card">
+    <view class="section-header">
+      <view class="section-badge badge-local">本地</view>
+      <text class="section-title">本地数据</text>
+    </view>
+    <text class="section-desc">输入和编辑的文本优先保存在用户设备本地，不自动上传到服务器。</text>
+  </view>
+  <view class="card">
+    <view class="section-header">
+      <view class="section-badge badge-cloud">云端</view>
+      <text class="section-title">云端数据</text>
+    </view>
+    <text class="section-desc">需要跨设备使用时，云端仅保存经过保护处理的数据，管理员不应直接查看用户明文内容。</text>
+  </view>
+  <view class="card">
+    <view class="section-header">
+      <view class="section-badge badge-ai">AI</view>
+      <text class="section-title">AI 请求</text>
+    </view>
+    <text class="section-desc">调用 AI 服务前，系统需要先对个人敏感信息进行脱敏处理，再发送给第三方服务。</text>
+  </view>
+</view>

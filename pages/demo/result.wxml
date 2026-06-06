@@ -1,0 +1,24 @@
+<!--pages/demo/result.wxml-->
+<view class="result-container">
+  <view class="result-header">
+    <text class="result-title">演示完成</text>
+    <text class="result-desc">本次演示已结束，以下为模拟结果</text>
+  </view>
+  <view class="result-card">
+    <view class="info-row">
+      <text class="info-label">场景</text>
+      <text class="info-value">{{scenarioName}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">状态</text>
+      <text class="info-value status-ok">模拟成功</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">耗时</text>
+      <text class="info-value">{{duration}}</text>
+    </view>
+  </view>
+  <view class="bottom-actions">
+    <view class="btn-primary" bindtap="goBack"><text class="btn-text">返回演示首页</text></view>
+  </view>
+</view>

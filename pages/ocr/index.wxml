@@ -1,0 +1,37 @@
+<!-- pages/ocr/index.wxml -->
+<view class="ocr-container">
+  <view class="image-section">
+    <view class="image-area" bindtap="chooseImage">
+      <image
+        wx:if="{{imageUrl}}"
+        class="preview-image"
+        src="{{imageUrl}}"
+        mode="aspectFit"
+      />
+      <view wx:else class="image-placeholder">
+        <text class="placeholder-icon">&#128247;</text>
+        <text class="placeholder-text">点击选择图片</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="result-section">
+    <text class="result-label">识别结果</text>
+    <view class="result-box">
+      <text wx:if="{{recognizing}}" class="result-empty">正在识别...</text>
+      <text wx:elif="{{resultText}}" class="result-text">{{resultText}}</text>
+      <text wx:elif="{{errorMessage}}" class="result-empty">{{errorMessage}}</text>
+      <text wx:else class="result-empty">选择图片后开始识别</text>
+    </view>
+  </view>
+
+  <view class="action-section">
+    <button
+      class="btn btn-primary action-btn"
+      disabled="{{!resultText}}"
+      bindtap="confirmResult"
+    >
+      确认并使用
+    </button>
+  </view>
+</view>

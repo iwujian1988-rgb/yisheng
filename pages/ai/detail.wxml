@@ -1,0 +1,40 @@
+<!-- pages/ai/detail.wxml -->
+<view class="detail-container">
+  <scroll-view class="message-list" scroll-y scroll-into-view="{{scrollTarget}}">
+    <view wx:if="{{messages.length === 0}}" class="empty-hint">
+      <text class="empty-text">输入内容开始整理</text>
+    </view>
+
+    <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
+      <view class="message {{item.role === 'user' ? 'message-user' : 'message-ai'}}">
+        <view class="message-bubble">
+          <text class="message-text">{{item.content}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="review-bar" wx:if="{{messages.length > 0}}">
+    <button class="review-btn" bindtap="reviewLatestResult">审核最新结果</button>
+  </view>
+
+  <view class="input-bar">
+    <input
+      class="input-field"
+      placeholder="请输入需要整理或润色的文本"
+      placeholder-class="input-placeholder"
+      value="{{inputText}}"
+      bindinput="onInput"
+      bindconfirm="sendMessage"
+      confirm-type="send"
+    />
+    <button
+      class="send-btn {{inputText.length > 0 && !sending ? '' : 'send-btn-disabled'}}"
+      disabled="{{inputText.length === 0 || sending}}"
+      loading="{{sending}}"
+      bindtap="sendMessage"
+    >
+      {{sending ? '处理中' : '发送'}}
+    </button>
+  </view>
+</view>

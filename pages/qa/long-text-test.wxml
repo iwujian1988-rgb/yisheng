@@ -1,0 +1,77 @@
+<!-- pages/qa/long-text-test.wxml -->
+<view class="test-container">
+  <view class="card target-card">
+    <text class="card-title">验收目标</text>
+    <text class="target-text">{{targetChars}} 字文本在 {{targetSeconds}} 秒内传输完成，且电脑输出与源文本完全一致。</text>
+  </view>
+
+  <view class="card">
+    <button class="btn btn-primary test-btn" bindtap="startTest">创建压测任务</button>
+  </view>
+
+  <view class="card" wx:if="{{records.length > 0}}">
+    <text class="card-title">录入结果</text>
+    <view class="record-picker">
+      <view
+        wx:for="{{records}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="selectRecord"
+        class="record-chip {{selectedRecordId === item.id ? 'record-chip-active' : ''}}"
+      >
+        <text>{{item.charCount}} 字 / {{item.status}}</text>
+      </view>
+    </view>
+
+    <input
+      class="form-input"
+      type="number"
+      value="{{elapsedMs}}"
+      placeholder="实际耗时，单位毫秒"
+      bindinput="onElapsedInput"
+    />
+
+    <textarea
+      class="form-textarea"
+      value="{{outputText}}"
+      placeholder="粘贴电脑端实际输出文本，用于比对"
+      bindinput="onOutputInput"
+    />
+
+    <radio-group class="failure-group" bindchange="onFailureCategoryChange">
+      <label
+        wx:for="{{failureCategories}}"
+        wx:key="value"
+        class="failure-item"
+      >
+        <radio value="{{item.value}}" checked="{{failureCategory === item.value}}" />
+        <text>{{item.label}}</text>
+      </label>
+    </radio-group>
+
+    <button class="btn btn-primary test-btn" bindtap="submitResult">提交验收结果</button>
+  </view>
+
+  <view class="empty-section" wx:if="{{records.length === 0}}">
+    <text class="empty-text">暂无测试记录</text>
+  </view>
+
+  <view class="list-area" wx:if="{{records.length > 0}}">
+    <text class="section-label">测试记录</text>
+    <view class="record-card" wx:for="{{records}}" wx:key="id">
+      <view class="record-header">
+        <text class="record-date">{{item.date}}</text>
+        <text class="record-pass {{item.pass ? 'pass-yes' : 'pass-no'}}">{{item.pass ? '通过' : (item.status === 'failed' ? '未通过' : '待执行')}}</text>
+      </view>
+      <view class="record-meta">
+        <text class="meta-text">字数：{{item.charCount}}</text>
+        <text class="meta-text">耗时：{{item.elapsedMs || 0}}ms</text>
+      </view>
+      <view class="record-meta">
+        <text class="meta-text">缺字：{{item.missingCount || 0}}</text>
+        <text class="meta-text">多字：{{item.extraCount || 0}}</text>
+        <text class="meta-text">差异：{{item.firstDiffIndex >= 0 ? item.firstDiffIndex : '--'}}</text>
+      </view>
+    </view>
+  </view>
+</view>

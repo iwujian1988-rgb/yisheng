@@ -1,0 +1,57 @@
+<!--pages/qa/bug-report.wxml-->
+<view class="bug-container">
+  <view class="card">
+    <text class="card-title">问题类型</text>
+    <radio-group bindchange="onTypeChange">
+      <label class="radio-item" wx:for="{{types}}" wx:key="value">
+        <radio value="{{item.value}}" checked="{{selectedType === item.value}}" color="#4A90E2" />
+        <text class="radio-text">{{item.label}}</text>
+      </label>
+    </radio-group>
+  </view>
+
+  <view class="card">
+    <text class="card-title">问题描述</text>
+    <view class="field-item">
+      <text class="field-label">复现步骤</text>
+      <textarea
+        class="field-textarea"
+        placeholder="请描述复现步骤"
+        placeholder-class="input-placeholder"
+        value="{{steps}}"
+        bindinput="onStepsInput"
+        maxlength="1000"
+      />
+    </view>
+    <view class="field-item">
+      <text class="field-label">期望结果</text>
+      <input
+        class="field-input"
+        placeholder="正常应出现什么结果"
+        placeholder-class="input-placeholder"
+        value="{{expected}}"
+        bindinput="onExpectedInput"
+        maxlength="200"
+      />
+    </view>
+    <view class="field-item">
+      <text class="field-label">实际结果</text>
+      <input
+        class="field-input"
+        placeholder="实际出现了什么结果"
+        placeholder-class="input-placeholder"
+        value="{{actual}}"
+        bindinput="onActualInput"
+        maxlength="200"
+      />
+    </view>
+  </view>
+
+  <button
+    class="btn btn-primary submit-btn"
+    disabled="{{!canSubmit}}"
+    bindtap="submitBug"
+  >
+    提交
+  </button>
+</view>

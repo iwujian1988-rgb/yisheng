@@ -1,0 +1,28 @@
+<!--pages/admin/paid-user-detail.wxml-->
+<view class="detail-container">
+  <view class="card">
+    <text class="card-title">用户信息</text>
+    <view class="info-row">
+      <text class="info-label">手机号</text>
+      <text class="info-value">{{phone || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">服务状态</text>
+      <text class="info-value">{{serviceStatus || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">到期时间</text>
+      <text class="info-value">{{expiryDate || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">绑定设备</text>
+      <text class="info-value">{{deviceSerial || '--'}}</text>
+    </view>
+  </view>
+
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="editUser">编辑用户</button>
+    <button class="btn btn-outline action-btn" bindtap="renewService">续期服务</button>
+    <button class="btn btn-danger action-btn" bindtap="disableUser">禁用用户</button>
+  </view>
+</view>

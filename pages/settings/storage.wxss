@@ -1,0 +1,53 @@
+/* pages/settings/storage.wxss */
+.storage-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px;
+}
+
+.data-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 0 20px;
+}
+
+.data-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.data-left {
+  flex: 1;
+  margin-right: 12px;
+}
+
+.data-label {
+  font-size: 15px;
+  color: #333333;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.data-desc {
+  font-size: 12px;
+  color: #999999;
+  display: block;
+}
+
+.data-divider {
+  height: 1px;
+  background-color: #F0F0F0;
+}
+
+.clear-btn {
+  font-size: 14px;
+  color: #F5222D;
+  background-color: transparent;
+  border: 1px solid #F5222D;
+  border-radius: 6px;
+  padding: 4px 16px;
+  line-height: 24px;
+  flex-shrink: 0;
+}

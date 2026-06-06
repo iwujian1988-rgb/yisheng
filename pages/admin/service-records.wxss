@@ -1,0 +1,96 @@
+/* pages/admin/service-records.wxss */
+.records-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px;
+}
+
+/* 筛选栏 */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.filter-item {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: #FFFFFF;
+}
+
+.filter-active {
+  background-color: #4A90E2;
+}
+
+.filter-active .filter-text {
+  color: #FFFFFF;
+}
+
+.filter-text {
+  font-size: 14px;
+  color: #666666;
+}
+
+/* 空状态 */
+.empty-section {
+  display: flex;
+  justify-content: center;
+  padding-top: 120px;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #999999;
+}
+
+/* 列表 */
+.list-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.record-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.record-user {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333333;
+}
+
+.record-status {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.status-active {
+  color: #52C41A;
+  background-color: rgba(82, 196, 26, 0.1);
+}
+
+.status-expired {
+  color: #999999;
+  background-color: #F0F0F0;
+}
+
+.record-meta {
+  display: flex;
+  gap: 16px;
+}
+
+.meta-text {
+  font-size: 13px;
+  color: #999999;
+}

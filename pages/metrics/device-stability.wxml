@@ -1,0 +1,21 @@
+<!--pages/metrics/device-stability.wxml-->
+<view class="stability-container">
+  <view class="stats-grid">
+    <view class="stat-card">
+      <text class="stat-num">{{connectRate}}%</text>
+      <text class="stat-label">连接成功率</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{disconnectCount}}</text>
+      <text class="stat-label">断开次数</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{writeFailCount}}</text>
+      <text class="stat-label">写入失败</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{lastTestTime || '--'}}</text>
+      <text class="stat-label">最近测试</text>
+    </view>
+  </view>
+</view>

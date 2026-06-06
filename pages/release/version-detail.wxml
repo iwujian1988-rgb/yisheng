@@ -1,0 +1,24 @@
+<!--pages/release/version-detail.wxml-->
+<view class="detail-container">
+  <view class="info-card">
+    <view class="info-row">
+      <text class="info-label">版本号</text>
+      <text class="info-value">{{versionName}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">发布日期</text>
+      <text class="info-value">{{releaseDate}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">状态</text>
+      <text class="info-value">{{status}}</text>
+    </view>
+  </view>
+  <view class="section-title"><text class="section-text">更新内容</text></view>
+  <view class="changelog-card">
+    <text class="changelog-text">{{changelog}}</text>
+  </view>
+  <view class="bottom-actions">
+    <view class="btn-danger" bindtap="goRollback"><text class="btn-text-danger">回滚到此版本</text></view>
+  </view>
+</view>

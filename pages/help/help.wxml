@@ -1,0 +1,27 @@
+<!--pages/help/help.wxml-->
+<view class="help-container">
+  <!-- FAQ 列表 -->
+  <view class="faq-list">
+    <view
+      class="faq-item"
+      wx:for="{{faqList}}"
+      wx:key="id"
+      bindtap="toggleFaq"
+      data-id="{{item.id}}"
+    >
+      <view class="faq-question">
+        <text class="question-text">{{item.question}}</text>
+        <text class="question-arrow {{item.expanded ? 'expanded' : ''}}">&#10095;</text>
+      </view>
+      <view class="faq-answer" wx:if="{{item.expanded}}">
+        <text class="answer-text">{{item.answer}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部联系客服 -->
+  <view class="contact-section">
+    <text class="contact-desc">没有找到您的问题？</text>
+    <button class="contact-btn" bindtap="contactSupport">联系客服</button>
+  </view>
+</view>

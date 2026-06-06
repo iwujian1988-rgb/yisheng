@@ -1,0 +1,60 @@
+<!--pages/ops/device-handover.wxml-->
+<view class="handover-container">
+  <view class="card">
+    <text class="card-title">交付信息</text>
+
+    <view class="field-item">
+      <text class="field-label">设备序列号</text>
+      <input
+        class="field-input"
+        placeholder="请输入设备序列号"
+        placeholder-class="input-placeholder"
+        value="{{serialNo}}"
+        bindinput="onSerialInput"
+        maxlength="50"
+      />
+    </view>
+
+    <view class="field-item">
+      <text class="field-label">交付对象</text>
+      <input
+        class="field-input"
+        placeholder="请输入交付对象"
+        placeholder-class="input-placeholder"
+        value="{{recipient}}"
+        bindinput="onRecipientInput"
+        maxlength="50"
+      />
+    </view>
+
+    <view class="field-item">
+      <text class="field-label">交付日期</text>
+      <picker mode="date" value="{{handoverDate}}" bindchange="onDateChange">
+        <view class="field-picker">
+          <text class="{{handoverDate ? 'picker-value' : 'picker-placeholder'}}">{{handoverDate || '请选择日期'}}</text>
+          <text class="picker-arrow">&#10095;</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="field-item">
+      <text class="field-label">备注</text>
+      <textarea
+        class="field-textarea"
+        placeholder="选填备注信息"
+        placeholder-class="input-placeholder"
+        value="{{remark}}"
+        bindinput="onRemarkInput"
+        maxlength="200"
+      />
+    </view>
+  </view>
+
+  <button
+    class="btn btn-primary submit-btn"
+    disabled="{{!canSubmit}}"
+    bindtap="submitHandover"
+  >
+    提交交付记录
+  </button>
+</view>

@@ -1,0 +1,14 @@
+<!--pages/release/rollback-confirm.wxml-->
+<view class="confirm-container">
+  <view class="confirm-card">
+    <text class="confirm-title">确认回滚</text>
+    <text class="confirm-desc">回滚操作将恢复到指定版本，当前版本数据将被覆盖，请确认是否继续。</text>
+  </view>
+  <view class="warning-card">
+    <text class="warning-text">此操作不可撤销，请谨慎操作</text>
+  </view>
+  <view class="bottom-actions">
+    <view class="btn-danger" bindtap="confirmRollback"><text class="btn-text-danger">确认回滚</text></view>
+    <view class="btn-secondary" bindtap="goBack"><text class="btn-text-secondary">取消</text></view>
+  </view>
+</view>

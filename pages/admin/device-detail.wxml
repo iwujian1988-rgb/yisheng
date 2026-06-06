@@ -1,0 +1,31 @@
+<!--pages/admin/device-detail.wxml-->
+<view class="detail-container">
+  <view class="card">
+    <text class="card-title">设备信息</text>
+    <view class="info-row">
+      <text class="info-label">序列号</text>
+      <text class="info-value">{{serialNo || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">型号</text>
+      <text class="info-value">{{model || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">固件版本</text>
+      <text class="info-value">{{firmwareVersion || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">绑定用户</text>
+      <text class="info-value">{{boundUser || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">绑定状态</text>
+      <text class="info-value">{{bindStatus || '--'}}</text>
+    </view>
+  </view>
+
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="unbindDevice">解绑设备</button>
+    <button class="btn btn-outline action-btn" bindtap="disableDevice">禁用设备</button>
+  </view>
+</view>

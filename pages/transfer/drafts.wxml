@@ -1,0 +1,21 @@
+<!--pages/transfer/drafts.wxml-->
+<view class="drafts-container">
+  <!-- 空状态 -->
+  <view class="empty-section" wx:if="{{drafts.length === 0}}">
+    <text class="empty-text">暂无草稿</text>
+  </view>
+
+  <!-- 草稿列表 -->
+  <view class="draft-list" wx:if="{{drafts.length > 0}}">
+    <view class="draft-card" wx:for="{{drafts}}" wx:key="id">
+      <view class="draft-body">
+        <text class="draft-preview">{{item.preview}}</text>
+        <text class="draft-meta">{{item.time}}</text>
+      </view>
+      <view class="draft-actions">
+        <text class="action-link action-edit" bindtap="editDraft" data-id="{{item.id}}">编辑</text>
+        <text class="action-link action-delete" bindtap="deleteDraft" data-id="{{item.id}}">删除</text>
+      </view>
+    </view>
+  </view>
+</view>

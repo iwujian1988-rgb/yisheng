@@ -1,0 +1,32 @@
+<!--pages/admin/device-list.wxml-->
+<view class="list-container">
+  <!-- 搜索框 -->
+  <view class="search-bar">
+    <input
+      class="search-input"
+      placeholder="搜索序列号"
+      placeholder-class="search-placeholder"
+      value="{{keyword}}"
+      bindinput="onSearchInput"
+    />
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-section" wx:if="{{devices.length === 0}}">
+    <text class="empty-text">暂无设备</text>
+  </view>
+
+  <!-- 设备列表 -->
+  <view class="list-area" wx:if="{{devices.length > 0}}">
+    <view class="device-card" wx:for="{{devices}}" wx:key="id">
+      <view class="device-header">
+        <text class="device-serial">{{item.serialNo}}</text>
+        <text class="device-status {{item.bound ? 'status-bound' : 'status-unbound'}}">{{item.bound ? '已绑定' : '未绑定'}}</text>
+      </view>
+      <view class="device-meta">
+        <text class="meta-text" wx:if="{{item.boundUser}}">绑定用户：{{item.boundUser}}</text>
+        <text class="meta-text">固件：{{item.firmwareVersion || '--'}}</text>
+      </view>
+    </view>
+  </view>
+</view>

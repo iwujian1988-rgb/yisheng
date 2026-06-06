@@ -1,0 +1,84 @@
+/* pages/tutorials/detail.wxss */
+.detail-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px 48px;
+}
+
+/* 标题 */
+.title-section {
+  margin-bottom: 28px;
+}
+
+.detail-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333333;
+  line-height: 1.4;
+}
+
+.section-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333333;
+  margin-bottom: 12px;
+  display: block;
+}
+
+/* 步骤列表 */
+.steps-section {
+  margin-bottom: 28px;
+}
+
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+}
+
+.step-num-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #4A90E2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.step-num-text {
+  font-size: 13px;
+  color: #FFFFFF;
+}
+
+.step-content {
+  font-size: 15px;
+  color: #333333;
+  line-height: 24px;
+  flex: 1;
+}
+
+/* 注意事项 */
+.notice-section {
+  margin-bottom: 28px;
+}
+
+.notice-box {
+  background-color: rgba(250, 173, 20, 0.08);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.notice-text {
+  font-size: 14px;
+  color: #666666;
+  line-height: 1.8;
+  display: block;
+}

@@ -1,0 +1,21 @@
+<view class="scenario-container">
+  <view class="section-title"><text class="section-text">选择演示场景</text></view>
+  <view class="scenario-list">
+    <view class="scenario-card" bindtap="selectScenario" data-id="1">
+      <text class="scenario-title">会议纪要</text>
+      <text class="scenario-desc">演示如何把要点整理成可发送文本</text>
+    </view>
+    <view class="scenario-card" bindtap="selectScenario" data-id="2">
+      <text class="scenario-title">工作汇报</text>
+      <text class="scenario-desc">演示长文本整理和发送流程</text>
+    </view>
+    <view class="scenario-card" bindtap="selectScenario" data-id="3">
+      <text class="scenario-title">AI 辅助录入</text>
+      <text class="scenario-desc">演示 AI 润色、确认和发送</text>
+    </view>
+    <view class="scenario-card" bindtap="selectScenario" data-id="4">
+      <text class="scenario-title">完整流程演示</text>
+      <text class="scenario-desc">从连接设备到发送电脑的完整体验</text>
+    </view>
+  </view>
+</view>

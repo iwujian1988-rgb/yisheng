@@ -1,0 +1,24 @@
+<!--pages/device/firmware.wxml-->
+<view class="firmware-container">
+  <!-- 固件信息 -->
+  <view class="card">
+    <text class="card-title">固件信息</text>
+    <view class="info-row">
+      <text class="info-label">固件版本</text>
+      <text class="info-value">{{firmwareVersion || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">协议版本</text>
+      <text class="info-value">{{protocolVersion || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">升级状态</text>
+      <text class="info-value">{{upgradeStatus || '--'}}</text>
+    </view>
+  </view>
+
+  <!-- 检查更新 -->
+  <button class="btn btn-primary update-btn" bindtap="checkUpdate">
+    检查更新
+  </button>
+</view>

@@ -1,0 +1,11 @@
+<!--pages/training/admin-index.wxml-->
+<view class="training-container">
+  <view class="section-title"><text class="section-text">管理员培训</text></view>
+  <view class="card-list">
+    <view class="entry-card" wx:for="{{courses}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+      <text class="card-title">{{item.title}}</text>
+      <text class="card-desc">{{item.desc}}</text>
+    </view>
+  </view>
+  <view class="empty-section" wx:if="{{courses.length===0}}"><text class="empty-text">暂无培训课程</text></view>
+</view>

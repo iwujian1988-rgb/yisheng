@@ -1,0 +1,20 @@
+<view class="transfers-container">
+  <view class="stat-grid">
+    <view class="stat-card">
+      <text class="stat-value">{{totalCount}}</text>
+      <text class="stat-label">传输次数</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{successRate}}</text>
+      <text class="stat-label">成功率</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{avgTime}}</text>
+      <text class="stat-label">平均耗时</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{longTextPassRate}}</text>
+      <text class="stat-label">长文本通过率</text>
+    </view>
+  </view>
+</view>

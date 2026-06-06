@@ -1,0 +1,15 @@
+/* pages/maintenance/cleanup-confirm.wxss */
+.cleanup-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; display: flex; flex-direction: column; }
+.confirm-card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; }
+.confirm-title { font-size: 18px; color: #333333; font-weight: 600; }
+.confirm-desc { font-size: 14px; color: #666666; margin-top: 12px; line-height: 1.6; }
+.info-card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; margin-top: 16px; }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F0F0F0; }
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: 14px; color: #999999; }
+.info-value { font-size: 14px; color: #333333; }
+.bottom-actions { margin-top: auto; padding: 24px 0; display: flex; flex-direction: column; gap: 10px; }
+.btn-danger { background-color: #F44336; border-radius: 12px; padding: 14px 0; text-align: center; }
+.btn-text-danger { font-size: 16px; color: #FFFFFF; }
+.btn-secondary { background-color: #FFFFFF; border: 1px solid #CCCCCC; border-radius: 12px; padding: 14px 0; text-align: center; }
+.btn-text-secondary { font-size: 16px; color: #666666; }

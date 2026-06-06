@@ -1,0 +1,6 @@
+/* pages/metrics/transfer-performance.wxss */
+.perf-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
+.stats-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.stat-card { width: calc(50% - 6px); background-color: #FFFFFF; border-radius: 8px; padding: 24px 20px; text-align: center; box-sizing: border-box; }
+.stat-num { font-size: 28px; font-weight: 600; color: #333333; display: block; }
+.stat-label { font-size: 13px; color: #999999; margin-top: 6px; display: block; }

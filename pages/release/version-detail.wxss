@@ -1,0 +1,14 @@
+/* pages/release/version-detail.wxss */
+.detail-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; display: flex; flex-direction: column; }
+.info-card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F0F0F0; }
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: 14px; color: #999999; }
+.info-value { font-size: 14px; color: #333333; }
+.section-title { padding: 20px 0 10px; }
+.section-text { font-size: 16px; color: #333333; font-weight: 500; }
+.changelog-card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; }
+.changelog-text { font-size: 14px; color: #666666; line-height: 1.6; }
+.bottom-actions { margin-top: auto; padding: 24px 0; }
+.btn-danger { background-color: #FFFFFF; border: 1px solid #F44336; border-radius: 12px; padding: 14px 0; text-align: center; }
+.btn-text-danger { font-size: 16px; color: #F44336; }

@@ -1,0 +1,17 @@
+/* pages/training/feedback.wxss */
+.feedback-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; display: flex; flex-direction: column; }
+.form-section { background-color: #FFFFFF; border-radius: 8px; padding: 20px; }
+.form-title { margin-bottom: 16px; }
+.form-title-text { font-size: 16px; color: #333333; font-weight: 500; }
+.form-group { display: flex; flex-direction: column; margin-bottom: 16px; }
+.form-group:last-child { margin-bottom: 0; }
+.form-label { font-size: 14px; color: #666666; margin-bottom: 8px; }
+.rating-bar { display: flex; gap: 10px; }
+.rating-item { width: 40px; height: 40px; border-radius: 50%; background-color: #F0F0F0; display: flex; align-items: center; justify-content: center; }
+.rating-active { background-color: #4A90E2; }
+.rating-text { font-size: 16px; color: #FFFFFF; }
+.rating-item:not(.rating-active) .rating-text { color: #999999; }
+.form-textarea { border: 1px solid #E0E0E0; border-radius: 4px; padding: 10px 12px; font-size: 14px; color: #333333; height: 120px; }
+.bottom-actions { margin-top: auto; padding: 24px 0; }
+.btn-primary { background-color: #4A90E2; border-radius: 12px; padding: 14px 0; text-align: center; }
+.btn-text { font-size: 16px; color: #FFFFFF; }

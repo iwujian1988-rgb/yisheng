@@ -1,0 +1,14 @@
+<!--pages/training/detail.wxml-->
+<view class="detail-container">
+  <view class="info-card">
+    <text class="info-title">{{courseTitle}}</text>
+    <text class="info-desc">{{courseDesc}}</text>
+  </view>
+  <view class="section-title"><text class="section-text">课程内容</text></view>
+  <view class="content-card">
+    <text class="content-text">{{courseContent}}</text>
+  </view>
+  <view class="bottom-actions">
+    <view class="btn-primary" bindtap="goDone"><text class="btn-text">完成学习</text></view>
+  </view>
+</view>

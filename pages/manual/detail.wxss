@@ -1,0 +1,86 @@
+/* pages/manual/detail.wxss */
+.detail-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px;
+}
+
+.card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.detail-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333333;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.section-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333333;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.step-card {
+  display: flex;
+  align-items: flex-start;
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 8px;
+}
+
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #4A90E2;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.step-text {
+  font-size: 15px;
+  color: #333333;
+  line-height: 1.6;
+  flex: 1;
+  padding-top: 2px;
+}
+
+.notice-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+
+.notice-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background-color: #FAAD14;
+  margin-top: 8px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.notice-text {
+  font-size: 14px;
+  color: #666666;
+  line-height: 1.6;
+  flex: 1;
+}

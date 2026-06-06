@@ -1,0 +1,18 @@
+/* pages/maintenance/logs.wxss */
+.logs-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
+.filter-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+.filter-item { padding: 8px 16px; border-radius: 20px; background-color: #FFFFFF; }
+.filter-active { background-color: #4A90E2; }
+.filter-active .filter-text { color: #FFFFFF; }
+.filter-text { font-size: 14px; color: #666666; }
+.empty-section { display: flex; justify-content: center; padding-top: 120px; }
+.empty-text { font-size: 14px; color: #999999; }
+.log-list { display: flex; flex-direction: column; gap: 10px; }
+.log-card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; }
+.log-header { display: flex; justify-content: space-between; align-items: center; }
+.log-level { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
+.level-error { background-color: #FFEBEE; color: #C62828; }
+.level-warn { background-color: #FFF8E1; color: #F57F17; }
+.level-info { background-color: #E3F2FD; color: #4A90E2; }
+.log-time { font-size: 12px; color: #CCCCCC; }
+.log-msg { font-size: 14px; color: #333333; margin-top: 8px; }

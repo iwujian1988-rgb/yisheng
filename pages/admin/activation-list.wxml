@@ -1,0 +1,15 @@
+<!--pages/admin/activation-list.wxml-->
+<view class="list-container">
+  <view class="filter-bar">
+    <view class="filter-item {{filter==='all'?'filter-active':''}}" bindtap="setFilter" data-filter="all"><text class="filter-text">全部</text></view>
+    <view class="filter-item {{filter==='unused'?'filter-active':''}}" bindtap="setFilter" data-filter="unused"><text class="filter-text">未使用</text></view>
+    <view class="filter-item {{filter==='used'?'filter-active':''}}" bindtap="setFilter" data-filter="used"><text class="filter-text">已使用</text></view>
+  </view>
+  <view class="empty-section" wx:if="{{codes.length===0}}"><text class="empty-text">暂无激活码</text></view>
+  <view class="code-list" wx:if="{{codes.length>0}}">
+    <view class="code-card" wx:for="{{codes}}" wx:key="id">
+      <text class="code-text">{{item.code}}</text>
+      <text class="code-status">{{item.status}}</text>
+    </view>
+  </view>
+</view>

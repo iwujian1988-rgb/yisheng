@@ -1,0 +1,43 @@
+<!--pages/admin/feedback-detail.wxml-->
+<view class="detail-container">
+  <view class="card">
+    <text class="card-title">反馈信息</text>
+    <view class="info-row">
+      <text class="info-label">反馈类型</text>
+      <text class="info-value">{{feedbackType || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">提交时间</text>
+      <text class="info-value">{{submitTime || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">处理状态</text>
+      <text class="info-value">{{processStatus || '--'}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="card-title">反馈内容</text>
+    <text class="content-text">{{content || '暂无内容'}}</text>
+  </view>
+
+  <view class="card">
+    <text class="card-title">处理备注</text>
+    <textarea
+      class="remark-input"
+      placeholder="请输入处理备注"
+      placeholder-class="input-placeholder"
+      value="{{reviewRemark}}"
+      bindinput="onRemarkInput"
+      maxlength="500"
+    />
+  </view>
+
+  <button
+    class="btn btn-primary submit-btn"
+    disabled="{{!reviewRemark}}"
+    bindtap="submitReview"
+  >
+    提交处理
+  </button>
+</view>

@@ -1,0 +1,48 @@
+/* pages/settings/privacy.wxss */
+.privacy-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px;
+}
+
+.setting-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 0 20px;
+  margin-bottom: 12px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.setting-left {
+  flex: 1;
+  margin-right: 12px;
+}
+
+.setting-label {
+  font-size: 15px;
+  color: #333333;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.setting-desc {
+  font-size: 12px;
+  color: #999999;
+  display: block;
+}
+
+.danger {
+  color: #F5222D;
+}
+
+.setting-arrow {
+  font-size: 12px;
+  color: #CCCCCC;
+  flex-shrink: 0;
+}

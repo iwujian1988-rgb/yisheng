@@ -1,0 +1,25 @@
+<!--pages/release/project-done.wxml-->
+<view class="done-container">
+  <view class="done-header">
+    <text class="done-title">项目交付完成</text>
+    <text class="done-desc">所有功能开发与测试已完成，项目已正式交付</text>
+  </view>
+  <view class="summary-card">
+    <view class="info-row">
+      <text class="info-label">项目名称</text>
+      <text class="info-value">{{projectName}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">交付日期</text>
+      <text class="info-value">{{deliveryDate}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">版本号</text>
+      <text class="info-value">{{version}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">验收状态</text>
+      <text class="info-value status-ok">已通过</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,14 @@
+/* pages/backend/health-check.wxss */
+.health-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px 48px; }
+.empty-section { display: flex; justify-content: center; padding-top: 120px; }
+.empty-text { font-size: 14px; color: #999999; }
+.check-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.check-card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; display: flex; align-items: center; }
+.check-dot { width: 10px; height: 10px; border-radius: 5px; margin-right: 12px; flex-shrink: 0; }
+.dot-green { background-color: #52C41A; }
+.dot-red { background-color: #F5222D; }
+.check-name { font-size: 15px; color: #333333; flex: 1; }
+.check-result { font-size: 13px; color: #999999; }
+.action-section { margin-top: auto; }
+.action-btn { width: 100%; height: 52px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #4A90E2; color: #FFFFFF; }
+.action-btn:active { opacity: 0.8; }

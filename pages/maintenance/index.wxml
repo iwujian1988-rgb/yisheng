@@ -1,0 +1,18 @@
+<!--pages/maintenance/index.wxml-->
+<view class="maintenance-container">
+  <view class="section-title"><text class="section-text">系统维护</text></view>
+  <view class="card-list">
+    <view class="entry-card" bindtap="goLogs">
+      <text class="card-title">系统日志</text>
+      <text class="card-desc">查看系统运行日志</text>
+    </view>
+    <view class="entry-card" bindtap="goConfigCheck">
+      <text class="card-title">配置检查</text>
+      <text class="card-desc">检查系统配置状态</text>
+    </view>
+    <view class="entry-card" bindtap="goCleanup">
+      <text class="card-title">数据清理</text>
+      <text class="card-desc">清理过期缓存与临时数据</text>
+    </view>
+  </view>
+</view>

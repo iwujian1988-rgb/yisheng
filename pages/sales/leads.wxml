@@ -1,0 +1,10 @@
+<!--pages/sales/leads.wxml-->
+<view class="leads-container">
+  <view class="empty-section" wx:if="{{leads.length === 0}}"><text class="empty-text">暂无线索</text></view>
+  <view class="lead-list" wx:if="{{leads.length > 0}}">
+    <view class="lead-card" wx:for="{{leads}}" wx:key="id">
+      <text class="lead-name">{{item.name}}</text>
+      <text class="lead-status">{{item.status}}</text>
+    </view>
+  </view>
+</view>

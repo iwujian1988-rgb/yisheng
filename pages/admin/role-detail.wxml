@@ -1,0 +1,23 @@
+<view class="detail-container">
+  <view class="card">
+    <text class="card-title">角色信息</text>
+    <view class="info-row">
+      <text class="info-label">角色名称</text>
+      <text class="info-value">{{roleName || '--'}}</text>
+    </view>
+    <view class="info-row" wx:if="{{remark}}">
+      <text class="info-label">备注</text>
+      <text class="info-value">{{remark}}</text>
+    </view>
+  </view>
+  <view class="card">
+    <text class="card-title">权限列表</text>
+    <view class="empty-section" wx:if="{{permissions.length === 0}}">
+      <text class="empty-text">暂无权限</text>
+    </view>
+    <view class="perm-item" wx:for="{{permissions}}" wx:key="index">
+      <view class="perm-dot"></view>
+      <text class="perm-text">{{item}}</text>
+    </view>
+  </view>
+</view>

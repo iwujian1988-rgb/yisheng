@@ -1,0 +1,24 @@
+<!--pages/analytics/support.wxml-->
+<view class="support-container">
+  <view class="stat-grid">
+    <view class="stat-card">
+      <text class="stat-value">{{totalTickets}}</text>
+      <text class="stat-label">总工单数</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{resolvedTickets}}</text>
+      <text class="stat-label">已解决</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{avgResponseTime}}</text>
+      <text class="stat-label">平均响应</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{satisfaction}}</text>
+      <text class="stat-label">满意度</text>
+    </view>
+  </view>
+  <view class="placeholder-section">
+    <text class="placeholder-text">等待接入客服分析服务</text>
+  </view>
+</view>

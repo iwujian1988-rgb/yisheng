@@ -1,0 +1,74 @@
+/* pages/ai/review-result.wxss */
+.review-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px 48px;
+  box-sizing: border-box;
+}
+
+.card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.card-title {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333333;
+}
+
+.result-scroll {
+  max-height: 320px;
+}
+
+.result-text {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #333333;
+  word-break: break-all;
+}
+
+.confirm-card {
+  background-color: rgba(74, 144, 226, 0.06);
+}
+
+.confirm-text {
+  font-size: 14px;
+  color: #4A90E2;
+  line-height: 1.6;
+}
+
+.action-section {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: #4A90E2;
+  color: #FFFFFF;
+}
+
+.btn-primary:active {
+  opacity: 0.8;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #4A90E2;
+  border: 1px solid #4A90E2;
+}

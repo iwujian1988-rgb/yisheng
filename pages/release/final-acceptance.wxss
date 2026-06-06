@@ -1,0 +1,14 @@
+/* pages/release/final-acceptance.wxss */
+.acceptance-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; display: flex; flex-direction: column; }
+.header-section { display: flex; flex-direction: column; padding: 16px 0; }
+.header-title { font-size: 18px; color: #333333; font-weight: 600; }
+.header-desc { font-size: 13px; color: #999999; margin-top: 6px; }
+.checklist { display: flex; flex-direction: column; gap: 10px; }
+.check-card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.check-name { font-size: 15px; color: #333333; }
+.check-status { font-size: 14px; }
+.status-pass { color: #4CAF50; }
+.status-pending { color: #FF9800; }
+.bottom-actions { margin-top: auto; padding: 24px 0; }
+.btn-primary { background-color: #4A90E2; border-radius: 12px; padding: 14px 0; text-align: center; }
+.btn-text { font-size: 16px; color: #FFFFFF; }

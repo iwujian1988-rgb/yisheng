@@ -1,0 +1,31 @@
+<!--pages/admin/feedback-review.wxml-->
+<view class="feedback-container">
+  <!-- 状态筛选 -->
+  <view class="filter-bar">
+    <view class="filter-item {{filter === 'all' ? 'filter-active' : ''}}" bindtap="setFilter" data-filter="all">
+      <text class="filter-text">全部</text>
+    </view>
+    <view class="filter-item {{filter === 'pending' ? 'filter-active' : ''}}" bindtap="setFilter" data-filter="pending">
+      <text class="filter-text">待处理</text>
+    </view>
+    <view class="filter-item {{filter === 'resolved' ? 'filter-active' : ''}}" bindtap="setFilter" data-filter="resolved">
+      <text class="filter-text">已处理</text>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-section" wx:if="{{feedbacks.length === 0}}">
+    <text class="empty-text">暂无反馈</text>
+  </view>
+
+  <!-- 反馈列表 -->
+  <view class="list-area" wx:if="{{feedbacks.length > 0}}">
+    <view class="feedback-card" wx:for="{{feedbacks}}" wx:key="id">
+      <view class="feedback-header">
+        <text class="feedback-type">{{item.type}}</text>
+        <text class="feedback-status {{item.status === 'pending' ? 'status-pending' : 'status-resolved'}}">{{item.status === 'pending' ? '待处理' : '已处理'}}</text>
+      </view>
+      <text class="feedback-time">{{item.time}}</text>
+    </view>
+  </view>
+</view>

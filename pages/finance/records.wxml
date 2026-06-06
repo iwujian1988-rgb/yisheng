@@ -1,0 +1,19 @@
+<!--pages/finance/records.wxml-->
+<view class="records-container">
+  <view class="filter-bar">
+    <view class="filter-item {{filter==='all'?'filter-active':''}}" bindtap="setFilter" data-filter="all"><text class="filter-text">全部</text></view>
+    <view class="filter-item {{filter==='income'?'filter-active':''}}" bindtap="setFilter" data-filter="income"><text class="filter-text">收入</text></view>
+    <view class="filter-item {{filter==='expense'?'filter-active':''}}" bindtap="setFilter" data-filter="expense"><text class="filter-text">支出</text></view>
+    <view class="filter-item {{filter==='refund'?'filter-active':''}}" bindtap="setFilter" data-filter="refund"><text class="filter-text">退款</text></view>
+  </view>
+  <view class="empty-section" wx:if="{{records.length===0}}"><text class="empty-text">暂无财务记录</text></view>
+  <view class="record-list" wx:if="{{records.length>0}}">
+    <view class="record-card" wx:for="{{records}}" wx:key="id">
+      <view class="record-left">
+        <text class="record-title">{{item.title}}</text>
+        <text class="record-date">{{item.date}}</text>
+      </view>
+      <text class="record-amount {{item.type==='income'?'amount-green':'amount-red'}}">{{item.amount}}</text>
+    </view>
+  </view>
+</view>

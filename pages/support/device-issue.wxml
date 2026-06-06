@@ -1,0 +1,50 @@
+<!--pages/support/device-issue.wxml-->
+<view class="issue-container">
+  <view class="section">
+    <text class="section-label">问题类型</text>
+    <view class="type-group">
+      <view
+        class="type-item {{activeType === item ? 'type-active' : ''}}"
+        wx:for="{{typeOptions}}"
+        wx:key="*this"
+        bindtap="selectType"
+        data-type="{{item}}"
+      >
+        <text class="type-text">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <text class="section-label">问题描述</text>
+    <textarea
+      class="textarea"
+      placeholder="请描述设备问题的具体情况"
+      placeholder-class="input-placeholder"
+      value="{{description}}"
+      bindinput="onDescriptionInput"
+      maxlength="500"
+    />
+    <text class="char-count">{{description.length}}/500</text>
+  </view>
+
+  <view class="section">
+    <text class="section-label">设备序列号（选填）</text>
+    <input
+      class="input"
+      placeholder="设备上的序列号"
+      placeholder-class="input-placeholder"
+      value="{{serialNo}}"
+      bindinput="onSerialNoInput"
+      maxlength="30"
+    />
+  </view>
+
+  <button
+    class="btn btn-primary submit-btn {{canSubmit ? '' : 'disabled'}}"
+    disabled="{{!canSubmit}}"
+    bindtap="submitIssue"
+  >
+    提交
+  </button>
+</view>

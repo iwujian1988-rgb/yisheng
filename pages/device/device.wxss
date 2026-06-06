@@ -1,0 +1,150 @@
+/* pages/device/device.wxss */
+.device-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 0 32px;
+}
+
+/* 状态区域 */
+.status-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 60px;
+}
+
+/* 图标 */
+.icon-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.icon-text {
+  font-size: 36px;
+  color: #FFFFFF;
+}
+
+.icon-unbound {
+  background-color: #4A90E2;
+}
+
+.icon-bound {
+  background-color: #52C41A;
+}
+
+.icon-unavailable {
+  background-color: #FAAD14;
+}
+
+/* 文案 */
+.status-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 8px;
+}
+
+.status-desc {
+  font-size: 14px;
+  color: #666666;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 32px;
+  padding: 0 16px;
+}
+
+/* 信息卡片 */
+.info-card {
+  width: 100%;
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 32px;
+}
+
+.info-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333333;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.info-step {
+  font-size: 14px;
+  color: #666666;
+  line-height: 2;
+  display: block;
+}
+
+/* 详情卡片 */
+.detail-card {
+  width: 100%;
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 4px 20px;
+  margin-bottom: 32px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+}
+
+.detail-label {
+  font-size: 14px;
+  color: #666666;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: #333333;
+}
+
+.detail-divider {
+  height: 1px;
+  background-color: #F0F0F0;
+}
+
+/* 按钮 */
+.action-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.action-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-primary {
+  background-color: #4A90E2;
+  color: #FFFFFF;
+}
+
+.btn-primary:active {
+  opacity: 0.8;
+}
+
+.btn-primary[disabled] {
+  background-color: #CCCCCC;
+  color: #FFFFFF;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #4A90E2;
+  border: 1px solid #4A90E2;
+}

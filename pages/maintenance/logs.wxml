@@ -1,0 +1,19 @@
+<!--pages/maintenance/logs.wxml-->
+<view class="logs-container">
+  <view class="filter-bar">
+    <view class="filter-item {{filter==='all'?'filter-active':''}}" bindtap="setFilter" data-filter="all"><text class="filter-text">全部</text></view>
+    <view class="filter-item {{filter==='error'?'filter-active':''}}" bindtap="setFilter" data-filter="error"><text class="filter-text">错误</text></view>
+    <view class="filter-item {{filter==='warn'?'filter-active':''}}" bindtap="setFilter" data-filter="warn"><text class="filter-text">警告</text></view>
+    <view class="filter-item {{filter==='info'?'filter-active':''}}" bindtap="setFilter" data-filter="info"><text class="filter-text">信息</text></view>
+  </view>
+  <view class="empty-section" wx:if="{{logs.length===0}}"><text class="empty-text">暂无日志记录</text></view>
+  <view class="log-list" wx:if="{{logs.length>0}}">
+    <view class="log-card" wx:for="{{logs}}" wx:key="id">
+      <view class="log-header">
+        <text class="log-level {{item.level==='error'?'level-error':item.level==='warn'?'level-warn':'level-info'}}">{{item.level}}</text>
+        <text class="log-time">{{item.time}}</text>
+      </view>
+      <text class="log-msg">{{item.message}}</text>
+    </view>
+  </view>
+</view>

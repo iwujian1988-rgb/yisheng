@@ -1,0 +1,59 @@
+<!--pages/manual/index.wxml-->
+<view class="manual-container">
+  <view class="entry-list">
+    <view class="entry-card" bindtap="goSection" data-section="setup">
+      <view class="entry-icon icon-setup">
+        <text class="icon-text">&#9881;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">首次使用</text>
+        <text class="entry-desc">注册登录、购买硬件、开通服务</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goSection" data-section="device">
+      <view class="entry-icon icon-device">
+        <text class="icon-text">&#9881;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">绑定设备</text>
+        <text class="entry-desc">蓝牙配对、设备绑定、环境检查</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goSection" data-section="transfer">
+      <view class="entry-icon icon-transfer">
+        <text class="icon-text">&#9998;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">发送文本</text>
+        <text class="entry-desc">输入内容、确认发送、查看进度</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goSection" data-section="ai">
+      <view class="entry-icon icon-ai">
+        <text class="icon-text">&#9733;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">AI 整理</text>
+        <text class="entry-desc">OCR、录音转写、AI 润色、模板</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goSection" data-section="troubleshoot">
+      <view class="entry-icon icon-trouble">
+        <text class="icon-text">&#10067;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">问题排查</text>
+        <text class="entry-desc">连接失败、发送中断、常见问题</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+  </view>
+</view>

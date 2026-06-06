@@ -1,0 +1,6 @@
+/* pages/legal/disclaimer.wxss */
+.disclaimer-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
+.content-card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; margin-bottom: 12px; display: flex; flex-direction: column; }
+.content-title { font-size: 18px; color: #333333; font-weight: 600; margin-bottom: 12px; }
+.content-subtitle { font-size: 16px; color: #333333; font-weight: 500; margin-bottom: 12px; }
+.content-text { font-size: 14px; color: #666666; line-height: 1.8; }

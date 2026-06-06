@@ -1,0 +1,133 @@
+/* pages/metrics/long-text-dashboard.wxss */
+.dashboard-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px 48px;
+  box-sizing: border-box;
+}
+
+.card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.target-card {
+  background-color: rgba(74, 144, 226, 0.06);
+  text-align: center;
+}
+
+.target-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #999999;
+}
+
+.target-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: #4A90E2;
+}
+
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.stat-card {
+  flex: 1;
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 18px 12px;
+  text-align: center;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.stat-num {
+  display: block;
+  font-size: 22px;
+  font-weight: 600;
+  color: #333333;
+  word-break: break-all;
+}
+
+.stat-label {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: #999999;
+}
+
+.section-label {
+  display: block;
+  margin: 16px 0 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #333333;
+}
+
+.record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.record-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.record-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.record-date {
+  display: block;
+  font-size: 14px;
+  color: #666666;
+  margin-bottom: 4px;
+}
+
+.record-meta {
+  display: block;
+  font-size: 13px;
+  color: #999999;
+}
+
+.record-result {
+  flex-shrink: 0;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.record-result.pass {
+  color: #52C41A;
+  background-color: rgba(82, 196, 26, 0.1);
+}
+
+.record-result.fail {
+  color: #F5222D;
+  background-color: rgba(245, 34, 45, 0.06);
+}
+
+.empty-section {
+  display: flex;
+  justify-content: center;
+  padding-top: 40px;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #999999;
+}

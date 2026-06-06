@@ -1,0 +1,28 @@
+<!--pages/ops/ticket-list.wxml-->
+<view class="ticket-container">
+  <view class="filter-bar">
+    <view class="filter-item {{filter === 'all' ? 'filter-active' : ''}}" bindtap="setFilter" data-filter="all">
+      <text class="filter-text">全部</text>
+    </view>
+    <view class="filter-item {{filter === 'open' ? 'filter-active' : ''}}" bindtap="setFilter" data-filter="open">
+      <text class="filter-text">处理中</text>
+    </view>
+    <view class="filter-item {{filter === 'closed' ? 'filter-active' : ''}}" bindtap="setFilter" data-filter="closed">
+      <text class="filter-text">已关闭</text>
+    </view>
+  </view>
+
+  <view class="empty-section" wx:if="{{tickets.length === 0}}">
+    <text class="empty-text">暂无工单</text>
+  </view>
+
+  <view class="ticket-list" wx:if="{{tickets.length > 0}}">
+    <view class="ticket-card" wx:for="{{tickets}}" wx:key="id">
+      <view class="ticket-header">
+        <text class="ticket-type">{{item.type}}</text>
+        <text class="ticket-status {{item.status === 'open' ? 'status-open' : 'status-closed'}}">{{item.status === 'open' ? '处理中' : '已关闭'}}</text>
+      </view>
+      <text class="ticket-time">{{item.createTime}}</text>
+    </view>
+  </view>
+</view>

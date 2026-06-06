@@ -1,0 +1,20 @@
+<!-- pages/ai/review-result.wxml -->
+<view class="review-container">
+  <view class="card">
+    <text class="card-title">生成结果</text>
+    <scroll-view class="result-scroll" scroll-y>
+      <text class="result-text">{{resultText || '暂无结果'}}</text>
+    </scroll-view>
+  </view>
+
+  <view class="card confirm-card">
+    <text class="card-title confirm-title">发送前确认</text>
+    <text class="confirm-text">{{confirmText || '请先确认正文内容准确无误，再发送到电脑。'}}</text>
+  </view>
+
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="sendToComputer">发送到电脑</button>
+    <button class="btn btn-outline action-btn" bindtap="regenerate">重新生成</button>
+    <button class="btn btn-outline action-btn" bindtap="goBackEdit">返回编辑</button>
+  </view>
+</view>

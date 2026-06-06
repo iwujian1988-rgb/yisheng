@@ -1,0 +1,24 @@
+<!--pages/manual/detail.wxml-->
+<view class="detail-container">
+  <view class="card">
+    <text class="detail-title">{{title || '加载中...'}}</text>
+  </view>
+
+  <!-- 步骤列表 -->
+  <view class="section" wx:if="{{steps.length > 0}}">
+    <text class="section-label">操作步骤</text>
+    <view class="step-card" wx:for="{{steps}}" wx:key="index">
+      <view class="step-num">{{index + 1}}</view>
+      <text class="step-text">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 注意事项 -->
+  <view class="section" wx:if="{{notices.length > 0}}">
+    <text class="section-label">注意事项</text>
+    <view class="notice-item" wx:for="{{notices}}" wx:key="index">
+      <view class="notice-dot"></view>
+      <text class="notice-text">{{item}}</text>
+    </view>
+  </view>
+</view>

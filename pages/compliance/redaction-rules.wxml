@@ -1,0 +1,13 @@
+<view class="rules-container">
+  <view class="card">
+    <text class="card-title">脱敏字段类型</text>
+    <view class="field-item" wx:for="{{fields}}" wx:key="index">
+      <view class="field-dot"></view>
+      <text class="field-text">{{item}}</text>
+    </view>
+  </view>
+  <view class="card">
+    <text class="card-title">处理说明</text>
+    <text class="card-desc">系统在将文本发送到第三方 AI 服务前，会识别并替换敏感字段。处理结果仍需用户确认后才进入后续流程。</text>
+  </view>
+</view>

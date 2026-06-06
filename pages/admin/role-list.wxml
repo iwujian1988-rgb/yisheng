@@ -1,0 +1,11 @@
+<view class="role-container">
+  <view class="empty-section" wx:if="{{roles.length === 0}}">
+    <text class="empty-text">暂无角色</text>
+  </view>
+  <view class="role-list" wx:if="{{roles.length > 0}}">
+    <view class="role-card" wx:for="{{roles}}" wx:key="id">
+      <text class="role-name">{{item.name}}</text>
+      <text class="role-desc">{{item.desc}}</text>
+    </view>
+  </view>
+</view>

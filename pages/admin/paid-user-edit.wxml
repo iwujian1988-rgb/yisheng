@@ -1,0 +1,54 @@
+<!--pages/admin/paid-user-edit.wxml-->
+<view class="edit-container">
+  <view class="card">
+    <text class="card-title">服务信息</text>
+
+    <view class="field-item">
+      <text class="field-label">服务期限</text>
+      <picker mode="date" value="{{expiryDate}}" bindchange="onDateChange">
+        <view class="field-picker">
+          <text class="{{expiryDate ? 'picker-value' : 'picker-placeholder'}}">{{expiryDate || '请选择到期日期'}}</text>
+          <text class="picker-arrow">&#10095;</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="field-item">
+      <text class="field-label">服务状态</text>
+      <radio-group bindchange="onStatusChange">
+        <label class="radio-item">
+          <radio value="active" checked="{{serviceStatus === 'active'}}" color="#4A90E2" />
+          <text class="radio-text">有效</text>
+        </label>
+        <label class="radio-item">
+          <radio value="expired" checked="{{serviceStatus === 'expired'}}" color="#4A90E2" />
+          <text class="radio-text">已过期</text>
+        </label>
+        <label class="radio-item">
+          <radio value="disabled" checked="{{serviceStatus === 'disabled'}}" color="#4A90E2" />
+          <text class="radio-text">已禁用</text>
+        </label>
+      </radio-group>
+    </view>
+
+    <view class="field-item">
+      <text class="field-label">备注</text>
+      <textarea
+        class="field-textarea"
+        placeholder="选填备注"
+        placeholder-class="input-placeholder"
+        value="{{remark}}"
+        bindinput="onRemarkInput"
+        maxlength="200"
+      />
+    </view>
+  </view>
+
+  <button
+    class="btn btn-primary save-btn"
+    disabled="{{!expiryDate || !serviceStatus}}"
+    bindtap="saveUser"
+  >
+    保存
+  </button>
+</view>

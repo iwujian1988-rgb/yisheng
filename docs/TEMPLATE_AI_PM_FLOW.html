@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI病历模板产品流程图</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 32px;
+      background: #f5f7fa;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+
+    .page {
+      max-width: 1440px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .header {
+      padding: 24px 28px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #ffffff;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.3;
+      color: #111827;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #475569;
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-admin { background: #7c3aed; }
+    .dot-doctor { background: #2563eb; }
+    .dot-system { background: #0891b2; }
+    .dot-ai { background: #16a34a; }
+    .dot-risk { background: #dc2626; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: 180px repeat(6, minmax(150px, 1fr));
+      border-top: 1px solid #e5e7eb;
+      overflow-x: auto;
+    }
+
+    .phase,
+    .lane-title,
+    .cell {
+      border-right: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .phase {
+      padding: 14px 12px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .lane-title {
+      padding: 18px 14px;
+      font-weight: 700;
+      color: #111827;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      min-height: 120px;
+      position: sticky;
+      left: 0;
+      z-index: 2;
+    }
+
+    .cell {
+      padding: 14px;
+      min-height: 120px;
+      background: #fff;
+      position: relative;
+    }
+
+    .card {
+      border: 1px solid #dbe3ef;
+      border-radius: 8px;
+      padding: 12px;
+      background: #ffffff;
+      min-height: 72px;
+    }
+
+    .card.admin { border-color: #ddd6fe; background: #f5f3ff; }
+    .card.doctor { border-color: #bfdbfe; background: #eff6ff; }
+    .card.system { border-color: #bae6fd; background: #ecfeff; }
+    .card.ai { border-color: #bbf7d0; background: #f0fdf4; }
+    .card.risk { border-color: #fecaca; background: #fef2f2; }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #111827;
+    }
+
+    .card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #475569;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .arrow {
+      margin-top: 10px;
+      color: #64748b;
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .decision {
+      border: 2px solid #f59e0b;
+      background: #fffbeb;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 72px;
+    }
+
+    .decision .card-title {
+      color: #92400e;
+    }
+
+    .note-section {
+      padding: 24px 28px 28px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      background: #ffffff;
+    }
+
+    .note {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      background: #f8fafc;
+    }
+
+    .note h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .note p,
+    .note li {
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .note ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .example {
+      padding: 20px 28px 28px;
+      border-top: 1px solid #e5e7eb;
+      background: #fff;
+    }
+
+    .example-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      color: #334155;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 900px) {
+      body { padding: 12px; }
+      .flow { grid-template-columns: 140px repeat(6, 180px); }
+      .note-section, .example-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>AI病历模板产品流程图</h1>
+      <div class="subtitle">面向产品经理：说明后台模板配置、医生前台填写、AI生成规则、医生确认与发送链路。</div>
+      <div class="legend">
+        <span class="legend-item"><span class="dot dot-admin"></span>后台管理员</span>
+        <span class="legend-item"><span class="dot dot-doctor"></span>医生小程序</span>
+        <span class="legend-item"><span class="dot dot-system"></span>系统/后端</span>
+        <span class="legend-item"><span class="dot dot-ai"></span>AI服务</span>
+        <span class="legend-item"><span class="dot dot-risk"></span>安全边界</span>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="phase">角色 / 阶段</div>
+      <div class="phase">1. 模板配置</div>
+      <div class="phase">2. 模板发布</div>
+      <div class="phase">3. 医生填写</div>
+      <div class="phase">4. 规则合并</div>
+      <div class="phase">5. AI生成</div>
+      <div class="phase">6. 确认发送</div>
+
+      <div class="lane-title">后台管理员</div>
+      <div class="cell">
+        <div class="card admin">
+          <div class="card-title">创建模板</div>
+          <ul>
+            <li>模板名称</li>
+            <li>科室：骨科</li>
+            <li>场景：门诊初诊</li>
+            <li>类型：官方模板</li>
+          </ul>
+        </div>
+        <div class="arrow">配置字段和规则 →</div>
+      </div>
+      <div class="cell">
+        <div class="card admin">
+          <div class="card-title">审核并上架</div>
+          <ul>
+            <li>检查变量是否完整</li>
+            <li>检查禁止编造规则</li>
+            <li>预览医生填写页</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell">
+        <div class="card admin">
+          <div class="card-title">持续优化</div>
+          <ul>
+            <li>查看使用次数</li>
+            <li>收集医生反馈</li>
+            <li>更新模板版本</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lane-title">模板配置内容</div>
+      <div class="cell">
+        <div class="card system">
+          <div class="card-title">后台上传/维护</div>
+          <ul>
+            <li>输入字段：主诉、现病史、查体等</li>
+            <li>输出结构：病历栏目顺序</li>
+            <li>专科要素：骨科关键点</li>
+            <li>缺失项规则</li>
+            <li>AI角色提示词</li>
+            <li>禁止编造规则</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="decision">
+          <div class="card-title">发布校验</div>
+          <ul>
+            <li>字段和变量一一对应？</li>
+            <li>是否有安全边界？</li>
+            <li>是否有待确认项格式？</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+
+      <div class="lane-title">医生小程序</div>
+      <div class="cell"></div>
+      <div class="cell">
+        <div class="card doctor">
+          <div class="card-title">模板库展示</div>
+          <ul>
+            <li>病历类</li>
+            <li>骨科</li>
+            <li>门诊初诊</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="card doctor">
+          <div class="card-title">医生填写</div>
+          <ul>
+            <li>主诉：右膝疼痛3天</li>
+            <li>现病史：爬楼后加重</li>
+            <li>外伤史：无明显外伤</li>
+            <li>查体：右膝肿胀、内侧压痛</li>
+          </ul>
+        </div>
+        <div class="arrow">点击“生成病历” →</div>
+      </div>
+      <div class="cell"></div>
+      <div class="cell">
+        <div class="card doctor">
+          <div class="card-title">查看结果</div>
+          <ul>
+            <li>病历正文</li>
+            <li>待确认/补充项</li>
+            <li>可编辑、可重新生成</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="card doctor">
+          <div class="card-title">确认发送</div>
+          <ul>
+            <li>医生最终确认</li>
+            <li>发送到电脑</li>
+            <li>保存历史记录</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lane-title">系统/后端</div>
+      <div class="cell"></div>
+      <div class="cell">
+        <div class="card system">
+          <div class="card-title">下发模板元数据</div>
+          <ul>
+            <li>只给前台字段定义</li>
+            <li>不暴露敏感后台配置</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="card system">
+          <div class="card-title">接收医生输入</div>
+          <ul>
+            <li>字段值</li>
+            <li>模板ID</li>
+            <li>来源：模板</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="card system">
+          <div class="card-title">合并请求</div>
+          <ul>
+            <li>后台模板规则</li>
+            <li>医生填写内容</li>
+            <li>脱敏处理</li>
+            <li>输出格式要求</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="card system">
+          <div class="card-title">拆分AI结果</div>
+          <ul>
+            <li>正文：可发送</li>
+            <li>待确认项：给医生看</li>
+            <li>记录token用量</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="card system">
+          <div class="card-title">传输链路</div>
+          <ul>
+            <li>写入草稿</li>
+            <li>进入首页发送</li>
+            <li>BLE发送给硬件</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lane-title">AI服务</div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell">
+        <div class="card ai">
+          <div class="card-title">收到安全输入</div>
+          <ul>
+            <li>已脱敏文本</li>
+            <li>模板规则</li>
+            <li>禁止编造规则</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="card ai">
+          <div class="card-title">生成两部分</div>
+          <ul>
+            <li>病历正文</li>
+            <li>待医生确认/补充项</li>
+            <li>不新增医学事实</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell"></div>
+
+      <div class="lane-title">安全边界</div>
+      <div class="cell">
+        <div class="card risk">
+          <div class="card-title">模板安全</div>
+          <ul>
+            <li>不得含真实患者样例</li>
+            <li>不得诱导AI编造诊断</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell"></div>
+      <div class="cell">
+        <div class="card risk">
+          <div class="card-title">用户输入</div>
+          <ul>
+            <li>医生确认输入内容</li>
+            <li>敏感信息进入脱敏流程</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="card risk">
+          <div class="card-title">AI边界</div>
+          <ul>
+            <li>不得编造病史</li>
+            <li>不得编造查体</li>
+            <li>不得编造检查和用药</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="decision">
+          <div class="card-title">医生确认点</div>
+          <ul>
+            <li>医生必须审核</li>
+            <li>未确认不得发送</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="card risk">
+          <div class="card-title">后台不可见明文</div>
+          <ul>
+            <li>历史只存加密正文</li>
+            <li>后台只看元数据</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="note-section">
+      <div class="note">
+        <h2>后台管理员到底配置什么？</h2>
+        <ul>
+          <li>配置前台要让医生填写哪些字段。</li>
+          <li>配置病历最终要输出哪些栏目。</li>
+          <li>配置骨科等专科关键要素，用于提高完整度。</li>
+          <li>配置缺失项如何提示，防止AI乱补。</li>
+          <li>配置禁止编造规则，约束AI边界。</li>
+          <li>配置AI角色提示词，控制表达风格和任务目标。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h2>医生前台到底填写什么？</h2>
+        <ul>
+          <li>医生只填写本次患者就诊信息。</li>
+          <li>医生不需要理解提示词。</li>
+          <li>医生可以填很少的信息，但AI会提示缺失项。</li>
+          <li>医生最终确认病历正文后，才能发送到电脑。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="example">
+      <h2>具体文案示例</h2>
+      <div class="example-grid">
+        <pre>医生填写：
+主诉：右膝疼痛3天
+现病史：爬楼后出现，活动后加重
+外伤史：无明显外伤
+查体：右膝轻度肿胀，内侧压痛
+检查：暂未检查</pre>
+        <pre>后台规则：
+输出结构：主诉、现病史、既往史、查体、辅助检查、诊断、处理意见
+禁止：不得编造诊断、查体、影像结果、药物剂量
+缺失：未提供内容写“待补充”</pre>
+        <pre>AI输出：
+主诉：右膝疼痛3天。
+现病史：患者3天前爬楼后出现右膝疼痛，活动后加重，否认明显外伤史。
+查体：右膝轻度肿胀，内侧压痛。关节活动度及神经血管情况待补充。
+
+待确认：
+1. 疼痛具体部位？
+2. 是否伴弹响或交锁？
+3. 是否需完善影像检查？</pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

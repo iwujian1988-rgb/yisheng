@@ -1,0 +1,104 @@
+/* pages/onboarding/index.wxss */
+.onboarding-container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F5F7FA 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 32px;
+}
+
+/* 步骤内容 */
+.step-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.step-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.step-icon-circle {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background-color: #4A90E2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.step-icon-text {
+  font-size: 40px;
+  color: #FFFFFF;
+  font-weight: bold;
+}
+
+.step-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 12px;
+}
+
+.step-desc {
+  font-size: 15px;
+  color: #666666;
+  text-align: center;
+  line-height: 1.6;
+  padding: 0 24px;
+}
+
+/* 指示点 */
+.dots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #D9D9D9;
+}
+
+.dot-active {
+  width: 24px;
+  background-color: #4A90E2;
+}
+
+/* 操作按钮 */
+.action-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 60px;
+}
+
+.action-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  background-color: #4A90E2;
+  color: #FFFFFF;
+}
+
+.action-btn:active {
+  opacity: 0.8;
+}
+
+.skip-link {
+  font-size: 14px;
+  color: #999999;
+  margin-top: 16px;
+}

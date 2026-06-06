@@ -1,0 +1,10 @@
+/* pages/integration/asr-provider-guide.wxss */
+.guide-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
+.guide-header { padding: 16px 0; }
+.guide-title { font-size: 18px; color: #333333; font-weight: 600; }
+.step-list { display: flex; flex-direction: column; gap: 12px; }
+.step-card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; display: flex; align-items: flex-start; gap: 12px; }
+.step-num { width: 28px; height: 28px; background-color: #4A90E2; color: #FFFFFF; border-radius: 50%; font-size: 14px; text-align: center; line-height: 28px; flex-shrink: 0; }
+.step-content { display: flex; flex-direction: column; }
+.step-title { font-size: 15px; color: #333333; font-weight: 500; }
+.step-desc { font-size: 13px; color: #999999; margin-top: 4px; }

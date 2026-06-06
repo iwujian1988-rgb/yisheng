@@ -1,0 +1,44 @@
+<view class="redaction-container">
+  <view class="card">
+    <text class="card-title">脱敏处理说明</text>
+    <text class="card-desc">使用 AI 功能前，系统会先处理可能涉及个人隐私的字段，再进入 AI 服务流程。</text>
+  </view>
+
+  <view class="card">
+    <text class="card-title">敏感字段类型</text>
+    <view class="field-list">
+      <view class="field-item">
+        <view class="field-dot"></view>
+        <text class="field-text">姓名</text>
+      </view>
+      <view class="field-item">
+        <view class="field-dot"></view>
+        <text class="field-text">手机号</text>
+      </view>
+      <view class="field-item">
+        <view class="field-dot"></view>
+        <text class="field-text">证件号</text>
+      </view>
+      <view class="field-item">
+        <view class="field-dot"></view>
+        <text class="field-text">账号或编号</text>
+      </view>
+      <view class="field-item">
+        <view class="field-dot"></view>
+        <text class="field-text">地址</text>
+      </view>
+      <view class="field-item">
+        <view class="field-dot"></view>
+        <text class="field-text">联系方式</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card confirm-card">
+    <text class="confirm-text">AI 生成内容需要用户确认后才会进入传输流程，不会自动发送到电脑。</text>
+  </view>
+
+  <button class="btn btn-primary confirm-btn" bindtap="confirmRead">
+    我已了解
+  </button>
+</view>

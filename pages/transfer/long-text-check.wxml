@@ -1,0 +1,22 @@
+<!-- pages/transfer/long-text-check.wxml -->
+<view class="longtext-container">
+  <view class="card">
+    <view class="info-row">
+      <text class="info-label">文本字数</text>
+      <text class="info-value">{{count}} 字</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">预计耗时</text>
+      <text class="info-value">{{estimatedSeconds > 0 ? estimatedSeconds + ' 秒' : '--'}}</text>
+    </view>
+  </view>
+
+  <view class="card warn-card">
+    <text class="warn-text">长文本传输耗时较长。请确认设备连接稳定，目标电脑输入框已聚焦，再继续发送。</text>
+  </view>
+
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="continueSend">继续发送</button>
+    <button class="btn btn-outline action-btn" bindtap="goBackEdit">返回编辑</button>
+  </view>
+</view>

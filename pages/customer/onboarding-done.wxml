@@ -1,0 +1,13 @@
+<!--pages/customer/onboarding-done.wxml-->
+<view class="done-container">
+  <view class="success-section">
+    <view class="success-circle">&#10003;</view>
+    <text class="success-title">设置完成</text>
+    <text class="success-desc">您已完成初始设置，可以开始使用传输功能了。</text>
+  </view>
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="goBindDevice">去绑定设备</button>
+    <button class="btn btn-primary action-btn" bindtap="goSendText">去发送文本</button>
+    <button class="btn btn-outline action-btn" bindtap="goTutorial">查看教程</button>
+  </view>
+</view>

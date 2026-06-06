@@ -1,0 +1,21 @@
+<!--pages/training/done.wxml-->
+<view class="done-container">
+  <view class="done-header">
+    <text class="done-title">学习完成</text>
+    <text class="done-desc">恭喜，您已完成本课程学习</text>
+  </view>
+  <view class="done-card">
+    <view class="info-row">
+      <text class="info-label">课程名称</text>
+      <text class="info-value">{{courseTitle}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">完成时间</text>
+      <text class="info-value">{{doneTime}}</text>
+    </view>
+  </view>
+  <view class="bottom-actions">
+    <view class="btn-primary" bindtap="goFeedback"><text class="btn-text">提交反馈</text></view>
+    <view class="btn-secondary" bindtap="goBack"><text class="btn-text-secondary">返回课程列表</text></view>
+  </view>
+</view>

@@ -1,0 +1,55 @@
+<view class="profile-container">
+  <view class="user-section">
+    <view class="avatar">
+      <text class="avatar-text">{{nickNameInitial || '?'}}</text>
+    </view>
+    <view class="user-info">
+      <text class="nick-name">{{nickName || '未登录'}}</text>
+      <text class="phone-number">{{phone || ''}}</text>
+    </view>
+  </view>
+
+  <view class="menu-section">
+    <view class="menu-item" bindtap="goToAccountStatus">
+      <view class="menu-left">
+        <text class="menu-icon status-icon">&#9679;</text>
+        <text class="menu-label">服务状态</text>
+      </view>
+      <text class="menu-arrow">&#10095;</text>
+    </view>
+
+    <view class="menu-item" bindtap="goToDevice">
+      <view class="menu-left">
+        <text class="menu-icon device-icon">&#9881;</text>
+        <text class="menu-label">设备管理</text>
+      </view>
+      <text class="menu-arrow">&#10095;</text>
+    </view>
+
+    <view class="menu-item" bindtap="goToSettings">
+      <view class="menu-left">
+        <text class="menu-icon settings-icon">&#9881;</text>
+        <text class="menu-label">传输设置</text>
+      </view>
+      <text class="menu-arrow">&#10095;</text>
+    </view>
+
+    <view class="menu-item" bindtap="goToHistory">
+      <view class="menu-left">
+        <text class="menu-icon history-icon">&#9776;</text>
+        <text class="menu-label">传输记录</text>
+      </view>
+      <text class="menu-arrow">&#10095;</text>
+    </view>
+
+    <view class="menu-item" bindtap="goToHelp">
+      <view class="menu-left">
+        <text class="menu-icon help-icon">&#63;</text>
+        <text class="menu-label">帮助与客服</text>
+      </view>
+      <text class="menu-arrow">&#10095;</text>
+    </view>
+  </view>
+
+  <button class="logout-btn" bindtap="logout">退出登录</button>
+</view>

@@ -1,0 +1,43 @@
+<view class="guide-container">
+  <view class="mode-card">
+    <view class="mode-header">
+      <view class="mode-badge badge-win10">WIN10</view>
+      <text class="mode-name">Windows 10 模式</text>
+    </view>
+    <view class="mode-body">
+      <text class="mode-desc">适用于 Windows 10 或更早版本的常见输入环境。</text>
+      <text class="mode-hint">如果目标电脑系统较旧，可优先尝试此模式。</text>
+    </view>
+    <button class="btn btn-primary mode-btn" bindtap="selectMode" data-mode="WIN10">
+      选择此模式
+    </button>
+  </view>
+
+  <view class="mode-card">
+    <view class="mode-header">
+      <view class="mode-badge badge-win11">WIN11</view>
+      <text class="mode-name">Windows 11 模式</text>
+    </view>
+    <view class="mode-body">
+      <text class="mode-desc">适用于 Windows 11 的常见输入环境。</text>
+      <text class="mode-hint">新电脑或新系统可优先尝试此模式。</text>
+    </view>
+    <button class="btn btn-primary mode-btn" bindtap="selectMode" data-mode="WIN11">
+      选择此模式
+    </button>
+  </view>
+
+  <view class="mode-card">
+    <view class="mode-header">
+      <view class="mode-badge badge-raw">RAW</view>
+      <text class="mode-name">原始输入模式</text>
+    </view>
+    <view class="mode-body">
+      <text class="mode-desc">用于特殊输入环境或问题排查。</text>
+      <text class="mode-hint">建议在技术人员指导下使用。</text>
+    </view>
+    <button class="btn btn-primary mode-btn" bindtap="selectMode" data-mode="RAW">
+      选择此模式
+    </button>
+  </view>
+</view>

@@ -1,0 +1,34 @@
+<!--pages/integration/wechat-login-guide.wxml-->
+<view class="guide-container">
+  <view class="guide-header"><text class="guide-title">微信登录集成指南</text></view>
+  <view class="step-list">
+    <view class="step-card">
+      <text class="step-num">1</text>
+      <view class="step-content">
+        <text class="step-title">配置 AppID</text>
+        <text class="step-desc">在微信公众平台获取小程序 AppID</text>
+      </view>
+    </view>
+    <view class="step-card">
+      <text class="step-num">2</text>
+      <view class="step-content">
+        <text class="step-title">调用 wx.login</text>
+        <text class="step-desc">获取临时登录凭证 code</text>
+      </view>
+    </view>
+    <view class="step-card">
+      <text class="step-num">3</text>
+      <view class="step-content">
+        <text class="step-title">后端换取 openid</text>
+        <text class="step-desc">将 code 发送至服务端换取用户唯一标识</text>
+      </view>
+    </view>
+    <view class="step-card">
+      <text class="step-num">4</text>
+      <view class="step-content">
+        <text class="step-title">完成登录</text>
+        <text class="step-desc">服务端返回登录态，前端存储 token</text>
+      </view>
+    </view>
+  </view>
+</view>

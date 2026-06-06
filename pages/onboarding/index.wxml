@@ -1,0 +1,43 @@
+<view class="onboarding-container">
+  <view class="step-content">
+    <view class="step-section" wx:if="{{currentStep === 0}}">
+      <view class="step-icon-circle">
+        <text class="step-icon-text">1</text>
+      </view>
+      <text class="step-title">登录并开通</text>
+      <text class="step-desc">使用手机号登录。购买硬件后，账号由销售或后台开通服务。</text>
+    </view>
+
+    <view class="step-section" wx:if="{{currentStep === 1}}">
+      <view class="step-icon-circle">
+        <text class="step-icon-text">2</text>
+      </view>
+      <text class="step-title">绑定设备</text>
+      <text class="step-desc">将传输硬件插入电脑 USB 口，在小程序中完成设备绑定。</text>
+    </view>
+
+    <view class="step-section" wx:if="{{currentStep === 2}}">
+      <view class="step-icon-circle">
+        <text class="step-icon-text">3</text>
+      </view>
+      <text class="step-title">开始传输</text>
+      <text class="step-desc">输入或导入文本，通过蓝牙发送到电脑输入框。</text>
+    </view>
+  </view>
+
+  <view class="dots">
+    <view class="dot {{currentStep === 0 ? 'dot-active' : ''}}"></view>
+    <view class="dot {{currentStep === 1 ? 'dot-active' : ''}}"></view>
+    <view class="dot {{currentStep === 2 ? 'dot-active' : ''}}"></view>
+  </view>
+
+  <view class="action-section">
+    <button wx:if="{{currentStep < 2}}" class="btn btn-primary action-btn" bindtap="nextStep">
+      下一步
+    </button>
+    <button wx:if="{{currentStep === 2}}" class="btn btn-primary action-btn" bindtap="startUsing">
+      开始使用
+    </button>
+    <text class="skip-link" bindtap="skip">跳过</text>
+  </view>
+</view>

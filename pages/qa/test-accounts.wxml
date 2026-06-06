@@ -1,0 +1,38 @@
+<!--pages/qa/test-accounts.wxml-->
+<view class="accounts-container">
+  <!-- 说明 -->
+  <view class="card">
+    <text class="card-title">测试账号说明</text>
+    <text class="card-desc">测试账号仅供开发和测试环境使用，请勿在生产环境中使用测试账号登录。</text>
+  </view>
+
+  <view class="card">
+    <text class="card-title">账号类型</text>
+    <view class="account-item">
+      <view class="account-dot"></view>
+      <view class="account-info">
+        <text class="account-name">未开通用户</text>
+        <text class="account-desc">用于测试未购买硬件的普通注册用户流程</text>
+      </view>
+    </view>
+    <view class="account-item">
+      <view class="account-dot"></view>
+      <view class="account-info">
+        <text class="account-name">已开通用户</text>
+        <text class="account-desc">用于测试已绑定设备的付费用户完整流程</text>
+      </view>
+    </view>
+    <view class="account-item">
+      <view class="account-dot"></view>
+      <view class="account-info">
+        <text class="account-name">管理员</text>
+        <text class="account-desc">用于测试后台管理功能的权限验证</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 查看按钮 -->
+  <button class="btn btn-primary view-btn" bindtap="viewAccounts">
+    查看测试账号
+  </button>
+</view>

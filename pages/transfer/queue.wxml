@@ -1,0 +1,24 @@
+<view class="queue-container">
+  <view class="empty-section" wx:if="{{queueItems.length === 0}}">
+    <text class="empty-text">当前没有传输任务</text>
+  </view>
+
+  <view class="queue-list" wx:if="{{queueItems.length > 0}}">
+    <view class="queue-card" wx:for="{{queueItems}}" wx:key="id">
+      <view class="queue-header">
+        <text class="queue-label">{{item.label || '传输任务'}}</text>
+        <text class="queue-status {{item.status === 'done' ? 'status-done' : item.status === 'error' ? 'status-error' : 'status-active'}}">{{item.statusText}}</text>
+      </view>
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{item.progress || 0}}%"></view>
+      </view>
+      <text class="progress-text">{{item.progress || 0}}%</text>
+    </view>
+  </view>
+
+  <view class="action-section" wx:if="{{queueItems.length > 0}}">
+    <button class="btn btn-outline cancel-btn" bindtap="cancelQueue">
+      取消全部传输
+    </button>
+  </view>
+</view>

@@ -1,0 +1,20 @@
+<view class="devices-container">
+  <view class="stat-grid">
+    <view class="stat-card">
+      <text class="stat-value">{{totalDevices}}</text>
+      <text class="stat-label">总设备</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{boundDevices}}</text>
+      <text class="stat-label">已绑定</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{abnormalDevices}}</text>
+      <text class="stat-label">异常</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{pendingDevices}}</text>
+      <text class="stat-label">待交付</text>
+    </view>
+  </view>
+</view>

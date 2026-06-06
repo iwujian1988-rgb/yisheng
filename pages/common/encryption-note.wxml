@@ -1,0 +1,34 @@
+<view class="encryption-container">
+  <view class="card">
+    <text class="card-title">数据可见性原则</text>
+    <text class="card-desc">您的文本内容遵循“用户可见、管理员不可见明文”的设计原则。系统管理员不能直接查看用户原始正文。</text>
+  </view>
+
+  <view class="card">
+    <view class="section-header">
+      <view class="section-badge badge-local">本地</view>
+      <text class="section-title">本地保存</text>
+    </view>
+    <text class="section-desc">在小程序中输入和编辑的内容优先用于当前操作。需要保存时，应以受保护方式保存，并由用户自行确认是否继续使用。</text>
+  </view>
+
+  <view class="card">
+    <view class="section-header">
+      <view class="section-badge badge-cloud">云端</view>
+      <text class="section-title">云端保存</text>
+    </view>
+    <text class="section-desc">需要跨设备或后续查看时，内容可保存到云端。服务端只应保存受保护后的数据，管理员不直接读取原文。</text>
+  </view>
+
+  <view class="card">
+    <view class="section-header">
+      <view class="section-badge badge-ai">AI</view>
+      <text class="section-title">第三方 AI 处理</text>
+    </view>
+    <text class="section-desc">使用 AI 功能时，系统会先对文本中的个人敏感信息进行脱敏处理，再发送给 AI 服务。AI 结果需要用户确认后才进入后续流程。</text>
+  </view>
+
+  <button class="btn btn-primary confirm-btn" bindtap="confirmRead">
+    我已了解
+  </button>
+</view>

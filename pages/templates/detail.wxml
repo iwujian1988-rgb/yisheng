@@ -1,0 +1,49 @@
+<view class="detail-container">
+  <view class="header-section">
+    <text class="template-title">{{title || '模板详情'}}</text>
+    <text class="template-desc">{{description || '填写字段后生成可发送文本。'}}</text>
+  </view>
+
+  <view class="fields-section" wx:if="{{fields.length > 0}}">
+    <text class="section-label">填写内容</text>
+    <view class="field-item" wx:for="{{fields}}" wx:key="key">
+      <view class="field-title-row">
+        <text class="field-label">{{item.label}}</text>
+        <text class="required-mark" wx:if="{{item.required}}">必填</text>
+      </view>
+      <textarea
+        wx:if="{{item.type === 'textarea'}}"
+        class="field-textarea"
+        placeholder="{{item.placeholder || ''}}"
+        placeholder-class="input-placeholder"
+        value="{{item.value}}"
+        bindinput="onFieldInput"
+        data-key="{{item.key}}"
+        maxlength="1200"
+      />
+      <input
+        wx:else
+        class="field-input"
+        placeholder="{{item.placeholder || ''}}"
+        placeholder-class="input-placeholder"
+        value="{{item.value}}"
+        bindinput="onFieldInput"
+        data-key="{{item.key}}"
+        maxlength="240"
+      />
+    </view>
+  </view>
+
+  <view class="empty-section" wx:else>
+    <text class="empty-text">暂无可填写字段</text>
+  </view>
+
+  <button
+    class="btn btn-primary generate-btn {{canGenerate && !isGenerating ? '' : 'disabled'}}"
+    disabled="{{!canGenerate || isGenerating}}"
+    loading="{{isGenerating}}"
+    bindtap="generateResult"
+  >
+    {{isGenerating ? '生成中' : '生成文本'}}
+  </button>
+</view>

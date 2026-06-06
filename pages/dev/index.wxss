@@ -1,0 +1,58 @@
+/* pages/dev/index.wxss */
+.dev-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px;
+}
+
+.warning-card {
+  background-color: rgba(250, 173, 20, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.warning-text {
+  font-size: 13px;
+  color: #FAAD14;
+  line-height: 1.6;
+}
+
+.tool-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 0 20px;
+}
+
+.tool-title {
+  font-size: 14px;
+  color: #999999;
+  padding: 14px 0;
+  display: block;
+}
+
+.tool-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.tool-label {
+  font-size: 15px;
+  color: #333333;
+}
+
+.danger {
+  color: #F5222D;
+}
+
+.tool-arrow {
+  font-size: 12px;
+  color: #CCCCCC;
+}
+
+.tool-divider {
+  height: 1px;
+  background-color: #F0F0F0;
+}

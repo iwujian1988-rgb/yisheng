@@ -1,0 +1,23 @@
+<view class="ai-container">
+  <view class="card">
+    <view class="section-header">
+      <view class="step-num">1</view>
+      <text class="section-title">发送前脱敏</text>
+    </view>
+    <text class="section-desc">调用 AI 服务前，系统先识别并替换文本中的个人敏感信息。</text>
+  </view>
+  <view class="card">
+    <view class="section-header">
+      <view class="step-num">2</view>
+      <text class="section-title">用户确认</text>
+    </view>
+    <text class="section-desc">AI 生成内容需要用户审核确认，系统不自动发送到电脑。</text>
+  </view>
+  <view class="card">
+    <view class="section-header">
+      <view class="step-num">3</view>
+      <text class="section-title">结果审核</text>
+    </view>
+    <text class="section-desc">用户可以查看输出内容，并选择发送、重新生成或返回编辑。</text>
+  </view>
+</view>

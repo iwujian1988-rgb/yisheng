@@ -1,0 +1,25 @@
+<view class="asr-result-container">
+  <view class="audio-section">
+    <view class="audio-card">
+      <text class="audio-icon">&#9835;</text>
+      <text class="audio-status">{{audioStatus || '录音已完成'}}</text>
+    </view>
+  </view>
+
+  <view class="result-section">
+    <text class="result-label">转写文本</text>
+    <view class="result-box">
+      <text class="result-text" wx:if="{{resultText}}">{{resultText}}</text>
+      <text class="result-empty" wx:else>暂无转写文本</text>
+    </view>
+  </view>
+
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="confirmResult">
+      确认使用
+    </button>
+    <button class="btn btn-outline action-btn" bindtap="reRecord">
+      重新录音
+    </button>
+  </view>
+</view>

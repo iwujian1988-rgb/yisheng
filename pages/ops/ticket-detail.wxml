@@ -1,0 +1,34 @@
+<!--pages/ops/ticket-detail.wxml-->
+<view class="detail-container">
+  <view class="card">
+    <text class="card-title">工单信息</text>
+    <view class="info-row">
+      <text class="info-label">工单类型</text>
+      <text class="info-value">{{ticketType || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">状态</text>
+      <text class="info-value">{{ticketStatus || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">描述</text>
+      <text class="info-value">{{ticketDesc || '--'}}</text>
+    </view>
+  </view>
+
+  <text class="section-label">处理记录</text>
+  <view class="empty-section" wx:if="{{records.length === 0}}">
+    <text class="empty-text">暂无处理记录</text>
+  </view>
+  <view class="record-list" wx:if="{{records.length > 0}}">
+    <view class="record-card" wx:for="{{records}}" wx:key="id">
+      <text class="record-content">{{item.content}}</text>
+      <text class="record-time">{{item.time}}</text>
+    </view>
+  </view>
+
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="addRecord">添加处理记录</button>
+    <button class="btn btn-outline action-btn" bindtap="closeTicket">关闭工单</button>
+  </view>
+</view>

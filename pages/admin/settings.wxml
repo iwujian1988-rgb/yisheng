@@ -1,0 +1,28 @@
+<!--pages/admin/settings.wxml-->
+<view class="settings-container">
+  <view class="card-list">
+    <view class="entry-card" bindtap="goOpenRules">
+      <view class="entry-info">
+        <text class="entry-title">开通规则</text>
+        <text class="entry-desc">设置用户开通和续期规则</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goDeviceRules">
+      <view class="entry-info">
+        <text class="entry-title">设备规则</text>
+        <text class="entry-desc">设置设备绑定和解绑规则</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goTestMode">
+      <view class="entry-info">
+        <text class="entry-title">测试模式</text>
+        <text class="entry-desc">开关测试环境和调试功能</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+  </view>
+</view>

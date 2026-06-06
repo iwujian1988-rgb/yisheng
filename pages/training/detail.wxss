@@ -1,0 +1,12 @@
+/* pages/training/detail.wxss */
+.detail-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; display: flex; flex-direction: column; }
+.info-card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; }
+.info-title { font-size: 18px; color: #333333; font-weight: 600; }
+.info-desc { font-size: 14px; color: #999999; margin-top: 8px; }
+.section-title { padding: 20px 0 10px; }
+.section-text { font-size: 16px; color: #333333; font-weight: 500; }
+.content-card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; }
+.content-text { font-size: 14px; color: #666666; line-height: 1.8; }
+.bottom-actions { margin-top: auto; padding: 24px 0; }
+.btn-primary { background-color: #4A90E2; border-radius: 12px; padding: 14px 0; text-align: center; }
+.btn-text { font-size: 16px; color: #FFFFFF; }

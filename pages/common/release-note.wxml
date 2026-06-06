@@ -1,0 +1,25 @@
+<!--pages/common/release-note.wxml-->
+<view class="release-container">
+  <view class="card">
+    <text class="version-label">版本</text>
+    <text class="version-num">{{version || '--'}}</text>
+  </view>
+
+  <!-- 更新内容 -->
+  <view class="section" wx:if="{{updates.length > 0}}">
+    <text class="section-label">更新内容</text>
+    <view class="update-item" wx:for="{{updates}}" wx:key="index">
+      <view class="update-dot"></view>
+      <text class="update-text">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 注意事项 -->
+  <view class="section" wx:if="{{notices.length > 0}}">
+    <text class="section-label">注意事项</text>
+    <view class="notice-item" wx:for="{{notices}}" wx:key="index">
+      <view class="notice-dot"></view>
+      <text class="notice-text">{{item}}</text>
+    </view>
+  </view>
+</view>

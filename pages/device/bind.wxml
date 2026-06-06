@@ -1,0 +1,46 @@
+<view class="bind-container">
+  <view class="tip-card">
+    <text class="tip-text">请确认传输设备已插入电脑 USB 口，且设备指示灯正常。</text>
+  </view>
+
+  <view class="form-section">
+    <view class="input-group">
+      <text class="input-label">设备序列号</text>
+      <view class="input-wrapper">
+        <input
+          class="input"
+          placeholder="请输入设备序列号"
+          placeholder-class="input-placeholder"
+          value="{{serialNo}}"
+          bindinput="onSerialNoInput"
+          maxlength="30"
+        />
+      </view>
+      <text wx:if="{{serialNoError}}" class="error-text">{{serialNoError}}</text>
+    </view>
+
+    <view class="input-group">
+      <text class="input-label">校验码</text>
+      <view class="input-wrapper">
+        <input
+          class="input"
+          placeholder="请输入设备上的校验码"
+          placeholder-class="input-placeholder"
+          value="{{verifyCode}}"
+          bindinput="onVerifyCodeInput"
+          maxlength="10"
+        />
+      </view>
+      <text wx:if="{{verifyCodeError}}" class="error-text">{{verifyCodeError}}</text>
+    </view>
+  </view>
+
+  <button
+    class="btn btn-primary bind-btn {{canBind ? '' : 'disabled'}}"
+    disabled="{{!canBind || isLoading}}"
+    loading="{{isLoading}}"
+    bindtap="bindDevice"
+  >
+    绑定设备
+  </button>
+</view>

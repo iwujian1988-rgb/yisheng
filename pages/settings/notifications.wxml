@@ -1,0 +1,30 @@
+<!--pages/settings/notifications.wxml-->
+<view class="notifications-container">
+  <view class="setting-card">
+    <view class="setting-item">
+      <view class="setting-left">
+        <text class="setting-label">服务到期提醒</text>
+        <text class="setting-desc">服务即将到期时通知您</text>
+      </view>
+      <switch checked="{{expireReminder}}" bindchange="toggleExpireReminder" color="#4A90E2" />
+    </view>
+    <view class="setting-divider"></view>
+    <view class="setting-item">
+      <view class="setting-left">
+        <text class="setting-label">设备异常提醒</text>
+        <text class="setting-desc">设备连接异常或故障时通知您</text>
+      </view>
+      <switch checked="{{deviceAlert}}" bindchange="toggleDeviceAlert" color="#4A90E2" />
+    </view>
+    <view class="setting-divider"></view>
+    <view class="setting-item">
+      <view class="setting-left">
+        <text class="setting-label">传输完成提醒</text>
+        <text class="setting-desc">文本传输完成时通知您</text>
+      </view>
+      <switch checked="{{transferDone}}" bindchange="toggleTransferDone" color="#4A90E2" />
+    </view>
+  </view>
+
+  <button class="btn btn-primary save-btn" bindtap="saveSettings">保存设置</button>
+</view>

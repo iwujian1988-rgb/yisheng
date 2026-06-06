@@ -1,0 +1,25 @@
+<!--pages/customer/transfer-alert.wxml-->
+<view class="alert-container">
+  <view class="alert-card">
+    <text class="alert-title">传输异常提醒</text>
+    <text class="alert-desc">{{alertMsg}}</text>
+  </view>
+  <view class="info-section">
+    <view class="info-row">
+      <text class="info-label">传输时间</text>
+      <text class="info-value">{{transferTime}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">异常类型</text>
+      <text class="info-value">{{alertType}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">涉及设备</text>
+      <text class="info-value">{{deviceName}}</text>
+    </view>
+  </view>
+  <view class="bottom-actions">
+    <view class="btn-primary" bindtap="retryTransfer"><text class="btn-text">重新传输</text></view>
+    <view class="btn-secondary" bindtap="contactSupport"><text class="btn-text-secondary">联系支持</text></view>
+  </view>
+</view>

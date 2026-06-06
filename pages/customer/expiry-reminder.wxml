@@ -1,0 +1,24 @@
+<!--pages/customer/expiry-reminder.wxml-->
+<view class="reminder-container">
+  <view class="alert-card">
+    <text class="alert-title">服务到期提醒</text>
+    <text class="alert-desc">您的服务即将到期，请及时续费以免影响使用</text>
+  </view>
+  <view class="info-section">
+    <view class="info-row">
+      <text class="info-label">服务类型</text>
+      <text class="info-value">{{serviceType}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">到期日期</text>
+      <text class="info-value">{{expiryDate}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">剩余天数</text>
+      <text class="info-value highlight">{{remainDays}}</text>
+    </view>
+  </view>
+  <view class="bottom-actions">
+    <view class="btn-primary" bindtap="contactService"><text class="btn-text">联系客服</text></view>
+  </view>
+</view>

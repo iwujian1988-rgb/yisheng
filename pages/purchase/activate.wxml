@@ -1,0 +1,29 @@
+<view class="activate-container">
+  <view class="intro-card">
+    <text class="intro-text">请输入购买设备后获得的激活码。开通后即可绑定设备并使用传输服务。</text>
+  </view>
+
+  <view class="form-section">
+    <view class="input-group">
+      <text class="input-label">激活码</text>
+      <input
+        class="input"
+        placeholder="请输入激活码"
+        placeholder-class="input-placeholder"
+        value="{{code}}"
+        bindinput="onCodeInput"
+        maxlength="30"
+      />
+      <text wx:if="{{codeError}}" class="error-text">{{codeError}}</text>
+    </view>
+  </view>
+
+  <button
+    class="btn btn-primary submit-btn {{canSubmit ? '' : 'disabled'}}"
+    disabled="{{!canSubmit || isLoading}}"
+    loading="{{isLoading}}"
+    bindtap="submitActivation"
+  >
+    开通服务
+  </button>
+</view>

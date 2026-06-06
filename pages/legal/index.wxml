@@ -1,0 +1,14 @@
+<!--pages/legal/index.wxml-->
+<view class="legal-container">
+  <view class="section-title"><text class="section-text">法律信息</text></view>
+  <view class="card-list">
+    <view class="entry-card" bindtap="goDisclaimer">
+      <text class="card-title">免责声明</text>
+      <text class="card-desc">查看产品免责声明</text>
+    </view>
+    <view class="entry-card" bindtap="goDataProcessing">
+      <text class="card-title">数据处理协议</text>
+      <text class="card-desc">查看数据处理相关条款</text>
+    </view>
+  </view>
+</view>

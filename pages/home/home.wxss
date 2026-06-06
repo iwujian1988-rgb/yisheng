@@ -1,11 +1,9 @@
-/* pages/home/home.wxss */
 .container {
   min-height: 100vh;
   padding: 30rpx;
   background: #F5F7FA;
 }
 
-/* 状态栏 */
 .status-bar {
   display: flex;
   align-items: center;
@@ -29,9 +27,8 @@
   color: #666666;
 }
 
-/* 卡片 */
 .card {
-  background: white;
+  background: #FFFFFF;
   border-radius: 24rpx;
   padding: 30rpx;
   margin-bottom: 24rpx;
@@ -58,7 +55,6 @@
   border-radius: 8rpx;
 }
 
-/* 设备卡片 */
 .device-info {
   display: flex;
   justify-content: space-between;
@@ -80,7 +76,6 @@
   color: #52C41A;
 }
 
-/* 输入卡片 */
 .char-count {
   font-size: 24rpx;
   color: #999999;
@@ -103,7 +98,6 @@
   color: #4A90E2;
 }
 
-/* 预览卡片 */
 .preview-text {
   display: block;
   font-size: 24rpx;
@@ -113,7 +107,6 @@
   font-family: monospace;
 }
 
-/* 按钮 */
 .btn {
   width: 100%;
   height: 88rpx;
@@ -123,13 +116,15 @@
   border: none;
 }
 
-.btn::after {
+.btn::after,
+.btn-cancel::after,
+.btn-send::after {
   border: none;
 }
 
 .btn-connect {
   background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-  color: white;
+  color: #FFFFFF;
 }
 
 .btn-disconnect {
@@ -154,10 +149,6 @@
   border: none;
 }
 
-.btn-cancel::after {
-  border: none;
-}
-
 .btn-send {
   flex: 1;
   height: 100rpx;
@@ -170,14 +161,9 @@
 
 .btn-send.active {
   background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-  color: white;
+  color: #FFFFFF;
 }
 
-.btn-send::after {
-  border: none;
-}
-
-/* 日志卡片 */
 .log-card {
   max-height: 400rpx;
 }

@@ -1,0 +1,14 @@
+/* pages/release/version-list.wxss */
+.version-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
+.section-title { padding: 8px 0 16px; }
+.section-text { font-size: 16px; color: #333333; font-weight: 500; }
+.empty-section { display: flex; justify-content: center; padding-top: 120px; }
+.empty-text { font-size: 14px; color: #999999; }
+.version-list { display: flex; flex-direction: column; gap: 10px; }
+.version-card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; }
+.version-header { display: flex; justify-content: space-between; align-items: center; }
+.version-name { font-size: 15px; color: #333333; font-weight: 500; }
+.version-tag { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
+.tag-current { background-color: #E3F2FD; color: #4A90E2; }
+.tag-old { background-color: #F5F5F5; color: #999999; }
+.version-date { font-size: 12px; color: #CCCCCC; margin-top: 6px; }

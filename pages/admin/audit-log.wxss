@@ -1,0 +1,52 @@
+/* pages/admin/audit-log.wxss */
+.log-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px;
+}
+
+.empty-section {
+  display: flex;
+  justify-content: center;
+  padding-top: 120px;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #999999;
+}
+
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.log-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.log-action {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333333;
+}
+
+.log-time {
+  font-size: 12px;
+  color: #999999;
+}
+
+.log-operator {
+  font-size: 13px;
+  color: #666666;
+}

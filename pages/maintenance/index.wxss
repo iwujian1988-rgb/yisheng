@@ -1,0 +1,8 @@
+/* pages/maintenance/index.wxss */
+.maintenance-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
+.section-title { padding: 8px 0 16px; }
+.section-text { font-size: 16px; color: #333333; font-weight: 500; }
+.card-list { display: flex; flex-direction: column; gap: 12px; }
+.entry-card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; }
+.card-title { font-size: 15px; color: #333333; font-weight: 500; }
+.card-desc { font-size: 13px; color: #999999; margin-top: 6px; }

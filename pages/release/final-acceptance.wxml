@@ -1,0 +1,32 @@
+<!--pages/release/final-acceptance.wxml-->
+<view class="acceptance-container">
+  <view class="header-section">
+    <text class="header-title">最终验收</text>
+    <text class="header-desc">请确认以下各项均已通过验收</text>
+  </view>
+  <view class="checklist">
+    <view class="check-card">
+      <text class="check-name">蓝牙传输功能</text>
+      <text class="check-status {{bleCheck==='pass'?'status-pass':'status-pending'}}">{{bleCheck==='pass'?'已通过':'待验收'}}</text>
+    </view>
+    <view class="check-card">
+      <text class="check-name">设备连接稳定性</text>
+      <text class="check-status {{deviceCheck==='pass'?'status-pass':'status-pending'}}">{{deviceCheck==='pass'?'已通过':'待验收'}}</text>
+    </view>
+    <view class="check-card">
+      <text class="check-name">数据安全性</text>
+      <text class="check-status {{securityCheck==='pass'?'status-pass':'status-pending'}}">{{securityCheck==='pass'?'已通过':'待验收'}}</text>
+    </view>
+    <view class="check-card">
+      <text class="check-name">合规性检查</text>
+      <text class="check-status {{complianceCheck==='pass'?'status-pass':'status-pending'}}">{{complianceCheck==='pass'?'已通过':'待验收'}}</text>
+    </view>
+    <view class="check-card">
+      <text class="check-name">用户体验</text>
+      <text class="check-status {{uxCheck==='pass'?'status-pass':'status-pending'}}">{{uxCheck==='pass'?'已通过':'待验收'}}</text>
+    </view>
+  </view>
+  <view class="bottom-actions">
+    <view class="btn-primary" bindtap="confirmAcceptance"><text class="btn-text">确认验收通过</text></view>
+  </view>
+</view>

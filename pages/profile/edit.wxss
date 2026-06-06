@@ -1,0 +1,80 @@
+/* pages/profile/edit.wxss */
+.edit-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.input-group {
+  margin-bottom: 24px;
+}
+
+.input-label {
+  font-size: 14px;
+  color: #333333;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  background-color: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #333333;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #4A90E2;
+}
+
+.input-placeholder {
+  color: #999999;
+}
+
+.readonly-field {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  background-color: #F5F7FA;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.readonly-text {
+  font-size: 15px;
+  color: #999999;
+}
+
+.save-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: #4A90E2;
+  color: #FFFFFF;
+}
+
+.btn-primary:active {
+  opacity: 0.8;
+}
+
+.disabled {
+  background-color: #CCCCCC;
+  color: #FFFFFF;
+}

@@ -1,0 +1,35 @@
+<!--pages/transfer/failure-reason.wxml-->
+<view class="failure-container">
+  <!-- 失败原因选择 -->
+  <view class="card">
+    <text class="card-title">请选择失败原因</text>
+    <radio-group bindchange="onReasonChange">
+      <label class="reason-item" wx:for="{{reasons}}" wx:key="value">
+        <radio value="{{item.value}}" checked="{{selectedReason === item.value}}" color="#4A90E2" />
+        <text class="reason-text">{{item.label}}</text>
+      </label>
+    </radio-group>
+  </view>
+
+  <!-- 问题描述 -->
+  <view class="card" wx:if="{{selectedReason}}">
+    <text class="card-title">问题描述（可选）</text>
+    <textarea
+      class="desc-input"
+      placeholder="请补充描述遇到的问题"
+      placeholder-class="input-placeholder"
+      value="{{description}}"
+      bindinput="onDescInput"
+      maxlength="500"
+    />
+  </view>
+
+  <!-- 提交按钮 -->
+  <button
+    class="btn btn-primary submit-btn"
+    disabled="{{!selectedReason}}"
+    bindtap="submitReason"
+  >
+    提交
+  </button>
+</view>

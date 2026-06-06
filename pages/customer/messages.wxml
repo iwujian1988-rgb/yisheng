@@ -1,0 +1,15 @@
+<!--pages/customer/messages.wxml-->
+<view class="messages-container">
+  <view class="empty-section" wx:if="{{messages.length===0}}">
+    <text class="empty-text">暂无消息</text>
+  </view>
+  <view class="message-list" wx:if="{{messages.length>0}}">
+    <view class="message-card" wx:for="{{messages}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="msg-header">
+        <text class="msg-title">{{item.title}}</text>
+        <text class="msg-time">{{item.time}}</text>
+      </view>
+      <text class="msg-preview">{{item.preview}}</text>
+    </view>
+  </view>
+</view>

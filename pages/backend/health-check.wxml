@@ -1,0 +1,15 @@
+<view class="health-container">
+  <view class="empty-section" wx:if="{{checks.length === 0}}">
+    <text class="empty-text">点击下方按钮开始检查</text>
+  </view>
+  <view class="check-list" wx:if="{{checks.length > 0}}">
+    <view class="check-card" wx:for="{{checks}}" wx:key="id">
+      <view class="check-dot {{item.pass ? 'dot-green' : 'dot-red'}}"></view>
+      <text class="check-name">{{item.name}}</text>
+      <text class="check-result">{{item.result}}</text>
+    </view>
+  </view>
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="startCheck">开始检查</button>
+  </view>
+</view>

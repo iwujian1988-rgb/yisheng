@@ -1,78 +1,64 @@
-<!--pages/login/login.wxml-->
 <view class="login-container">
-  <!-- Logo和标题 -->
   <view class="logo-section">
-    <image class="logo" src="/assets/images/logo.png" mode="aspectFit"></image>
-    <text class="app-name">病历传输</text>
-    <text class="app-desc">医疗数据快速传输工具</text>
+    <text class="app-name">文本传输助手</text>
+    <text class="app-desc">AI 内容整理与离线电脑输入工具</text>
   </view>
 
-  <!-- 登录表单 -->
   <view class="form-section">
-    <!-- 账号/手机号输入 -->
-    <view class="input-wrapper">
-      <input
-        class="input"
-        type="text"
-        placeholder="请输入手机号/账号"
-        placeholder-class="input-placeholder"
-        value="{{account}}"
-        bindinput="onAccountInput"
-        maxlength="30"
-      />
-    </view>
-
-    <!-- 密码输入 -->
-    <view class="input-wrapper password-wrapper">
-      <input
-        class="input password-input"
-        type="{{showPassword ? 'text' : 'password'}}"
-        placeholder="请输入密码"
-        placeholder-class="input-placeholder"
-        value="{{password}}"
-        bindinput="onPasswordInput"
-        maxlength="20"
-      />
-      <image
-        class="eye-icon"
-        src="{{showPassword ? '/assets/icons/eye-open.png' : '/assets/icons/eye-close.png'}}"
-        mode="aspectFit"
-        bindtap="togglePassword"
-      />
-    </view>
-
-    <!-- 忘记密码 -->
-    <view class="forget-pwd" bindtap="goToForgetPwd">
-      <text>忘记密码？</text>
-    </view>
-
-    <!-- 登录按钮 -->
     <button
-      class="btn btn-primary {{canLogin ? '' : 'disabled'}}"
-      disabled="{{!canLogin || isLoading}}"
-      bindtap="onLogin"
-      loading="{{isLoading}}"
+      class="btn btn-primary"
+      bindtap="onWechatLogin"
+      loading="{{isWechatLoading}}"
+      disabled="{{isWechatLoading}}"
     >
-      {{isLoading ? '登录中...' : '登 录'}}
+      {{isWechatLoading ? '登录中...' : '微信一键登录'}}
     </button>
 
-    <!-- 分割线 -->
-    <view class="divider-text">
-      <text>或</text>
+    <view class="login-note">
+      <text>登录后将校验服务开通状态和设备绑定状态。</text>
     </view>
 
-    <!-- 微信一键登录 -->
-    <button
-      class="btn btn-outline wechat-login-btn"
-      open-type="getUserInfo"
-      bindgetuserinfo="onWechatLogin"
-    >
-      <image class="wechat-icon" src="/assets/icons/wechat.png" mode="aspectFit"></image>
-      <text>微信一键登录</text>
-    </button>
+    <view class="divider-text" bindtap="togglePasswordLogin">
+      <text>{{showPasswordLogin ? '收起备用登录' : '备用账号登录'}}</text>
+    </view>
+
+    <view wx:if="{{showPasswordLogin}}" class="password-login">
+      <view class="input-wrapper">
+        <input
+          class="input"
+          type="text"
+          placeholder="请输入手机号或账号"
+          placeholder-class="input-placeholder"
+          value="{{account}}"
+          bindinput="onAccountInput"
+          maxlength="30"
+        />
+      </view>
+
+      <view class="input-wrapper password-wrapper">
+        <input
+          class="input password-input"
+          type="{{showPassword ? 'text' : 'password'}}"
+          placeholder="请输入密码"
+          placeholder-class="input-placeholder"
+          value="{{password}}"
+          bindinput="onPasswordInput"
+          maxlength="20"
+        />
+        <text class="eye-icon" bindtap="togglePassword">{{showPassword ? '隐藏' : '显示'}}</text>
+      </view>
+
+      <button
+        class="btn btn-outline {{canLogin ? '' : 'disabled'}}"
+        disabled="{{!canLogin || isLoading}}"
+        bindtap="onLogin"
+        loading="{{isLoading}}"
+      >
+        {{isLoading ? '登录中...' : '账号登录'}}
+      </button>
+    </view>
   </view>
 
-  <!-- 协议勾选 -->
   <view class="agreement-section">
     <checkbox-group bindchange="onAgreementChange">
       <label class="agreement-label">
@@ -85,9 +71,7 @@
     </checkbox-group>
   </view>
 
-  <!-- 注册入口 -->
   <view class="register-section">
-    <text class="register-text">还没有账号？</text>
-    <text class="register-link" bindtap="goToRegister">立即注册</text>
+    <text class="register-text">购买设备后，登录并输入激活码即可开通服务。</text>
   </view>
 </view>

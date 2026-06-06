@@ -1,0 +1,34 @@
+<!--pages/integration/asr-provider-guide.wxml-->
+<view class="guide-container">
+  <view class="guide-header"><text class="guide-title">ASR 服务集成指南</text></view>
+  <view class="step-list">
+    <view class="step-card">
+      <text class="step-num">1</text>
+      <view class="step-content">
+        <text class="step-title">选择 ASR 供应商</text>
+        <text class="step-desc">支持多家语音识别服务商接入</text>
+      </view>
+    </view>
+    <view class="step-card">
+      <text class="step-num">2</text>
+      <view class="step-content">
+        <text class="step-title">获取 API Key</text>
+        <text class="step-desc">在 ASR 平台申请接口密钥</text>
+      </view>
+    </view>
+    <view class="step-card">
+      <text class="step-num">3</text>
+      <view class="step-content">
+        <text class="step-title">配置语音参数</text>
+        <text class="step-desc">设置采样率、编码格式等参数</text>
+      </view>
+    </view>
+    <view class="step-card">
+      <text class="step-num">4</text>
+      <view class="step-content">
+        <text class="step-title">测试识别效果</text>
+        <text class="step-desc">使用样本语音验证识别准确率</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,88 @@
+/* pages/ops/ticket-list.wxss */
+.ticket-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.filter-item {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: #FFFFFF;
+}
+
+.filter-active {
+  background-color: #4A90E2;
+}
+
+.filter-active .filter-text {
+  color: #FFFFFF;
+}
+
+.filter-text {
+  font-size: 14px;
+  color: #666666;
+}
+
+.empty-section {
+  display: flex;
+  justify-content: center;
+  padding-top: 120px;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #999999;
+}
+
+.ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ticket-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.ticket-type {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333333;
+}
+
+.ticket-status {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.status-open {
+  color: #FAAD14;
+  background-color: rgba(250, 173, 20, 0.1);
+}
+
+.status-closed {
+  color: #52C41A;
+  background-color: rgba(82, 196, 26, 0.1);
+}
+
+.ticket-time {
+  font-size: 13px;
+  color: #999999;
+}

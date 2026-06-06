@@ -1,0 +1,39 @@
+<view class="calibration-container">
+  <view class="card">
+    <text class="card-title">传输速度档位</text>
+    <view class="tier-list">
+      <view class="tier-item">
+        <view class="tier-header">
+          <view class="tier-badge badge-safe">安全</view>
+          <text class="tier-name">兼容性最佳</text>
+        </view>
+        <text class="tier-desc">使用较长间隔发送，适合老旧电脑或不稳定的输入法环境。</text>
+      </view>
+      <view class="tier-item">
+        <view class="tier-header">
+          <view class="tier-badge badge-balanced">均衡</view>
+          <text class="tier-name">推荐日常使用</text>
+        </view>
+        <text class="tier-desc">在速度和稳定性之间取得平衡，适合大多数目标电脑。</text>
+      </view>
+      <view class="tier-item">
+        <view class="tier-header">
+          <view class="tier-badge badge-turbo">极速</view>
+          <text class="tier-name">速度最快</text>
+        </view>
+        <text class="tier-desc">使用更短间隔发送，需要目标电脑性能较好且输入法响应稳定。</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="card-title">校准测试</text>
+    <text class="card-desc">点击按钮发送一小段测试文本，根据结果推荐合适档位。</text>
+    <button class="btn btn-primary calibrate-btn" bindtap="startCalibration">开始校准</button>
+  </view>
+
+  <view class="card" wx:if="{{result}}">
+    <text class="card-title">校准结果</text>
+    <text class="result-text">{{result}}</text>
+  </view>
+</view>

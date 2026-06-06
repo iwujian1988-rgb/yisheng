@@ -1,0 +1,13 @@
+<!--pages/admin/activation-import.wxml-->
+<view class="import-container">
+  <view class="card">
+    <text class="card-title">批量输入激活码</text>
+    <textarea class="import-textarea" placeholder="每行一个激活码" placeholder-class="ph" value="{{codes}}" bindinput="onInput" maxlength="5000" />
+    <text class="hint-text">当前已输入 {{lineCount}} 条</text>
+  </view>
+  <view class="card">
+    <text class="card-title">导入说明</text>
+    <text class="desc-text">每行输入一个激活码，系统会自动去重和格式校验。导入后激活码状态为"未使用"。</text>
+  </view>
+  <button class="btn btn-primary submit-btn" disabled="{{!canSubmit}}" bindtap="submitImport">确认导入</button>
+</view>

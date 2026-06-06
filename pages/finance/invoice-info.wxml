@@ -1,0 +1,25 @@
+<!--pages/finance/invoice-info.wxml-->
+<view class="invoice-container">
+  <view class="form-section">
+    <view class="form-title"><text class="form-title-text">开票信息</text></view>
+    <view class="form-group">
+      <text class="form-label">发票抬头</text>
+      <input class="form-input" placeholder="请输入发票抬头" value="{{title}}" bindinput="onTitleInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">税号</text>
+      <input class="form-input" placeholder="请输入税号" value="{{taxId}}" bindinput="onTaxInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">开户银行</text>
+      <input class="form-input" placeholder="请输入开户银行" value="{{bank}}" bindinput="onBankInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">银行账号</text>
+      <input class="form-input" placeholder="请输入银行账号" value="{{account}}" bindinput="onAccountInput" />
+    </view>
+  </view>
+  <view class="bottom-actions">
+    <view class="btn-primary" bindtap="saveInvoice"><text class="btn-text">保存</text></view>
+  </view>
+</view>

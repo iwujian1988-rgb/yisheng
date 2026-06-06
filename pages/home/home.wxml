@@ -1,12 +1,9 @@
-<!--pages/home/home.wxml-->
 <view class="container">
-  <!-- 顶部状态栏 -->
   <view class="status-bar">
     <view class="status-dot {{connected ? 'connected' : ''}}"></view>
     <text class="status-text">{{statusText}}</text>
   </view>
 
-  <!-- 设备卡片 -->
   <view class="card device-card">
     <view class="card-header">
       <text class="card-title">设备连接</text>
@@ -24,7 +21,6 @@
     </button>
   </view>
 
-  <!-- 输入卡片 -->
   <view class="card input-card">
     <view class="card-header">
       <text class="card-title">输入文本</text>
@@ -32,7 +28,7 @@
     </view>
     <textarea
       class="text-input"
-      placeholder="请输入要传输的病历内容..."
+      placeholder="请输入要传输到电脑的文本..."
       value="{{inputText}}"
       bindinput="onTextInput"
       maxlength="5000"
@@ -44,15 +40,13 @@
     </view>
   </view>
 
-  <!-- 转换预览 -->
   <view class="card preview-card" wx:if="{{convertedText}}">
     <view class="card-header">
-      <text class="card-title">VUC转换预览</text>
+      <text class="card-title">转换预览</text>
     </view>
     <text class="preview-text">{{convertedText}}</text>
   </view>
 
-  <!-- 发送按钮 -->
   <view class="send-row">
     <button
       class="btn-cancel"
@@ -70,7 +64,6 @@
     </button>
   </view>
 
-  <!-- 日志区域 -->
   <view class="card log-card" wx:if="{{logs.length > 0}}">
     <view class="card-header">
       <text class="card-title">操作日志</text>

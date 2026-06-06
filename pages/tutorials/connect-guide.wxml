@@ -1,0 +1,40 @@
+<!--pages/tutorials/connect-guide.wxml-->
+<view class="guide-container">
+  <!-- 步骤区域 -->
+  <view class="steps-section" wx:if="{{steps.length > 0}}">
+    <text class="section-label">连接步骤</text>
+    <view class="step-list">
+      <view class="step-item" wx:for="{{steps}}" wx:key="index">
+        <view class="step-num-circle">
+          <text class="step-num-text">{{index + 1}}</text>
+        </view>
+        <text class="step-content">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 设备指示灯说明 -->
+  <view class="led-section">
+    <text class="section-label">指示灯说明</text>
+    <view class="led-card">
+      <view class="led-item">
+        <view class="led-dot led-green"></view>
+        <text class="led-text">常亮 — 设备正常，可传输</text>
+      </view>
+      <view class="led-item">
+        <view class="led-dot led-yellow"></view>
+        <text class="led-text">闪烁 — 正在传输数据</text>
+      </view>
+      <view class="led-item">
+        <view class="led-dot led-red"></view>
+        <text class="led-text">不亮 — 请检查 USB 连接</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 常见问题入口 -->
+  <view class="faq-entry" bindtap="goToFaq">
+    <text class="faq-text">遇到问题？查看常见问题</text>
+    <text class="faq-arrow">&#10095;</text>
+  </view>
+</view>

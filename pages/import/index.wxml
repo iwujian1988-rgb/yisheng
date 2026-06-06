@@ -1,0 +1,58 @@
+<view class="import-container">
+  <view class="entry-list">
+    <view class="entry-card" bindtap="goManualInput">
+      <view class="entry-icon icon-manual">
+        <text class="icon-text">&#9998;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">手动输入</text>
+        <text class="entry-desc">直接在文本框中输入内容。</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goOcr">
+      <view class="entry-icon icon-ocr">
+        <text class="icon-text">&#128247;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">拍照识别</text>
+        <text class="entry-desc">选择图片后进入文字识别流程。</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goAsr">
+      <view class="entry-icon icon-asr">
+        <text class="icon-text">&#127908;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">录音转写</text>
+        <text class="entry-desc">进入语音转写流程。</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goAi">
+      <view class="entry-icon icon-ai">
+        <text class="icon-text">&#9733;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">AI 整理</text>
+        <text class="entry-desc">润色、总结或规范已有文本。</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goTemplate">
+      <view class="entry-icon icon-template">
+        <text class="icon-text">&#9783;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">模板生成</text>
+        <text class="entry-desc">选择模板并填写字段。</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+  </view>
+</view>

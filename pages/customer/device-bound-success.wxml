@@ -1,0 +1,12 @@
+<!--pages/customer/device-bound-success.wxml-->
+<view class="success-container">
+  <view class="success-section">
+    <view class="success-circle">&#10003;</view>
+    <text class="success-title">设备绑定成功</text>
+    <text class="success-desc">设备 {{serialNo || '--'}} 已成功绑定到您的账号。</text>
+  </view>
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="goNext">开始使用</button>
+    <button class="btn btn-outline action-btn" bindtap="goTutorial">查看教程</button>
+  </view>
+</view>

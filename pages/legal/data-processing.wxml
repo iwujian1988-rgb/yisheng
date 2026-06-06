@@ -1,0 +1,22 @@
+<view class="processing-container">
+  <view class="content-card">
+    <text class="content-title">数据处理说明</text>
+    <text class="content-text">本页用于说明产品在使用过程中可能涉及的数据处理环节，具体上线版本应结合实际后端、加密和第三方服务配置确认。</text>
+  </view>
+  <view class="content-card">
+    <text class="content-subtitle">采集</text>
+    <text class="content-text">产品仅围绕账号开通、设备绑定、文本传输和必要的服务支持处理相关信息。</text>
+  </view>
+  <view class="content-card">
+    <text class="content-subtitle">存储</text>
+    <text class="content-text">用户内容的保存范围由用户设置和服务配置决定。涉及明文内容时，应优先采用用户侧可控的保护方案。</text>
+  </view>
+  <view class="content-card">
+    <text class="content-subtitle">使用</text>
+    <text class="content-text">AI、OCR、ASR 等第三方能力接入前，应先执行脱敏和用户确认流程。</text>
+  </view>
+  <view class="content-card">
+    <text class="content-subtitle">删除</text>
+    <text class="content-text">用户应能够按产品设置清理本地数据。云端数据删除规则需以后端实现和服务协议为准。</text>
+  </view>
+</view>

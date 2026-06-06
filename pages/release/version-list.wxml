@@ -1,0 +1,14 @@
+<!--pages/release/version-list.wxml-->
+<view class="version-container">
+  <view class="section-title"><text class="section-text">版本列表</text></view>
+  <view class="empty-section" wx:if="{{versions.length===0}}"><text class="empty-text">暂无版本记录</text></view>
+  <view class="version-list" wx:if="{{versions.length>0}}">
+    <view class="version-card" wx:for="{{versions}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="version-header">
+        <text class="version-name">{{item.name}}</text>
+        <text class="version-tag {{item.current?'tag-current':'tag-old'}}">{{item.current?'当前':'历史'}}</text>
+      </view>
+      <text class="version-date">{{item.date}}</text>
+    </view>
+  </view>
+</view>

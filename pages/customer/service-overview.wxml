@@ -1,0 +1,49 @@
+<!--pages/customer/service-overview.wxml-->
+<view class="overview-container">
+  <view class="card">
+    <text class="card-title">服务状态</text>
+    <view class="info-row">
+      <text class="info-label">服务有效期</text>
+      <text class="info-value">{{serviceExpiry || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">服务状态</text>
+      <text class="info-value">{{serviceStatus || '--'}}</text>
+    </view>
+  </view>
+  <view class="card">
+    <text class="card-title">设备状态</text>
+    <view class="info-row">
+      <text class="info-label">绑定设备</text>
+      <text class="info-value">{{deviceSerial || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">设备状态</text>
+      <text class="info-value">{{deviceStatus || '--'}}</text>
+    </view>
+  </view>
+  <view class="card">
+    <text class="card-title">最近传输</text>
+    <view class="info-row">
+      <text class="info-label">最近一次</text>
+      <text class="info-value">{{lastTransfer || '--'}}</text>
+    </view>
+  </view>
+  <view class="card">
+    <text class="card-title">常用功能</text>
+    <view class="entry-list">
+      <view class="entry-item" bindtap="goTransfer">
+        <text class="entry-text">发送文本</text>
+        <text class="entry-arrow">&#10095;</text>
+      </view>
+      <view class="entry-item" bindtap="goHistory">
+        <text class="entry-text">历史记录</text>
+        <text class="entry-arrow">&#10095;</text>
+      </view>
+      <view class="entry-item" bindtap="goHelp">
+        <text class="entry-text">帮助中心</text>
+        <text class="entry-arrow">&#10095;</text>
+      </view>
+    </view>
+  </view>
+</view>

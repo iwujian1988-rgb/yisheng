@@ -1,0 +1,21 @@
+<!--pages/metrics/ocr-asr-usage.wxml-->
+<view class="usage-container">
+  <view class="stats-grid">
+    <view class="stat-card">
+      <text class="stat-num">{{ocrCount}}</text>
+      <text class="stat-label">OCR 次数</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{asrCount}}</text>
+      <text class="stat-label">ASR 次数</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{confirmCount}}</text>
+      <text class="stat-label">确认使用</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{discardCount}}</text>
+      <text class="stat-label">放弃次数</text>
+    </view>
+  </view>
+</view>

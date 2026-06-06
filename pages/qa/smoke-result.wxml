@@ -1,0 +1,32 @@
+<!--pages/qa/smoke-result.wxml-->
+<view class="result-container">
+  <!-- 汇总 -->
+  <view class="card summary-card">
+    <view class="summary-row">
+      <view class="summary-item">
+        <text class="summary-num num-pass">{{passCount}}</text>
+        <text class="summary-label">通过</text>
+      </view>
+      <view class="summary-item">
+        <text class="summary-num num-fail">{{failCount}}</text>
+        <text class="summary-label">失败</text>
+      </view>
+      <view class="summary-item">
+        <text class="summary-num">{{total}}</text>
+        <text class="summary-label">总计</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 问题列表 -->
+  <view class="section-label">问题列表</view>
+  <view class="empty-section" wx:if="{{issues.length === 0}}">
+    <text class="empty-text">无失败项</text>
+  </view>
+  <view class="issue-list" wx:if="{{issues.length > 0}}">
+    <view class="issue-card" wx:for="{{issues}}" wx:key="id">
+      <text class="issue-title">{{item.title}}</text>
+      <text class="issue-desc">{{item.desc}}</text>
+    </view>
+  </view>
+</view>

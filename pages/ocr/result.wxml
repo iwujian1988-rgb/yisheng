@@ -1,0 +1,30 @@
+<view class="ocr-result-container">
+  <view class="image-section">
+    <image
+      wx:if="{{imageUrl}}"
+      class="preview-image"
+      src="{{imageUrl}}"
+      mode="aspectFit"
+    />
+    <view wx:else class="image-placeholder">
+      <text class="placeholder-text">无图片</text>
+    </view>
+  </view>
+
+  <view class="result-section">
+    <text class="result-label">识别文本</text>
+    <view class="result-box">
+      <text class="result-text" wx:if="{{resultText}}">{{resultText}}</text>
+      <text class="result-empty" wx:else>暂无识别文本</text>
+    </view>
+  </view>
+
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="confirmResult">
+      确认使用
+    </button>
+    <button class="btn btn-outline action-btn" bindtap="reRecognize">
+      重新识别
+    </button>
+  </view>
+</view>

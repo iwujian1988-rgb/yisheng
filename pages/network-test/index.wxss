@@ -1,0 +1,61 @@
+/* pages/network-test/index.wxss */
+.test-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px;
+}
+
+.action-section {
+  margin-bottom: 28px;
+}
+
+.test-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  background-color: #4A90E2;
+  color: #FFFFFF;
+}
+
+.test-btn:active {
+  opacity: 0.8;
+}
+
+/* 结果列表 */
+.results-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.result-name {
+  font-size: 15px;
+  color: #333333;
+}
+
+.result-status {
+  font-size: 14px;
+}
+
+.status-pass {
+  color: #52C41A;
+}
+
+.status-fail {
+  color: #F5222D;
+}
+
+.status-testing {
+  color: #FAAD14;
+}

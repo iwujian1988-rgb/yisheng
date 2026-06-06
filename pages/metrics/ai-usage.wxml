@@ -1,0 +1,21 @@
+<!--pages/metrics/ai-usage.wxml-->
+<view class="usage-container">
+  <view class="stats-grid">
+    <view class="stat-card">
+      <text class="stat-num">{{callCount}}</text>
+      <text class="stat-label">调用次数</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{redactCount}}</text>
+      <text class="stat-label">脱敏次数</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{approveCount}}</text>
+      <text class="stat-label">审核通过</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{sendCount}}</text>
+      <text class="stat-label">发送到电脑</text>
+    </view>
+  </view>
+</view>

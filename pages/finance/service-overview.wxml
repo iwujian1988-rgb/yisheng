@@ -1,0 +1,20 @@
+<view class="overview-container">
+  <view class="stat-grid">
+    <view class="stat-card">
+      <text class="stat-value">{{totalServices}}</text>
+      <text class="stat-label">服务数量</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{activeServices}}</text>
+      <text class="stat-label">有效服务</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{expiredServices}}</text>
+      <text class="stat-label">过期服务</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-value">{{pendingServices}}</text>
+      <text class="stat-label">待开通服务</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,16 @@
+<!--pages/admin/audit-log.wxml-->
+<view class="log-container">
+  <view class="empty-section" wx:if="{{logs.length === 0}}">
+    <text class="empty-text">暂无操作日志</text>
+  </view>
+
+  <view class="log-list" wx:if="{{logs.length > 0}}">
+    <view class="log-card" wx:for="{{logs}}" wx:key="id">
+      <view class="log-header">
+        <text class="log-action">{{item.action}}</text>
+        <text class="log-time">{{item.time}}</text>
+      </view>
+      <text class="log-operator">操作人：{{item.operator}}</text>
+    </view>
+  </view>
+</view>

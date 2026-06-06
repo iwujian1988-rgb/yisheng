@@ -1,0 +1,39 @@
+<!--pages/purchase/index.wxml-->
+<view class="purchase-container">
+  <view class="intro-section">
+    <view class="intro-icon">
+      <text class="intro-icon-text">&#9881;</text>
+    </view>
+    <text class="intro-title">开通传输服务</text>
+    <text class="intro-desc">本产品为设备配套服务，购买传输设备后即可开通使用。</text>
+  </view>
+
+  <view class="steps-card">
+    <text class="steps-title">使用流程</text>
+    <view class="step-item">
+      <text class="step-num">1</text>
+      <text class="step-text">购买传输设备</text>
+    </view>
+    <view class="step-item">
+      <text class="step-num">2</text>
+      <text class="step-text">获取激活码或联系服务人员开通</text>
+    </view>
+    <view class="step-item">
+      <text class="step-num">3</text>
+      <text class="step-text">将设备插入电脑 USB 口</text>
+    </view>
+    <view class="step-item">
+      <text class="step-num">4</text>
+      <text class="step-text">在小程序中完成设备绑定</text>
+    </view>
+  </view>
+
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="contactSales">
+      联系客服
+    </button>
+    <button class="btn btn-outline action-btn" bindtap="inputActivationCode">
+      输入激活码
+    </button>
+  </view>
+</view>

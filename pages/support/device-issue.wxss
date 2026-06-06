@@ -1,0 +1,116 @@
+/* pages/support/device-issue.wxss */
+.issue-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px 32px;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.section-label {
+  font-size: 14px;
+  color: #333333;
+  font-weight: 500;
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* 类型选择 */
+.type-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.type-item {
+  padding: 8px 18px;
+  border-radius: 20px;
+  background-color: #FFFFFF;
+  border: 1px solid #E5E5E5;
+}
+
+.type-active {
+  background-color: rgba(74, 144, 226, 0.08);
+  border-color: #4A90E2;
+}
+
+.type-text {
+  font-size: 14px;
+  color: #333333;
+}
+
+.type-active .type-text {
+  color: #4A90E2;
+}
+
+/* 输入框 */
+.textarea {
+  width: 100%;
+  height: 140px;
+  padding: 14px 16px;
+  background-color: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #333333;
+  box-sizing: border-box;
+  line-height: 1.6;
+}
+
+.textarea:focus {
+  border-color: #4A90E2;
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  background-color: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #333333;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #4A90E2;
+}
+
+.input-placeholder {
+  color: #999999;
+}
+
+.char-count {
+  font-size: 12px;
+  color: #999999;
+  margin-top: 4px;
+  display: block;
+  text-align: right;
+}
+
+/* 提交按钮 */
+.submit-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 16px;
+}
+
+.btn-primary {
+  background-color: #4A90E2;
+  color: #FFFFFF;
+}
+
+.btn-primary:active {
+  opacity: 0.8;
+}
+
+.disabled {
+  background-color: #CCCCCC;
+  color: #FFFFFF;
+}

@@ -1,0 +1,26 @@
+<!--pages/transfer/result.wxml-->
+<view class="result-container">
+  <!-- 成功 -->
+  <view class="status-section" wx:if="{{status === 'success'}}">
+    <view class="icon-circle icon-success">
+      <text class="icon-text">&#10003;</text>
+    </view>
+    <text class="status-title">传输成功</text>
+    <text class="status-desc">文本已成功发送到电脑</text>
+  </view>
+
+  <!-- 失败 -->
+  <view class="status-section" wx:if="{{status === 'fail'}}">
+    <view class="icon-circle icon-fail">
+      <text class="icon-text">&#10005;</text>
+    </view>
+    <text class="status-title">传输失败</text>
+    <text class="status-desc">{{errorMessage || '传输过程中出现错误，请重试'}}</text>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-section">
+    <button class="btn btn-primary action-btn" bindtap="goHome">返回首页</button>
+    <button class="btn btn-outline action-btn" bindtap="goHistory">查看历史</button>
+  </view>
+</view>

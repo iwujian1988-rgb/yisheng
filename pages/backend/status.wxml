@@ -1,0 +1,30 @@
+<view class="status-container">
+  <view class="card">
+    <view class="status-row">
+      <view class="status-dot {{authStatus === 'ok' ? 'dot-green' : authStatus === 'fail' ? 'dot-red' : 'dot-gray'}}"></view>
+      <text class="status-label">认证服务</text>
+      <text class="status-value">{{authStatus || '--'}}</text>
+    </view>
+  </view>
+  <view class="card">
+    <view class="status-row">
+      <view class="status-dot {{userStatus === 'ok' ? 'dot-green' : userStatus === 'fail' ? 'dot-red' : 'dot-gray'}}"></view>
+      <text class="status-label">付费用户服务</text>
+      <text class="status-value">{{userStatus || '--'}}</text>
+    </view>
+  </view>
+  <view class="card">
+    <view class="status-row">
+      <view class="status-dot {{deviceStatus === 'ok' ? 'dot-green' : deviceStatus === 'fail' ? 'dot-red' : 'dot-gray'}}"></view>
+      <text class="status-label">设备服务</text>
+      <text class="status-value">{{deviceStatus || '--'}}</text>
+    </view>
+  </view>
+  <view class="card">
+    <view class="status-row">
+      <view class="status-dot {{aiStatus === 'ok' ? 'dot-green' : aiStatus === 'fail' ? 'dot-red' : 'dot-gray'}}"></view>
+      <text class="status-label">AI 服务</text>
+      <text class="status-value">{{aiStatus || '--'}}</text>
+    </view>
+  </view>
+</view>

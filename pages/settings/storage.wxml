@@ -1,0 +1,33 @@
+<!--pages/settings/storage.wxml-->
+<view class="storage-container">
+  <view class="data-card">
+    <!-- 历史记录 -->
+    <view class="data-item">
+      <view class="data-left">
+        <text class="data-label">传输历史记录</text>
+        <text class="data-desc">已完成传输的记录数据</text>
+      </view>
+      <button class="clear-btn" bindtap="clearHistory">清除</button>
+    </view>
+    <view class="data-divider"></view>
+
+    <!-- 本地草稿 -->
+    <view class="data-item">
+      <view class="data-left">
+        <text class="data-label">本地草稿</text>
+        <text class="data-desc">待发送的文本草稿内容</text>
+      </view>
+      <button class="clear-btn" bindtap="clearDrafts">清除</button>
+    </view>
+    <view class="data-divider"></view>
+
+    <!-- 设备缓存 -->
+    <view class="data-item">
+      <view class="data-left">
+        <text class="data-label">设备缓存</text>
+        <text class="data-desc">已缓存的设备连接信息</text>
+      </view>
+      <button class="clear-btn" bindtap="clearDeviceCache">清除</button>
+    </view>
+  </view>
+</view>

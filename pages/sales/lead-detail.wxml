@@ -1,0 +1,12 @@
+<!--pages/sales/lead-detail.wxml-->
+<view class="detail-container">
+  <view class="card">
+    <view class="info-row"><text class="info-label">客户</text><text class="info-value">{{customerName || '--'}}</text></view>
+    <view class="info-row"><text class="info-label">需求描述</text><text class="info-value">{{demand || '--'}}</text></view>
+    <view class="info-row"><text class="info-label">跟进状态</text><text class="info-value">{{followStatus || '--'}}</text></view>
+  </view>
+  <view class="card" wx:if="{{remark}}">
+    <text class="card-title">备注</text>
+    <text class="remark-text">{{remark}}</text>
+  </view>
+</view>

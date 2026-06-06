@@ -1,0 +1,34 @@
+<!--pages/profile/edit.wxml-->
+<view class="edit-container">
+  <!-- 昵称 -->
+  <view class="form-section">
+    <view class="input-group">
+      <text class="input-label">昵称</text>
+      <input
+        class="input"
+        placeholder="请输入昵称"
+        placeholder-class="input-placeholder"
+        value="{{nickname}}"
+        bindinput="onNicknameInput"
+        maxlength="20"
+      />
+    </view>
+
+    <!-- 手机号（只读） -->
+    <view class="input-group">
+      <text class="input-label">手机号</text>
+      <view class="readonly-field">
+        <text class="readonly-text">{{phone || '--'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 保存按钮 -->
+  <button
+    class="btn btn-primary save-btn {{canSave ? '' : 'disabled'}}"
+    disabled="{{!canSave}}"
+    bindtap="saveProfile"
+  >
+    保存
+  </button>
+</view>

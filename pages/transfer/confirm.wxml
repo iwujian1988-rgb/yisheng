@@ -1,0 +1,31 @@
+<view class="confirm-container">
+  <view class="card">
+    <view class="card-header">
+      <text class="card-title">待发送内容</text>
+      <text class="char-count">{{text.length}} 字</text>
+    </view>
+    <scroll-view class="text-preview" scroll-y>
+      <text class="preview-text">{{text || '暂无内容'}}</text>
+    </scroll-view>
+  </view>
+
+  <view class="card">
+    <view class="info-row">
+      <text class="info-label">来源</text>
+      <text class="info-value">{{sourceLabel}}</text>
+    </view>
+  </view>
+
+  <view class="action-section">
+    <button
+      class="btn btn-primary action-btn"
+      disabled="{{!text}}"
+      bindtap="confirmSend"
+    >
+      确认发送
+    </button>
+    <button class="btn btn-outline action-btn" bindtap="goBackEdit">
+      返回编辑
+    </button>
+  </view>
+</view>

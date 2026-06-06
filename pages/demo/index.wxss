@@ -1,0 +1,9 @@
+/* pages/demo/index.wxss */
+.demo-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
+.header-section { display: flex; flex-direction: column; align-items: center; padding: 32px 0 24px; }
+.header-title { font-size: 20px; color: #333333; font-weight: 600; }
+.header-desc { font-size: 13px; color: #999999; margin-top: 8px; }
+.card-list { display: flex; flex-direction: column; gap: 12px; }
+.entry-card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; }
+.card-title { font-size: 16px; color: #333333; font-weight: 500; }
+.card-desc { font-size: 13px; color: #999999; margin-top: 6px; }

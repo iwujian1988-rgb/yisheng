@@ -1,0 +1,32 @@
+<!--pages/admin/paid-user-list.wxml-->
+<view class="list-container">
+  <!-- 搜索框 -->
+  <view class="search-bar">
+    <input
+      class="search-input"
+      placeholder="搜索手机号或备注"
+      placeholder-class="search-placeholder"
+      value="{{keyword}}"
+      bindinput="onSearchInput"
+    />
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-section" wx:if="{{users.length === 0}}">
+    <text class="empty-text">暂无用户</text>
+  </view>
+
+  <!-- 用户列表 -->
+  <view class="list-area" wx:if="{{users.length > 0}}">
+    <view class="user-card" wx:for="{{users}}" wx:key="id">
+      <view class="user-header">
+        <text class="user-phone">{{item.phone}}</text>
+        <text class="user-status {{item.active ? 'status-active' : 'status-inactive'}}">{{item.active ? '有效' : '已过期'}}</text>
+      </view>
+      <view class="user-meta">
+        <text class="meta-text">到期：{{item.expiryDate}}</text>
+        <text class="meta-text" wx:if="{{item.serialNo}}">设备：{{item.serialNo}}</text>
+      </view>
+    </view>
+  </view>
+</view>

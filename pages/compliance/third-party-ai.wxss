@@ -1,0 +1,7 @@
+/* pages/compliance/third-party-ai.wxss */
+.ai-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
+.card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; margin-bottom: 12px; }
+.section-header { display: flex; align-items: center; margin-bottom: 10px; }
+.step-num { width: 24px; height: 24px; border-radius: 50%; background-color: #4A90E2; color: #FFFFFF; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0; }
+.section-title { font-size: 15px; font-weight: 500; color: #333333; }
+.section-desc { font-size: 14px; color: #666666; line-height: 1.8; padding-left: 36px; }

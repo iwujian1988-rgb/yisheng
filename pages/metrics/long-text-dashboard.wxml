@@ -1,0 +1,44 @@
+<!-- pages/metrics/long-text-dashboard.wxml -->
+<view class="dashboard-container">
+  <view class="card target-card">
+    <text class="target-label">验收目标</text>
+    <text class="target-value">3000 字 / 120 秒</text>
+  </view>
+
+  <view class="stats-row">
+    <view class="stat-card">
+      <text class="stat-num">{{passRate}}%</text>
+      <text class="stat-label">通过率</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{totalCount}}</text>
+      <text class="stat-label">总测试</text>
+    </view>
+  </view>
+
+  <view class="stats-row">
+    <view class="stat-card">
+      <text class="stat-num">{{failedCount}}</text>
+      <text class="stat-label">失败数</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num">{{fastestPassedMs ? fastestPassedMs + 'ms' : '--'}}</text>
+      <text class="stat-label">最快通过</text>
+    </view>
+  </view>
+
+  <text class="section-label" wx:if="{{records.length > 0}}">测试记录</text>
+  <view class="record-list" wx:if="{{records.length > 0}}">
+    <view class="record-card" wx:for="{{records}}" wx:key="id">
+      <view class="record-main">
+        <text class="record-date">{{item.date}}</text>
+        <text class="record-meta">{{item.charCount}} 字 / {{item.elapsedMs || 0}}ms</text>
+      </view>
+      <text class="record-result {{item.pass ? 'pass' : 'fail'}}">{{item.pass ? '通过' : (item.status === 'failed' ? '未通过' : '待执行')}}</text>
+    </view>
+  </view>
+
+  <view class="empty-section" wx:if="{{records.length === 0}}">
+    <text class="empty-text">暂无测试记录</text>
+  </view>
+</view>

@@ -1,0 +1,226 @@
+/* pages/register/register.wxss */
+.register-container {
+  min-height: 100vh;
+  padding: 0 32px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F5F7FA 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 标题区域 */
+.header-section {
+  margin-top: 80px;
+  margin-bottom: 40px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333333;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.page-desc {
+  font-size: 14px;
+  color: #999999;
+  display: block;
+}
+
+/* 表单 */
+.form-section {
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.input-group {
+  margin-bottom: 24px;
+}
+
+.input-label {
+  font-size: 14px;
+  color: #333333;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  height: 52px;
+  padding: 0 16px;
+  background-color: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #333333;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #4A90E2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.input-placeholder {
+  color: #999999;
+}
+
+/* 清除按钮 */
+.clear-icon {
+  position: absolute;
+  right: 16px;
+  width: 20px;
+  height: 20px;
+  font-size: 18px;
+  color: #999999;
+  text-align: center;
+  line-height: 20px;
+}
+
+/* 验证码 */
+.code-wrapper {
+  display: flex;
+  gap: 12px;
+}
+
+.code-input {
+  flex: 1;
+}
+
+.code-btn {
+  width: 120px;
+  height: 52px;
+  line-height: 52px;
+  padding: 0;
+  background-color: #4A90E2;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.code-btn.disabled {
+  background-color: #CCCCCC;
+  color: #FFFFFF;
+}
+
+/* 密码 */
+.password-wrapper {
+  position: relative;
+}
+
+.password-input {
+  padding-right: 48px;
+}
+
+.eye-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+}
+
+/* 密码强度 */
+.strength-bar {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  gap: 6px;
+}
+
+.strength-segment {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background-color: #E5E5E5;
+}
+
+.strength-segment.strength-weak {
+  background-color: #F5222D;
+}
+
+.strength-segment.strength-medium {
+  background-color: #FAAD14;
+}
+
+.strength-segment.strength-strong {
+  background-color: #52C41A;
+}
+
+.strength-label {
+  font-size: 12px;
+  color: #999999;
+  margin-left: 4px;
+  width: 24px;
+}
+
+/* 错误提示 */
+.error-text {
+  font-size: 12px;
+  color: #F5222D;
+  margin-top: 4px;
+  display: block;
+}
+
+/* 注册按钮 */
+.register-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* 协议 */
+.agreement-section {
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 24px;
+}
+
+.agreement-label {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+
+.agreement-text {
+  color: #666666;
+  margin-left: 8px;
+}
+
+.agreement-link {
+  color: #4A90E2;
+  margin: 0 2px;
+}
+
+/* 返回登录 */
+.login-section {
+  margin-top: auto;
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-text {
+  font-size: 14px;
+  color: #666666;
+}
+
+.login-link {
+  font-size: 14px;
+  color: #4A90E2;
+  margin-left: 4px;
+}

@@ -1,0 +1,30 @@
+<!--pages/customer/data-export-note.wxml-->
+<view class="export-container">
+  <view class="card">
+    <text class="card-title">可导出内容</text>
+    <view class="list-item">
+      <view class="list-dot dot-green"></view>
+      <text class="list-text">您输入和编辑的文本内容</text>
+    </view>
+    <view class="list-item">
+      <view class="list-dot dot-green"></view>
+      <text class="list-text">传输历史记录摘要</text>
+    </view>
+    <view class="list-item">
+      <view class="list-dot dot-green"></view>
+      <text class="list-text">账号基本信息</text>
+    </view>
+  </view>
+  <view class="card">
+    <text class="card-title">不可导出内容</text>
+    <view class="list-item">
+      <view class="list-dot dot-gray"></view>
+      <text class="list-text">其他用户的任何数据</text>
+    </view>
+    <view class="list-item">
+      <view class="list-dot dot-gray"></view>
+      <text class="list-text">系统运行日志和审计信息</text>
+    </view>
+  </view>
+  <button class="btn btn-primary apply-btn" bindtap="applyExport">申请数据导出</button>
+</view>

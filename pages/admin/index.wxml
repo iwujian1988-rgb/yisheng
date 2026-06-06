@@ -1,0 +1,48 @@
+<!--pages/admin/index.wxml-->
+<view class="admin-container">
+  <view class="entry-list">
+    <view class="entry-card" bindtap="goPaidUsers">
+      <view class="entry-icon icon-users">
+        <text class="icon-text">&#9782;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">付费用户管理</text>
+        <text class="entry-desc">创建、查看和管理付费用户</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goDevices">
+      <view class="entry-icon icon-device">
+        <text class="icon-text">&#9881;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">设备管理</text>
+        <text class="entry-desc">查看和管理已绑定的硬件设备</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goServiceRecords">
+      <view class="entry-icon icon-records">
+        <text class="icon-text">&#9776;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">服务记录</text>
+        <text class="entry-desc">查看使用统计和服务记录</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+
+    <view class="entry-card" bindtap="goFeedback">
+      <view class="entry-icon icon-feedback">
+        <text class="icon-text">&#9993;</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">问题反馈</text>
+        <text class="entry-desc">查看和处理用户反馈</text>
+      </view>
+      <text class="entry-arrow">&#10095;</text>
+    </view>
+  </view>
+</view>
