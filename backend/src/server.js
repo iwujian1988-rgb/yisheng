@@ -55,6 +55,10 @@ router.get('/api/health', (req, res) => {
 
 router.post('/api/admin/auth/login', auth.adminLogin);
 router.post('/api/auth/login', auth.userLogin);
+router.post('/api/auth/register-code', auth.requestRegisterCode);
+router.post('/api/auth/register', auth.register);
+router.post('/api/auth/reset-code', auth.requestResetCode);
+router.post('/api/auth/reset-password', auth.resetPassword);
 router.post('/api/auth/wechat-login', auth.wechatLogin);
 router.get('/api/auth/me', auth.me);
 

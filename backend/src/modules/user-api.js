@@ -1,5 +1,6 @@
-﻿const { fail, ok, parseBody } = require('../http');
+const { fail, ok, parseBody } = require('../http');
 const { createId, nowIso } = require('../security/ids');
+const { config } = require('../config');
 
 function createUserApiModule(deps) {
   var store = deps.store;
@@ -11,6 +12,15 @@ function createUserApiModule(deps) {
       return 'professional';
     }
     return 'general';
+  }
+
+  function isDevOnlyEnvelope(envelope) {
+    var version = String(envelope && envelope.version || '');
+    var algorithm = String(envelope && envelope.algorithm || '');
+    return version === 'local-v1' ||
+      version === 'dev-local-v1' ||
+      algorithm === 'local-base64-placeholder' ||
+      algorithm === 'dev-local-base64-placeholder';
   }
 
   function getUserTemplateAccess(userId) {
@@ -156,6 +166,10 @@ function createUserApiModule(deps) {
     var body = await parseBody(req);
     if (!body.ciphertext || !body.envelope) {
       fail(res, 400, 'ENCRYPTED_CONTENT_REQUIRED', 'ciphertext and envelope required');
+      return;
+    }
+    if (config.env === 'production' && isDevOnlyEnvelope(body.envelope)) {
+      fail(res, 400, 'PRODUCTION_ENCRYPTION_REQUIRED', 'production history requires a non-placeholder envelope');
       return;
     }
     var item = {

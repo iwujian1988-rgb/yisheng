@@ -41,6 +41,7 @@ function createMemoryStore() {
     unionid: '',
     phone: '13800000001',
     nickname: 'dev-user',
+    passwordHash: hashPassword('Test123456'),
     status: 'active',
     memberStatus: 'active',
     memberStart: now,

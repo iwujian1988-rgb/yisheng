@@ -66,7 +66,16 @@ AI 调用流程必须是：
 - 创建时间。
 - 受保护提示文案。
 
-历史正文必须通过 `services/security/crypto.js` 生成受保护 payload 后保存。当前 `local-v1` 只是本地开发占位方案，不是最终加密承诺。
+历史正文必须通过 `services/security/crypto.js` 生成受保护 payload 后保存。当前 `dev-local-v1` / `dev-local-base64-placeholder` 只是本地开发占位方案，不是最终加密承诺。
+
+后端生产环境必须拒收开发占位 envelope：
+
+```text
+version = local-v1 | dev-local-v1
+algorithm = local-base64-placeholder | dev-local-base64-placeholder
+```
+
+正式上线前必须替换为用户侧可解密、服务端和管理员不可解明文的 envelope。后端只保存 ciphertext、envelope 和 metadata。
 
 管理员视角不得展示用户医疗正文明文。后续真实后端需要实现用户侧可解密、管理员不可见明文的密钥管理方案。
 

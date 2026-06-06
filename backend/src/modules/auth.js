@@ -1,9 +1,12 @@
 const { fail, getBearerToken, getIp, ok, parseBody } = require('../http');
 const { maskPhone } = require('../security/masking');
-const { verifyPassword } = require('../security/password');
+const { hashPassword, verifyPassword } = require('../security/password');
 const { writeAudit } = require('../security/audit');
 const { createId, nowIso } = require('../security/ids');
 const { config } = require('../config');
+
+const DEV_VERIFICATION_CODE = '123456';
+const PHONE_RE = /^1[3-9]\d{9}$/;
 
 function publicUser(user) {
   return {
@@ -115,7 +118,7 @@ function createAuthModule(deps) {
     var body = await parseBody(req);
     var account = String(body.account || '').trim();
     var user = store.users.find((item) => item.phone === account);
-    if (!user || user.status !== 'active') {
+    if (!user || user.status !== 'active' || !verifyPassword(body.password || '', user.passwordHash || '')) {
       fail(res, 401, 'INVALID_CREDENTIALS', 'invalid account or password');
       return;
     }
@@ -127,6 +130,118 @@ function createAuthModule(deps) {
     var token = sessions.issueSession(actor);
     user.lastLogin = new Date().toISOString();
     ok(res, buildUserSession(user, token));
+  }
+
+  function shouldExposeDevCode() {
+    return config.env !== 'production';
+  }
+
+  function validatePhonePassword(res, phone, password) {
+    if (!PHONE_RE.test(phone)) {
+      fail(res, 400, 'INVALID_PHONE', 'invalid phone');
+      return false;
+    }
+    if (String(password || '').length < 6) {
+      fail(res, 400, 'INVALID_PASSWORD', 'password too short');
+      return false;
+    }
+    return true;
+  }
+
+  function validateVerificationCode(res, code) {
+    if (String(code || '').trim() !== DEV_VERIFICATION_CODE) {
+      fail(res, 400, 'INVALID_VERIFICATION_CODE', 'invalid verification code');
+      return false;
+    }
+    return true;
+  }
+
+  async function requestRegisterCode(req, res) {
+    var body = await parseBody(req);
+    var phone = String(body.phone || '').trim();
+    if (!PHONE_RE.test(phone)) {
+      fail(res, 400, 'INVALID_PHONE', 'invalid phone');
+      return;
+    }
+    var data = {
+      phone: maskPhone(phone),
+      expiresIn: 300
+    };
+    if (shouldExposeDevCode()) data.verificationCode = DEV_VERIFICATION_CODE;
+    ok(res, data);
+  }
+
+  async function register(req, res) {
+    var body = await parseBody(req);
+    var phone = String(body.phone || '').trim();
+    var password = String(body.password || '');
+    if (!validatePhonePassword(res, phone, password)) return;
+    if (!validateVerificationCode(res, body.code)) return;
+    if (store.users.some((item) => item.phone === phone && item.status === 'active')) {
+      fail(res, 409, 'USER_ALREADY_EXISTS', 'user already exists');
+      return;
+    }
+    var now = nowIso();
+    var user = {
+      id: createId('user'),
+      openid: '',
+      unionid: '',
+      phone: phone,
+      nickname: '',
+      passwordHash: hashPassword(password),
+      status: 'active',
+      memberStatus: 'none',
+      memberStart: '',
+      memberEnd: '',
+      disabledAt: '',
+      disabledReason: '',
+      lastLogin: now,
+      registerSource: 'phone',
+      createdAt: now,
+      updatedAt: now
+    };
+    store.users.push(user);
+    var actor = {
+      kind: 'user',
+      id: user.id,
+      phone: user.phone
+    };
+    var token = sessions.issueSession(actor);
+    ok(res, buildUserSession(user, token));
+  }
+
+  async function requestResetCode(req, res) {
+    var body = await parseBody(req);
+    var phone = String(body.phone || '').trim();
+    if (!PHONE_RE.test(phone)) {
+      fail(res, 400, 'INVALID_PHONE', 'invalid phone');
+      return;
+    }
+    var data = {
+      phone: maskPhone(phone),
+      expiresIn: 300
+    };
+    if (shouldExposeDevCode()) data.verificationCode = DEV_VERIFICATION_CODE;
+    ok(res, data);
+  }
+
+  async function resetPassword(req, res) {
+    var body = await parseBody(req);
+    var phone = String(body.phone || '').trim();
+    var password = String(body.password || '');
+    if (!validatePhonePassword(res, phone, password)) return;
+    if (!validateVerificationCode(res, body.code)) return;
+    var user = store.users.find((item) => item.phone === phone && item.status === 'active');
+    if (!user) {
+      fail(res, 404, 'USER_NOT_FOUND', 'user not found');
+      return;
+    }
+    user.passwordHash = hashPassword(password);
+    user.updatedAt = nowIso();
+    ok(res, {
+      phone: maskPhone(phone),
+      passwordUpdated: true
+    });
   }
 
   async function exchangeWechatCode(code) {
@@ -228,6 +343,10 @@ function createAuthModule(deps) {
     me,
     requireAdmin,
     requireUser,
+    register,
+    requestRegisterCode,
+    requestResetCode,
+    resetPassword,
     userLogin,
     wechatLogin
   };

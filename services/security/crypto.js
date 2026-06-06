@@ -1,4 +1,5 @@
-const LOCAL_CRYPTO_VERSION = 'local-v1';
+const LOCAL_CRYPTO_VERSION = 'dev-local-v1';
+const LOCAL_CRYPTO_ALGORITHM = 'dev-local-base64-placeholder';
 
 function toBase64Utf8(text) {
   const input = encodeURIComponent(text || '');
@@ -27,8 +28,9 @@ function protectPlaintext(plaintext, meta) {
     ciphertext: toBase64Utf8(plaintext || ''),
     envelope: {
       version: LOCAL_CRYPTO_VERSION,
-      algorithm: 'local-base64-placeholder',
+      algorithm: LOCAL_CRYPTO_ALGORITHM,
       keyScope: 'user-local',
+      devOnly: true,
       createdAt: Date.now(),
       meta: meta || {}
     }
@@ -52,6 +54,7 @@ function createContentMetadata(text, extra) {
 
 module.exports = {
   LOCAL_CRYPTO_VERSION,
+  LOCAL_CRYPTO_ALGORITHM,
   protectPlaintext,
   revealPlaintext,
   createContentMetadata
