@@ -3,7 +3,7 @@
   <!-- 成功 -->
   <view class="status-section" wx:if="{{status === 'success'}}">
     <view class="icon-circle icon-success">
-      <text class="icon-text">&#10003;</text>
+      <text class="icon-text">✓</text>
     </view>
     <text class="status-title">传输成功</text>
     <text class="status-desc">文本已成功发送到电脑</text>
@@ -12,7 +12,7 @@
   <!-- 失败 -->
   <view class="status-section" wx:if="{{status === 'fail'}}">
     <view class="icon-circle icon-fail">
-      <text class="icon-text">&#10005;</text>
+      <text class="icon-text">×</text>
     </view>
     <text class="status-title">传输失败</text>
     <text class="status-desc">{{errorMessage || '传输过程中出现错误，请重试'}}</text>

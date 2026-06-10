@@ -28,6 +28,13 @@ cd backend
 npm run smoke
 ```
 
+Full release gate:
+
+```bash
+cd ..
+npm run release:check
+```
+
 Optional worker checks:
 
 ```bash
@@ -38,6 +45,8 @@ npm run worker:asr
 Important:
 - The default local repository writes to `backend/data/store.json` for local integration testing.
 - Production should replace the file store with MySQL/RDS repositories using `db/schema.sql`.
+- `NODE_ENV=production` rejects `STORE_MODE=file` by default. Use `ALLOW_FILE_STORE_IN_PRODUCTION=true` only for a controlled pilot with backups.
+- Production rejects unknown device binding by default. Preload devices through the admin flow and store only a hashed proofCode.
 - Admin APIs must never return plaintext user content.
 - OCR/ASR/AI provider calls must not log raw user text.
 - Professional templates are unlocked only by device/template permission, not by public UI text.
@@ -51,9 +60,22 @@ AI_API_KEY=your-provider-key
 AI_MODEL=your-chat-model
 OCR_ENGINE=paddleocr
 OCR_WORKER_URL=http://127.0.0.1:9001/recognize
+OCR_TIMEOUT_MS=30000
+OCR_MAX_IMAGE_BYTES=5242880
 ASR_ENGINE=faster-whisper
 ASR_WORKER_URL=http://127.0.0.1:9002/transcribe
+ASR_TIMEOUT_MS=60000
+ASR_MAX_AUDIO_BYTES=20971520
+ALLOW_UNKNOWN_DEVICE_BINDING=false
 ```
+
+Device pilot flow:
+
+- Register a pilot device with `POST /api/admin/devices`.
+- Body fields: `serialNo`, optional `templateAccess`, `proofCode`, `reservedUserId`, `model`, `firmwareVersion`, `protocolVersion`.
+- Batch register devices with `POST /api/admin/devices/import`, using either `devices` JSON array or `devicesText` CSV with headers such as `serialNo,templateAccess,proofCode,model`.
+- The backend stores `proofCode` as `proofCodeHash` and never returns the hash in public/admin responses.
+- Users bind through `/api/devices/bind` with `serialNo + proofCode`.
 
 AI gateway behavior:
 
@@ -74,7 +96,18 @@ Expected OCR worker response:
 { "provider": "paddleocr", "text": "...", "confidence": 0.93 }
 ```
 
-The repository includes `workers/ocr-worker.example.js` as a stable HTTP wrapper. Replace `recognizeWithFreeEngine()` with PaddleOCR/RapidOCR invocation on Aliyun.
+The repository includes `workers/ocr-worker.example.js` as a stable HTTP wrapper. It can call a deployed PaddleOCR/RapidOCR command without changing the API contract:
+
+```bash
+OCR_ENGINE=paddleocr
+OCR_COMMAND=python
+OCR_COMMAND_ARGS='["backend/workers/adapters/ocr_paddle_adapter.py","{input}"]'
+node workers/ocr-worker.example.js
+```
+
+`OCR_COMMAND` should print either plain recognized text or JSON such as `{"text":"...","confidence":0.93,"regions":[]}`. The worker writes the uploaded image to a temporary file, passes the path as `{input}`, then deletes the temporary file.
+
+See `workers/adapters/README.md` for PaddleOCR and RapidOCR command examples.
 
 Expected ASR worker request:
 

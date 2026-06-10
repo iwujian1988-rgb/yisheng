@@ -18,10 +18,53 @@ function getToken() {
   return wx.getStorageSync('token') || '';
 }
 
+function clearAuthStorage() {
+  wx.removeStorageSync('token');
+  wx.removeStorageSync('userInfo');
+  wx.removeStorageSync('accountStatus');
+  wx.removeStorageSync('purchaseStatus');
+  wx.removeStorageSync('deviceBindingStatus');
+  wx.removeStorageSync('serviceStatus');
+  wx.removeStorageSync('boundDevice');
+}
+
+function handleUnauthorized() {
+  clearAuthStorage();
+  wx.reLaunch({ url: '/pages/login/login' });
+}
+
+function friendlyMessage(code, fallback) {
+  const map = {
+    API_BASE_URL_NOT_CONFIGURED: '后端服务地址尚未配置，请先在 app.js 设置 globalData.baseUrl',
+    NETWORK_ERROR: '网络请求失败，请检查后端地址和网络连接',
+    UPLOAD_NETWORK_ERROR: '上传请求失败，请检查网络连接',
+    REQUEST_BODY_TOO_LARGE: '上传内容过大，请压缩后重试',
+    AUTH_REQUIRED: '请先登录',
+    ADMIN_AUTH_REQUIRED: '请先登录管理后台',
+    INVALID_ACTIVATION_CODE: '激活码无效或已被使用',
+    ACTIVATION_CODE_REQUIRED: '请输入激活码',
+    ENTITLEMENT_REQUIRED: '请先完成服务开通',
+    MEMBER_REQUIRED: '当前账号暂未开通会员能力',
+    DEVICE_CONNECTION_REQUIRED: '请先连接设备后再使用',
+    DEVICE_NOT_REGISTERED: '设备未登记，请联系管理员预置设备',
+    DEVICE_RESERVED_FOR_OTHER_USER: '设备已预留给其他用户',
+    DEVICE_ALREADY_BOUND: '设备已被其他账号绑定',
+    DEVICE_PROOF_INVALID: '设备校验码错误',
+    DEVICE_PROOF_REQUIRED: '请输入设备校验码',
+    SERIAL_REQUIRED: '请输入设备序列号',
+    ASR_AUDIO_REQUIRED: '请先完成录音',
+    ASR_AUDIO_INVALID: '录音内容无效，请重新录制',
+    ASR_AUDIO_TOO_LARGE: '录音文件过大，请缩短录音时长',
+    ASR_WORKER_FAILED: '语音转写暂时不可用，请稍后重试',
+    OCR_WORKER_FAILED: '图片识别暂时不可用，请稍后重试'
+  };
+  return map[code] || fallback || '请求失败';
+}
+
 function notConfiguredError() {
   return Promise.reject({
     code: 'API_BASE_URL_NOT_CONFIGURED',
-    message: '尚未配置后端服务地址'
+    message: friendlyMessage('API_BASE_URL_NOT_CONFIGURED')
   });
 }
 
@@ -54,17 +97,21 @@ function request(options) {
           return;
         }
 
+        if (res.statusCode === 401) {
+          handleUnauthorized();
+        }
+
         reject({
           code: body.code || 'HTTP_ERROR',
           statusCode: res.statusCode,
-          message: body.message || '请求失败',
+          message: friendlyMessage(body.code, body.message || '请求失败'),
           raw: res
         });
       },
       fail(err) {
         reject({
           code: 'NETWORK_ERROR',
-          message: '网络请求失败',
+          message: friendlyMessage('NETWORK_ERROR'),
           raw: err
         });
       }
@@ -122,14 +169,14 @@ function uploadFile(options) {
         reject({
           code: body.code || 'UPLOAD_HTTP_ERROR',
           statusCode: res.statusCode,
-          message: body.message || '上传失败',
+          message: friendlyMessage(body.code, body.message || '上传失败'),
           raw: res
         });
       },
       fail(err) {
         reject({
           code: 'UPLOAD_NETWORK_ERROR',
-          message: '上传请求失败',
+          message: friendlyMessage('UPLOAD_NETWORK_ERROR'),
           raw: err
         });
       }
@@ -138,6 +185,7 @@ function uploadFile(options) {
 }
 
 module.exports = {
+  friendlyMessage,
   getBaseUrl,
   request,
   uploadFile

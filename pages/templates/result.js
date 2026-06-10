@@ -5,7 +5,8 @@ Page({
   data: {
     bodyText: '',
     confirmText: '',
-    provider: ''
+    provider: '',
+    status: ''
   },
 
   onLoad(options) {
@@ -23,9 +24,14 @@ Page({
       this.setData({
         bodyText: result.bodyText || result.resultText || result.rawText || '',
         confirmText: result.confirmText || '',
-        provider: result.provider || ''
+        provider: result.provider || '',
+        status: result.status || ''
       });
     }
+  },
+
+  onBodyInput(event) {
+    this.setData({ bodyText: event.detail.value || '' });
   },
 
   copyResult() {
@@ -43,12 +49,13 @@ Page({
   },
 
   sendToComputer() {
-    if (!this.data.bodyText) {
+    const text = String(this.data.bodyText || '').trim();
+    if (!text) {
       wx.showToast({ title: '暂无可发送内容', icon: 'none' });
       return;
     }
-    draftService.saveDraft(this.data.bodyText, 'template');
-    wx.reLaunch({ url: '/pages/home/home' });
+    draftService.saveDraft(text, 'template');
+    wx.navigateTo({ url: '/pages/transfer/editor?source=template' });
   },
 
   regenerate() {

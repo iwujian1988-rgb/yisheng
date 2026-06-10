@@ -10,16 +10,26 @@ Page({
   },
 
   onLoad(options) {
+    const ticketId = options.ticketId ? decodeURIComponent(options.ticketId) : '';
+    const storedTicket = ticketsService.getTicketById(ticketId);
     this.setData({
-      ticketId: options.ticketId ? decodeURIComponent(options.ticketId) : '',
-      ticketType: options.ticketType ? decodeURIComponent(options.ticketType) : '',
-      ticketStatus: options.ticketStatus ? decodeURIComponent(options.ticketStatus) : '',
-      ticketDesc: options.ticketDesc ? decodeURIComponent(options.ticketDesc) : ''
+      ticketId,
+      ticketType: storedTicket ? storedTicket.type : (options.ticketType ? decodeURIComponent(options.ticketType) : ''),
+      ticketStatus: storedTicket ? storedTicket.status : (options.ticketStatus ? decodeURIComponent(options.ticketStatus) : ''),
+      ticketDesc: storedTicket ? storedTicket.desc : (options.ticketDesc ? decodeURIComponent(options.ticketDesc) : ''),
+      records: storedTicket && Array.isArray(storedTicket.records) ? storedTicket.records : []
     });
   },
 
   addRecord() {
-    wx.showToast({ title: '等待接入售后记录服务', icon: 'none' });
+    if (!this.data.ticketId) {
+      wx.showToast({ title: '缺少工单标识', icon: 'none' });
+      return;
+    }
+    ticketsService.addTicketRecord(this.data.ticketId, '已跟进处理').then((record) => {
+      this.setData({ records: this.data.records.concat(record) });
+      wx.showToast({ title: '已添加记录', icon: 'success' });
+    });
   },
 
   closeTicket() {

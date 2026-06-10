@@ -30,20 +30,20 @@ Page({
   toPageStatus(status) {
     const map = {};
     map[accountStatus.ACCOUNT_STATUS.REGISTERED_NOT_PAID] = 'unpaid';
-    map[accountStatus.ACCOUNT_STATUS.PAID_NOT_BOUND] = 'unbound';
+    map[accountStatus.ACCOUNT_STATUS.PAID_NOT_BOUND] = 'active';
     map[accountStatus.ACCOUNT_STATUS.EXPIRED] = 'expired';
-    map[accountStatus.ACCOUNT_STATUS.DEVICE_CONFLICT] = 'conflict';
+    map[accountStatus.ACCOUNT_STATUS.DEVICE_CONFLICT] = 'active';
     map[accountStatus.ACCOUNT_STATUS.DISABLED] = 'disabled';
     map[accountStatus.ACCOUNT_STATUS.ACTIVE] = 'active';
     return map[status] || 'unpaid';
   },
 
-  contactSupport() {
+  goToActivation() {
     wx.navigateTo({ url: '/pages/purchase/activate' });
   },
 
-  goToBindDevice() {
-    wx.navigateTo({ url: '/pages/device/bind' });
+  contactSupport() {
+    wx.navigateTo({ url: '/pages/support/index?type=activation_code' });
   },
 
   goToHelp() {

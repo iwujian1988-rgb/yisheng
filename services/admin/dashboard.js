@@ -1,5 +1,5 @@
 const { request } = require('../api/client');
-const { ENDPOINTS } = require('../api/endpoints');
+const { ENDPOINTS, fillPath } = require('../api/endpoints');
 
 function getDevices() {
   return request({
@@ -19,6 +19,14 @@ function searchDevices(keyword) {
   });
 }
 
+function forceUnbindDevice(deviceId, reason) {
+  return request({
+    url: fillPath(ENDPOINTS.admin.deviceUnbind, { id: deviceId }),
+    method: 'POST',
+    data: { reason: reason || 'admin_request' }
+  });
+}
+
 function getServiceRecords() {
   return request({
     url: ENDPOINTS.admin.serviceRecords,
@@ -33,9 +41,19 @@ function getFeedbacks() {
   }).then((result) => result.list || []);
 }
 
+function updateFeedback(id, patch) {
+  return request({
+    url: fillPath(ENDPOINTS.admin.feedbackDetail, { id }),
+    method: 'PATCH',
+    data: patch || {}
+  });
+}
+
 module.exports = {
+  forceUnbindDevice,
   getDevices,
-  searchDevices,
+  getFeedbacks,
   getServiceRecords,
-  getFeedbacks
+  searchDevices,
+  updateFeedback
 };

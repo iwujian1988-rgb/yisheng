@@ -11,6 +11,7 @@ function ensureCollections(store) {
     'orders',
     'tokenUsageRecords',
     'templates',
+    'quickActions',
     'encryptedHistory',
     'feedbacks',
     'issues',
@@ -24,12 +25,22 @@ function ensureCollections(store) {
   if (!store.templates.length) {
     store.templates = createMemoryStore().templates;
   }
+  if (!store.quickActions.length) {
+    store.quickActions = createMemoryStore().quickActions;
+  }
+  if (!store.defaultPrompts || !store.defaultPrompts.general) {
+    store.defaultPrompts = createMemoryStore().defaultPrompts;
+  }
   return store;
 }
 
 function createStore() {
   if (config.storeMode !== 'file') {
     return ensureCollections(createMemoryStore());
+  }
+
+  if (config.env === 'production' && !config.allowFileStoreInProduction) {
+    throw new Error('STORE_MODE=file is disabled in production. Configure a database-backed store or set ALLOW_FILE_STORE_IN_PRODUCTION=true for a controlled pilot only.');
   }
 
   var filePath = path.resolve(process.cwd(), config.storeFile);

@@ -6,8 +6,10 @@ App({
     token: '',
     deviceId: null,
     deviceConnected: false,
-    // Empty baseUrl means local test mode. Set a real backend URL only when API is ready.
-    baseUrl: ''
+    skipBluetoothForDev: true,
+    enableMediaMockForDev: false,
+    // LAN backend for WeChat real-device debugging.
+    baseUrl: 'http://192.168.3.84:8080'
   },
 
   onLaunch() {

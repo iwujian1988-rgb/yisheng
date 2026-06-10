@@ -3,7 +3,7 @@
   <!-- 空状态 -->
   <view class="empty-section" wx:if="{{records.length === 0}}">
     <view class="empty-icon">
-      <text class="empty-icon-text">&#9783;</text>
+      <text class="empty-icon-text">TPL</text>
     </view>
     <text class="empty-title">暂无服务记录</text>
     <text class="empty-desc">开通服务后记录会显示在这里</text>

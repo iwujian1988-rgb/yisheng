@@ -10,6 +10,7 @@ function verifyPassword(password, storedHash) {
   var parts = String(storedHash || '').split('$');
   if (parts.length !== 3 || parts[0] !== 'pbkdf2') return false;
   var next = hashPassword(password, parts[1]);
+  if (Buffer.byteLength(next) !== Buffer.byteLength(storedHash)) return false;
   return crypto.timingSafeEqual(Buffer.from(next), Buffer.from(storedHash));
 }
 

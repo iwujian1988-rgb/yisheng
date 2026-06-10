@@ -1,6 +1,7 @@
 <view class="activate-container">
-  <view class="intro-card">
-    <text class="intro-text">请输入购买设备后获得的激活码。开通后即可绑定设备并使用传输服务。</text>
+  <view class="hero-card">
+    <text class="hero-title">输入激活码开通服务</text>
+    <text class="hero-desc">激活后才能进入小程序首页，并连接设备使用文本传输和会员能力。</text>
   </view>
 
   <view class="form-section">
@@ -12,18 +13,25 @@
         placeholder-class="input-placeholder"
         value="{{code}}"
         bindinput="onCodeInput"
-        maxlength="30"
+        maxlength="40"
+        focus="{{true}}"
       />
       <text wx:if="{{codeError}}" class="error-text">{{codeError}}</text>
     </view>
   </view>
 
   <button
-    class="btn btn-primary submit-btn {{canSubmit ? '' : 'disabled'}}"
+    class="submit-btn {{canSubmit ? 'submit-ready' : 'submit-disabled'}}"
     disabled="{{!canSubmit || isLoading}}"
     loading="{{isLoading}}"
     bindtap="submitActivation"
   >
-    开通服务
+    立即开通
   </button>
+
+  <view class="help-card">
+    <text class="help-title">没有激活码？</text>
+    <text class="help-desc">请联系购买渠道或客服获取激活码。未激活前不能进入首页使用设备功能。</text>
+    <button class="support-btn" bindtap="contactSupport">联系客服</button>
+  </view>
 </view>

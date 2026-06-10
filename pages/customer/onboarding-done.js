@@ -1,5 +1,5 @@
 Page({
-  goBindDevice() {
+  goConnectDevice() {
     wx.navigateTo({ url: '/pages/device/checklist' });
   },
 

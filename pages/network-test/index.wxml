@@ -1,15 +1,15 @@
-<!--pages/network-test/index.wxml-->
 <view class="test-container">
-  <!-- 开始测试按钮 -->
   <view class="action-section">
-    <button class="btn btn-primary test-btn" bindtap="startTest">开始测试</button>
+    <button class="btn btn-primary test-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="startTest">
+      {{loading ? '检测中' : '开始检测'}}
+    </button>
   </view>
 
-  <!-- 测试结果列表 -->
   <view class="results-section" wx:if="{{results.length > 0}}">
-    <view class="result-item" wx:for="{{results}}" wx:key="name">
+    <view class="result-item" wx:for="{{results}}" wx:key="key">
       <view class="result-left">
         <text class="result-name">{{item.name}}</text>
+        <text class="result-message">{{item.message}}</text>
       </view>
       <view class="result-right">
         <text class="result-status status-{{item.status}}">{{item.statusText}}</text>

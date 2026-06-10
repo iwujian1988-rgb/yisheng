@@ -1,4 +1,3 @@
-<!--pages/analytics/support.wxml-->
 <view class="support-container">
   <view class="stat-grid">
     <view class="stat-card">
@@ -19,6 +18,6 @@
     </view>
   </view>
   <view class="placeholder-section">
-    <text class="placeholder-text">等待接入客服分析服务</text>
+    <text class="placeholder-text">客服分析数据会根据本地工单与反馈记录汇总。</text>
   </view>
 </view>

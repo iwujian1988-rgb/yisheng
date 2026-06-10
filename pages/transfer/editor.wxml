@@ -1,0 +1,38 @@
+<view class="editor-container">
+  <view class="device-strip">
+    <view class="status-dot {{connected ? 'connected' : ''}}"></view>
+    <text class="device-strip-text">设备：{{statusText}}</text>
+    <text class="device-strip-action" bindtap="onConnectTap">{{bluetoothBypass ? '本地测试' : (connected ? '断开' : '连接')}}</text>
+  </view>
+
+  <view class="editor-card">
+    <view class="editor-head">
+      <text class="editor-title">{{sourceLabel}}</text>
+      <text class="char-count">{{inputText.length}}/5000</text>
+    </view>
+    <textarea
+      class="text-input"
+      placeholder="输入或粘贴要发送到电脑的内容"
+      value="{{inputText}}"
+      focus="{{inputFocus}}"
+      bindinput="onTextInput"
+      maxlength="5000"
+      auto-height
+      disable-default-padding
+    />
+    <view class="editor-actions">
+      <text class="clear-btn" bindtap="onClearTap" wx:if="{{inputText}}">清空</text>
+    </view>
+  </view>
+
+  <view class="send-dock">
+    <button class="cancel-btn" bindtap="onCancelTap" wx:if="{{sending}}">取消</button>
+    <button
+      class="send-btn {{connected && inputText && !sending ? 'active' : ''}}"
+      bindtap="onSendTap"
+      disabled="{{!connected || !inputText || sending}}"
+    >
+      {{sending ? '发送中 ' + sendProgress + '%' : (bluetoothBypass ? '模拟发送' : '发送到电脑')}}
+    </button>
+  </view>
+</view>

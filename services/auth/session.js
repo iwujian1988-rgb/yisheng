@@ -14,7 +14,6 @@ function normalizeSessionPayload(payload) {
     purchaseStatus: data.purchaseStatus || 'none',
     deviceBindingStatus: data.deviceBindingStatus || 'not_bound',
     serviceStatus: data.serviceStatus || 'active',
-    templateAccess: data.templateAccess || (data.device && data.device.templateAccess) || 'general',
     device: data.device || null
   };
 
@@ -34,7 +33,6 @@ function persistSession(profile) {
   wx.setStorageSync('purchaseStatus', profile.purchaseStatus);
   wx.setStorageSync('deviceBindingStatus', profile.deviceBindingStatus);
   wx.setStorageSync('serviceStatus', profile.serviceStatus);
-  wx.setStorageSync('templateAccess', profile.templateAccess || 'general');
   if (profile.device) {
     wx.setStorageSync('boundDevice', profile.device);
   }
@@ -47,7 +45,6 @@ function clearSession() {
   wx.removeStorageSync('purchaseStatus');
   wx.removeStorageSync('deviceBindingStatus');
   wx.removeStorageSync('serviceStatus');
-  wx.removeStorageSync('templateAccess');
   wx.removeStorageSync('boundDevice');
 }
 
@@ -95,7 +92,6 @@ function getStoredSessionSummary() {
     purchaseStatus: wx.getStorageSync('purchaseStatus') || '',
     deviceBindingStatus: wx.getStorageSync('deviceBindingStatus') || '',
     serviceStatus: wx.getStorageSync('serviceStatus') || '',
-    templateAccess: wx.getStorageSync('templateAccess') || 'general',
     device: wx.getStorageSync('boundDevice') || null
   };
 }
@@ -103,6 +99,24 @@ function getStoredSessionSummary() {
 function getApiBaseUrl() {
   const app = typeof getApp === 'function' ? getApp() : null;
   return (app && app.globalData && app.globalData.baseUrl) || '';
+}
+
+function refreshCurrentSession() {
+  if (!getApiBaseUrl()) {
+    return Promise.resolve(getStoredSessionSummary());
+  }
+
+  return request({
+    url: ENDPOINTS.auth.me,
+    method: 'GET'
+  }).then((payload) => {
+    const current = getStoredSessionSummary();
+    const profile = normalizeSessionPayload(Object.assign({}, payload || {}, {
+      token: current.token || (payload && payload.token) || ''
+    }));
+    persistSession(profile);
+    return profile;
+  });
 }
 
 function requestRegisterCode(phone) {
@@ -163,6 +177,7 @@ module.exports = {
   clearSession,
   loginWithPassword,
   loginWithWechat,
+  refreshCurrentSession,
   getStoredSessionSummary,
   requestRegisterCode,
   registerWithPhone,

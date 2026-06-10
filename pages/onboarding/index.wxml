@@ -12,8 +12,8 @@
       <view class="step-icon-circle">
         <text class="step-icon-text">2</text>
       </view>
-      <text class="step-title">绑定设备</text>
-      <text class="step-desc">将传输硬件插入电脑 USB 口，在小程序中完成设备绑定。</text>
+      <text class="step-title">连接设备</text>
+      <text class="step-desc">将传输硬件插入电脑 USB 口，在首页通过蓝牙搜索并连接设备。</text>
     </view>
 
     <view class="step-section" wx:if="{{currentStep === 2}}">

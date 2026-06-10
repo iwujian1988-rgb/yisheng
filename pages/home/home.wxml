@@ -1,79 +1,82 @@
 <view class="container">
-  <view class="status-bar">
+  <view class="device-strip">
     <view class="status-dot {{connected ? 'connected' : ''}}"></view>
-    <text class="status-text">{{statusText}}</text>
+    <text class="device-strip-text">设备：{{statusText}}</text>
+    <text class="device-strip-action" bindtap="onConnectTap">{{connected ? '查看' : '连接'}}</text>
   </view>
 
-  <view class="card device-card">
+  <view class="card creation-card">
     <view class="card-header">
-      <text class="card-title">设备连接</text>
-      <text class="device-id" wx:if="{{deviceId}}">{{deviceId.slice(-4)}}</text>
+      <text class="card-title">准备要发送的内容</text>
     </view>
-    <view class="device-info">
-      <text class="info-label">连接状态</text>
-      <text class="info-value {{connected ? 'success' : ''}}">{{statusText}}</text>
-    </view>
-    <button
-      class="btn {{connected ? 'btn-disconnect' : 'btn-connect'}}"
-      bindtap="onConnectTap"
-    >
-      {{connected ? '断开连接' : '搜索设备'}}
-    </button>
-  </view>
 
-  <view class="card input-card">
-    <view class="card-header">
-      <text class="card-title">输入文本</text>
-      <text class="char-count">{{inputText.length}}/5000</text>
-    </view>
-    <textarea
-      class="text-input"
-      placeholder="请输入要传输到电脑的文本..."
-      value="{{inputText}}"
-      bindinput="onTextInput"
-      maxlength="5000"
-      auto-height
-      disable-default-padding
-    />
-    <view class="input-actions">
-      <text class="clear-btn" bindtap="onClearTap" wx:if="{{inputText}}">清空</text>
-    </view>
-  </view>
-
-  <view class="card preview-card" wx:if="{{convertedText}}">
-    <view class="card-header">
-      <text class="card-title">转换预览</text>
-    </view>
-    <text class="preview-text">{{convertedText}}</text>
-  </view>
-
-  <view class="send-row">
-    <button
-      class="btn-cancel"
-      bindtap="onCancelTap"
-      wx:if="{{sending}}"
-    >
-      取消
-    </button>
-    <button
-      class="btn-send {{connected && inputText && !sending ? 'active' : ''}}"
-      bindtap="onSendTap"
-      disabled="{{!connected || !inputText || sending}}"
-    >
-      {{sending ? '发送中 ' + sendProgress + '%' : '发送到电脑'}}
-    </button>
-  </view>
-
-  <view class="card log-card" wx:if="{{logs.length > 0}}">
-    <view class="card-header">
-      <text class="card-title">操作日志</text>
-    </view>
-    <scroll-view class="log-scroll" scroll-y scroll-into-view="log-top">
-      <view id="log-top"></view>
-      <view class="log-item" wx:for="{{logs}}" wx:key="index">
-        <text class="log-time">{{item.time}}</text>
-        <text class="log-msg">{{item.message}}</text>
+    <view class="template-feature" bindtap="goTemplates">
+      <view class="feature-copy">
+        <text class="feature-title">场景模板</text>
+        <text class="feature-desc">按场景快速生成可编辑文本</text>
       </view>
-    </scroll-view>
+      <text class="feature-arrow">›</text>
+    </view>
+
+    <view class="edit-entry" bindtap="goManualInput">
+      <text class="edit-icon">TXT</text>
+      <view class="edit-copy">
+        <text class="edit-title">直接编辑</text>
+        <text class="edit-desc">手动输入或粘贴文本，然后发送到电脑</text>
+      </view>
+      <text class="feature-arrow">›</text>
+    </view>
+
+    <view class="source-title-row">
+      <text class="source-title">AI 辅助输入</text>
+    </view>
+    <view class="source-grid">
+      <view class="source-item" bindtap="goAi">
+        <text class="quick-icon">AI</text>
+        <text class="quick-title">智能创作</text>
+      </view>
+      <view class="source-item" bindtap="goOcr">
+        <text class="quick-icon">OCR</text>
+        <text class="quick-title">图片识别</text>
+      </view>
+      <view class="source-item" bindtap="goAsr">
+        <text class="quick-icon">ASR</text>
+        <text class="quick-title">语音转写</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="banner" wx:if="{{banner}}" bindtap="openBanner">
+    <view class="banner-copy">
+      <text class="banner-title">{{banner.title}}</text>
+      <text class="banner-subtitle">{{banner.subtitle}}</text>
+    </view>
+    <text class="banner-arrow">›</text>
+  </view>
+
+  <view class="section-head">
+    <text class="section-title">最近发送</text>
+    <text class="quick-more" bindtap="goHistory">全部</text>
+  </view>
+
+  <view class="recent-list" wx:if="{{recentRecords.length > 0}}">
+    <view
+      class="recent-item"
+      wx:for="{{recentRecords}}"
+      wx:key="id"
+      bindtap="openHistoryRecord"
+      data-id="{{item.id}}"
+    >
+      <view class="recent-main">
+        <text class="recent-type">{{item.type}}</text>
+        <text class="recent-time">{{item.time}}</text>
+      </view>
+      <text class="recent-meta">{{item.length}}</text>
+    </view>
+  </view>
+
+  <view class="empty-recent" wx:elif="{{!loadingRecords}}">
+    <text class="empty-title">还没有发送记录</text>
+    <text class="empty-desc">完成一次发送后，会在这里快速查看。</text>
   </view>
 </view>

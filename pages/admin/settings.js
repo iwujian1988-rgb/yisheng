@@ -1,6 +1,6 @@
 Page({
   goOpenRules() {
-    wx.showToast({ title: '等待接入激活码服务', icon: 'none' });
+    wx.navigateTo({ url: '/pages/admin/activation-list' });
   },
 
   goDeviceRules() {

@@ -26,13 +26,13 @@ Page({
     }
 
     draftService.saveDraft(this.data.resultText, 'ai');
-    wx.reLaunch({ url: '/pages/home/home' });
+    wx.navigateTo({ url: '/pages/transfer/editor?source=ai' });
   },
 
   regenerate() {
     wx.navigateBack({
       delta: 1,
-      fail: () => wx.navigateTo({ url: '/pages/ai/detail' })
+      fail: () => wx.switchTab({ url: '/pages/ai/detail' })
     });
   },
 

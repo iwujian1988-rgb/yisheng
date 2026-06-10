@@ -1,118 +1,147 @@
 # 医疗文本安全与 AI 数据边界
 
+> 日期：2026-06-08
+> 目标：保证 OCR/ASR/AI/历史记录/后台审计都不泄露用户明文。
+
 ## 1. 核心原则
 
-医疗文本进入第三方 AI 前，必须先经过脱敏处理。任何日志、埋点、错误上报、测试数据和页面文案，都不得包含明文医疗正文、患者身份信息或仿真的患者样例。
+- 医疗或办公正文进入第三方 AI 前，必须先经过脱敏处理。
+- 日志、埋点、错误上报、测试数据和后台列表不得保存用户明文正文。
+- OCR/ASR/AI 输出不得绕过用户确认页直接发送。
+- 管理员只能看到 metadata，例如来源、长度、状态、时间、设备序列号、掩码用户身份。
 
-当前核心模块：
+## 2. 当前核心模块
 
 ```text
 services/security/redaction.js
 services/security/content-guard.js
 services/security/crypto.js
 services/ai/assistant.js
+services/ocr/recognizer.js
+services/asr/transcriber.js
+backend/src/modules/provider-gateway.js
 ```
 
 这些模块负责：
+
 - 第三方 AI 调用前脱敏。
 - 生成安全输入摘要。
-- 阻止明文写入日志和列表页。
+- 阻止明文写入日志和后台列表。
 - 以受保护 payload 保存历史正文。
+- OCR/ASR 统一进入确认页。
 
-## 2. 当前脱敏范围
+## 3. 脱敏范围
 
-初版覆盖：
+首批至少覆盖：
+
 - 手机号。
 - 身份证号。
 - 病案号、住院号、门诊号、医保号、就诊卡号。
 - 姓名、患者、病人等标签后的姓名字段。
 - 地址、住址、家庭住址字段。
 
-输入示意只描述字段类型，不写真实或仿真的个人信息：
+测试示例只能描述字段类型，不写真实或仿真的个人信息。
 
-```text
-姓名字段、手机号字段、住院号字段
-```
-
-脱敏后进入 AI 的文本应呈现为：
-
-```text
-姓名：[姓名]，手机号：[手机号]，住院号：[编号]
-```
-
-## 3. AI 调用边界
+## 4. AI 调用边界
 
 AI 调用流程必须是：
 
 ```text
 用户输入
 -> services/security/content-guard.prepareTextForThirdPartyAi()
--> services/ai/prompts.js 选择集中管理的 prompt
--> services/ai/provider.js
+-> services/ai/prompts.js
+-> services/ai/provider.js 或后端 /api/ai/assistant
 -> 用户审核输出
 -> 可选保存或发送到电脑
 ```
 
-页面不得直接调用 DeepSeek，也不得直接拼接 prompt。页面只调用 `services/ai/assistant.js` 暴露的业务入口。
+页面不得直接调用 DeepSeek/OpenAI-compatible provider，也不得直接拼接 prompt。
 
-当前真实 DeepSeek provider 尚未配置。开发模式 provider 只返回安全摘要，不回显用户原文。
+当前后端支持 OpenAI-compatible provider。未配置 provider 时，后端返回 `status: not_configured` 的确定性本地 fallback。
 
-## 4. 存储边界
+## 5. OCR/ASR 边界
 
-历史记录列表只展示：
+OCR/ASR 流程必须是：
+
+```text
+图片/音频
+-> 后端 gateway
+-> worker
+-> 小程序确认页
+-> 用户编辑确认
+-> 首页草稿或发送
+```
+
+要求：
+
+- 失败时只显示可理解的错误，不记录图片、音频、识别正文。
+- 识别结果不直接进入发送队列。
+- 确认页允许用户编辑。
+- 进入历史保存前必须走受保护 payload。
+
+## 6. 历史记录存储边界
+
+历史列表只展示：
+
 - 来源类型。
 - 文本长度。
 - 发送状态。
 - 创建时间。
-- 受保护提示文案。
+- 受保护提示。
 
-历史正文必须通过 `services/security/crypto.js` 生成受保护 payload 后保存。当前 `dev-local-v1` / `dev-local-base64-placeholder` 只是本地开发占位方案，不是最终加密承诺。
+历史正文必须通过 `services/security/crypto.js` 生成受保护 payload 后保存。
 
-后端生产环境必须拒收开发占位 envelope：
+当前 `dev-local-v1` / `dev-local-base64-placeholder` 只是本地开发占位方案。后端生产环境已经拒收开发占位 envelope：
 
 ```text
 version = local-v1 | dev-local-v1
 algorithm = local-base64-placeholder | dev-local-base64-placeholder
 ```
 
-正式上线前必须替换为用户侧可解密、服务端和管理员不可解明文的 envelope。后端只保存 ciphertext、envelope 和 metadata。
+正式上线前必须替换为“用户侧可解密、服务端和管理员不可见明文”的 envelope。后端只保存 ciphertext、envelope 和 metadata。
 
-管理员视角不得展示用户医疗正文明文。后续真实后端需要实现用户侧可解密、管理员不可见明文的密钥管理方案。
+## 7. 日志边界
 
-## 5. 日志边界
+允许记录：
 
-日志允许记录：
 - 文本长度。
 - 操作类型。
 - 状态。
 - 脱敏命中类型和数量。
 - 错误码。
 
-日志禁止记录：
+禁止记录：
+
 - 原始医疗正文。
 - 未脱敏 OCR/ASR 文本。
 - 未脱敏 AI 输入。
-- 用户身份证、手机号、住院号等敏感字段。
+- 身份证、手机号、住院号等敏感字段。
+- proofCode 明文或 `proofCodeHash`。
 
-## 6. OCR/ASR 边界
+## 8. 后台边界
 
-OCR/ASR 输出在进入 AI 或历史保存前，必须进入同一条脱敏与受保护存储链路：
+后台可以做：
 
-```text
-OCR/ASR 原始输出
--> content-guard 脱敏
--> AI 或用户确认
--> crypto 受保护保存
+- 导入激活码。
+- 预置设备。
+- 批量导入设备。
+- 强制解绑设备。
+- 查看反馈 metadata。
+- 查看审计日志。
+
+后台不得做：
+
+- 查看用户历史正文明文。
+- 导出用户正文。
+- 查看 proofCode 明文。
+- 查看 `proofCodeHash`。
+
+## 9. Release Gate
+
+每次交付前运行：
+
+```bash
+npm run release:check
 ```
 
-页面不得自行写识别结果测试文本。开发测试结果必须来自服务层或明确测试接口。
-
-## 7. 后续待完成
-
-- 服务端密钥管理方案。
-- 用户侧可见、管理员不可见明文的真实加密方案。
-- DeepSeek V4 真实 provider。
-- 开源 OCR provider。
-- ASR provider 选型和接入。
-- 脱敏规则测试集。
-- 管理员审计日志。
+如果该命令不通过，不进入人工试点。

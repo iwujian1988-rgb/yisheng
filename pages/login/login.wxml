@@ -15,7 +15,7 @@
     </button>
 
     <view class="login-note">
-      <text>登录后将校验服务开通状态和设备绑定状态。</text>
+      <text>登录后将校验服务开通状态，设备可用性以后续蓝牙连接结果为准。</text>
     </view>
 
     <view class="divider-text" bindtap="togglePasswordLogin">

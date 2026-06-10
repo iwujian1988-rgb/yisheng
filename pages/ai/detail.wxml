@@ -1,40 +1,64 @@
-<!-- pages/ai/detail.wxml -->
 <view class="detail-container">
   <scroll-view class="message-list" scroll-y scroll-into-view="{{scrollTarget}}">
-    <view wx:if="{{messages.length === 0}}" class="empty-hint">
-      <text class="empty-text">输入内容开始整理</text>
+    <view wx:if="{{messages.length === 0}}" class="welcome-message">
+      <view class="bot-avatar">AI</view>
+      <view class="welcome-bubble">
+        <text class="welcome-title">选择上方的任务类型，或直接输入内容</text>
+        <text class="welcome-desc">选任务后 AI 会按对应规则处理你的文字。</text>
+      </view>
     </view>
 
     <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
       <view class="message {{item.role === 'user' ? 'message-user' : 'message-ai'}}">
         <view class="message-bubble">
           <text class="message-text">{{item.content}}</text>
+          <view class="message-actions" wx:if="{{item.role === 'assistant' && item.bodyText}}">
+            <text class="use-result" bindtap="useResult" data-id="{{item.id}}">使用这段</text>
+          </view>
         </view>
       </view>
     </view>
   </scroll-view>
 
-  <view class="review-bar" wx:if="{{messages.length > 0}}">
-    <button class="review-btn" bindtap="reviewLatestResult">审核最新结果</button>
-  </view>
+  <view class="composer">
+    <scroll-view wx:if="{{quickActions.length > 0}}" class="action-scroll" scroll-x>
+      <view
+        wx:for="{{quickActions}}"
+        wx:key="id"
+        class="action-chip {{activeAction && activeAction.id === item.id ? 'active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="selectAction"
+      >
+        {{item.title}}
+      </view>
+    </scroll-view>
 
-  <view class="input-bar">
-    <input
+    <view class="mode-hint">
+      <text class="mode-label">{{activeAction ? '当前模式：' + activeAction.title : '自由模式'}}</text>
+      <text wx:if="{{activeAction}}" class="mode-clear" bindtap="clearAction">切换</text>
+    </view>
+
+    <textarea
       class="input-field"
-      placeholder="请输入需要整理或润色的文本"
+      placeholder="{{activeAction && activeAction.placeholder ? activeAction.placeholder : '输入你要整理或生成的内容'}}"
       placeholder-class="input-placeholder"
       value="{{inputText}}"
       bindinput="onInput"
-      bindconfirm="sendMessage"
-      confirm-type="send"
+      maxlength="5000"
+      show-confirm-bar="{{false}}"
     />
-    <button
-      class="send-btn {{inputText.length > 0 && !sending ? '' : 'send-btn-disabled'}}"
-      disabled="{{inputText.length === 0 || sending}}"
-      loading="{{sending}}"
-      bindtap="sendMessage"
-    >
-      {{sending ? '处理中' : '发送'}}
-    </button>
+
+    <view class="composer-actions">
+      <button class="tool-btn" bindtap="goVoice">语音</button>
+      <button class="tool-btn" bindtap="goImage">图片</button>
+      <button
+        class="send-btn {{inputText.length > 0 && !sending ? 'active' : ''}}"
+        disabled="{{inputText.length === 0 || sending}}"
+        loading="{{sending}}"
+        bindtap="sendMessage"
+      >
+        发送
+      </button>
+    </view>
   </view>
 </view>

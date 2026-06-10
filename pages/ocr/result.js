@@ -3,13 +3,29 @@ const draftService = require('../../services/content/draft');
 Page({
   data: {
     imageUrl: '',
-    resultText: ''
+    resultText: '',
+    resultMeta: null,
+    resultKey: ''
   },
 
   onLoad(options) {
+    const resultKey = options && options.resultKey ? decodeURIComponent(options.resultKey) : '';
+    const stored = resultKey ? wx.getStorageSync(resultKey) : null;
+    if (stored && stored.resultText) {
+      this.setData({
+        imageUrl: stored.imageUrl || '',
+        resultText: stored.resultText || '',
+        resultMeta: stored.resultMeta || null,
+        resultKey
+      });
+      return;
+    }
+
     this.setData({
       imageUrl: options && options.imageUrl ? decodeURIComponent(options.imageUrl) : '',
-      resultText: options && options.resultText ? decodeURIComponent(options.resultText) : ''
+      resultText: options && options.resultText ? decodeURIComponent(options.resultText) : '',
+      resultMeta: null,
+      resultKey
     });
   },
 
@@ -20,7 +36,16 @@ Page({
     }
 
     draftService.saveDraft(this.data.resultText, 'ocr');
-    wx.reLaunch({ url: '/pages/home/home' });
+    if (this.data.resultKey) {
+      wx.removeStorageSync(this.data.resultKey);
+    }
+    wx.navigateTo({ url: '/pages/transfer/editor?source=ocr' });
+  },
+
+  updateResultText(event) {
+    this.setData({
+      resultText: event && event.detail ? event.detail.value : ''
+    });
   },
 
   reRecognize() {

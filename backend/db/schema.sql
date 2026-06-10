@@ -36,11 +36,14 @@ CREATE TABLE devices (
   firmware_version VARCHAR(64),
   protocol_version VARCHAR(64),
   template_access VARCHAR(32) NOT NULL DEFAULT 'general',
+  proof_code_hash VARCHAR(255),
   bind_status VARCHAR(32) NOT NULL,
+  reserved_user_id VARCHAR(64),
   bound_user_id VARCHAR(64),
   bound_at DATETIME NULL,
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
+  INDEX idx_devices_reserved_user_id (reserved_user_id),
   INDEX idx_devices_bound_user_id (bound_user_id),
   INDEX idx_devices_template_access (template_access)
 );

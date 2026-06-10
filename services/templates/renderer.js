@@ -50,6 +50,7 @@ function saveTemplateResult(result) {
     confirmText: result && result.confirmText ? result.confirmText : '',
     rawText: result && result.rawText ? result.rawText : resultText,
     provider: result && result.provider ? result.provider : 'template-engine',
+    status: result && result.status ? result.status : '',
     source: result && result.source ? result.source : 'template',
     updatedAt: Date.now()
   };

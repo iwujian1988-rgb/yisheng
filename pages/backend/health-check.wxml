@@ -1,15 +1,22 @@
 <view class="health-container">
   <view class="empty-section" wx:if="{{checks.length === 0}}">
-    <text class="empty-text">点击下方按钮开始检查</text>
+    <text class="empty-text">点击下方按钮检查后端、登录状态和 provider 配置</text>
   </view>
+
   <view class="check-list" wx:if="{{checks.length > 0}}">
     <view class="check-card" wx:for="{{checks}}" wx:key="id">
-      <view class="check-dot {{item.pass ? 'dot-green' : 'dot-red'}}"></view>
-      <text class="check-name">{{item.name}}</text>
+      <view class="check-dot {{item.pass ? 'dot-green' : item.warn ? 'dot-yellow' : 'dot-red'}}"></view>
+      <view class="check-content">
+        <text class="check-name">{{item.name}}</text>
+        <text class="check-message">{{item.message}}</text>
+      </view>
       <text class="check-result">{{item.result}}</text>
     </view>
   </view>
+
   <view class="action-section">
-    <button class="btn btn-primary action-btn" bindtap="startCheck">开始检查</button>
+    <button class="btn btn-primary action-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="startCheck">
+      {{loading ? '检查中' : '开始检查'}}
+    </button>
   </view>
 </view>

@@ -28,13 +28,17 @@ Page({
       .then(() => {
         this.setData({ isLoading: false });
         wx.showToast({ title: '开通成功', icon: 'success' });
-        wx.redirectTo({ url: '/pages/account-status/account-status?accountStatus=paid_not_bound' });
+        wx.reLaunch({ url: '/pages/home/home' });
       })
       .catch((err) => {
         this.setData({
           isLoading: false,
-          codeError: err.message || '开通失败'
+          codeError: err.message || '开通失败，请检查激活码'
         });
       });
+  },
+
+  contactSupport() {
+    wx.navigateTo({ url: '/pages/support/index?type=activation_code' });
   }
 });

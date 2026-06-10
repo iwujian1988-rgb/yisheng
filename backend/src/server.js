@@ -16,7 +16,7 @@ const sessions = createSessionManager(config.sessionTtlSeconds);
 const auth = createAuthModule({ store, sessions });
 const admin = createAdminModule({ store, auth });
 const userApi = createUserApiModule({ store, auth });
-const providers = createProviderGatewayModule({ auth });
+const providers = createProviderGatewayModule({ auth, store });
 const router = createRouter();
 
 function serveAdminAsset(req, res) {
@@ -47,9 +47,14 @@ router.get('/api/health', (req, res) => {
   ok(res, {
     service: 'yisheng-backend',
     env: config.env,
+    storeMode: config.storeMode,
+    allowUnknownDeviceBinding: config.allowUnknownDeviceBinding,
     ocrEngine: config.ocrEngine,
+    ocrConfigured: Boolean(config.ocrWorkerUrl),
     asrEngine: config.asrEngine,
-    aiProvider: config.aiProvider
+    asrConfigured: Boolean(config.asrWorkerUrl),
+    aiProvider: config.aiProvider,
+    aiConfigured: Boolean(config.aiApiKey && (config.aiChatCompletionsUrl || config.aiBaseUrl))
   });
 });
 
@@ -67,9 +72,12 @@ router.post('/api/admin/paid-users', admin.createPaidUser);
 router.get('/api/admin/dashboard', admin.dashboard);
 router.get('/api/admin/exports/users.csv', admin.exportUsers);
 router.get('/api/admin/exports/audit-logs.csv', admin.exportAuditLogs);
+router.get('/api/admin/exports/device-import-template.csv', admin.exportDeviceImportTemplate);
 router.get('/api/admin/paid-users/:id', admin.paidUserDetail);
 router.patch('/api/admin/paid-users/:id', admin.updatePaidUser);
 router.get('/api/admin/devices', admin.listDevices);
+router.post('/api/admin/devices', admin.createDevice);
+router.post('/api/admin/devices/import', admin.importDevices);
 router.post('/api/admin/devices/:id/unbind', admin.forceUnbindDevice);
 router.get('/api/admin/orders', admin.listOrders);
 router.get('/api/admin/orders/:id', admin.orderDetail);
@@ -81,6 +89,9 @@ router.get('/api/admin/templates', admin.listTemplates);
 router.post('/api/admin/templates', admin.createTemplate);
 router.get('/api/admin/templates/:id', admin.templateDetail);
 router.patch('/api/admin/templates/:id', admin.updateTemplate);
+router.get('/api/admin/quick-actions', admin.listQuickActions);
+router.post('/api/admin/quick-actions', admin.createQuickAction);
+router.patch('/api/admin/quick-actions/:id', admin.updateQuickAction);
 router.get('/api/admin/feedbacks', admin.listFeedbacks);
 router.patch('/api/admin/feedbacks/:id', admin.updateFeedback);
 router.get('/api/admin/activation-codes', admin.listActivationCodes);
@@ -101,6 +112,7 @@ router.post('/api/content/history', userApi.saveHistory);
 router.get('/api/content/history', userApi.listHistory);
 router.get('/api/content/history/:id', userApi.historyDetail);
 router.get('/api/ai/templates', userApi.listTemplates);
+router.get('/api/ai/quick-actions', userApi.listQuickActions);
 router.get('/api/ai/templates/:id', userApi.templateDetail);
 router.post('/api/ai/templates/:id/generate', userApi.generateTemplate);
 router.post('/api/support/feedbacks', userApi.submitFeedback);
@@ -125,6 +137,10 @@ const server = http.createServer(async (req, res) => {
   } catch (error) {
     if (error.message === 'INVALID_JSON') {
       fail(res, 400, 'INVALID_JSON', 'request body is not valid JSON');
+      return;
+    }
+    if (error.message === 'REQUEST_BODY_TOO_LARGE') {
+      fail(res, 413, 'REQUEST_BODY_TOO_LARGE', 'request body is too large');
       return;
     }
     fail(res, 500, 'INTERNAL_ERROR', error.message);

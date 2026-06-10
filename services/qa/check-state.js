@@ -66,7 +66,7 @@ function submitLongTextResult(recordId, payload) {
     failureCategory: payload.failureCategory
   });
 
-  return updateLongTextTestRecord(recordId, {
+  const updated = updateLongTextTestRecord(recordId, {
     status: evaluation.status,
     pass: evaluation.pass,
     elapsed: evaluation.elapsed,
@@ -79,6 +79,22 @@ function submitLongTextResult(recordId, payload) {
     extraCount: evaluation.comparison.extraCount,
     checkedAt: Date.now()
   });
+
+  if (updated && getBaseUrl()) {
+    request({
+      url: ENDPOINTS.qa.longTextTests,
+      method: 'POST',
+      data: {
+        charCount: updated.charCount,
+        elapsedMs: updated.elapsedMs,
+        passed: updated.pass,
+        mode: payload.mode || '',
+        failureCategory: updated.failureCategory
+      }
+    }).catch(() => {});
+  }
+
+  return updated;
 }
 
 function getBugReports() {

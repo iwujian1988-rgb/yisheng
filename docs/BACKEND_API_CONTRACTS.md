@@ -190,9 +190,53 @@ Only `super_admin` can manage admin accounts.
 ### Device Management Endpoints
 
 - `GET /api/admin/devices`
+- `POST /api/admin/devices`
+- `POST /api/admin/devices/import`
 - `POST /api/admin/devices/{id}/unbind`
 
 Device fields include `templateAccess`. Professional template access is granted through an eligible device or an admin-maintained entitlement.
+
+Single device upsert request:
+
+```json
+{
+  "serialNo": "PRO-PILOT-001",
+  "templateAccess": "professional",
+  "proofCode": "2468",
+  "reservedUserId": "user_xxx",
+  "model": "TXT-HID",
+  "firmwareVersion": "pilot",
+  "protocolVersion": "locked"
+}
+```
+
+Batch import request:
+
+```json
+{
+  "devicesText": "serialNo,templateAccess,proofCode,model\nPRO-PILOT-001,professional,2468,TXT-HID"
+}
+```
+
+or:
+
+```json
+{
+  "devices": [
+    {
+      "serialNo": "PRO-PILOT-001",
+      "templateAccess": "professional",
+      "proofCode": "2468"
+    }
+  ]
+}
+```
+
+Rules:
+- `proofCode` is stored only as `proofCodeHash`.
+- Admin and user APIs return `hasProofCode`, never `proofCode` or `proofCodeHash`.
+- Duplicate `serialNo` updates the existing device.
+- Batch import accepts up to 500 rows and returns per-row errors without exposing proof data.
 
 ### Template Management Endpoints
 

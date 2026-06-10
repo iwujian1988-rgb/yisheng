@@ -11,6 +11,7 @@ function generateContent(options) {
   return callAi({
     type,
     prompt,
+    actionId: options.actionId || '',
     safeText: guarded.safeText,
     redactionHits: guarded.redactionHits
   }).then((response) => {

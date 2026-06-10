@@ -1,6 +1,7 @@
 const DEFAULT_TRANSFER_SETTINGS = {
   speedMode: 'balanced',
-  systemMode: 'WIN11'
+  systemMode: 'WIN11',
+  encodingMode: 'AUTO'
 };
 
 function getTransferSettings() {
@@ -22,4 +23,3 @@ module.exports = {
   getTransferSettings,
   saveTransferSettings
 };
-

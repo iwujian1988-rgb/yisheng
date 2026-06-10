@@ -10,6 +10,12 @@ Page({
     isSubmitting: false
   },
 
+  onLoad(options) {
+    if (options.serialNo) {
+      this.setData({ serialNo: decodeURIComponent(options.serialNo) });
+    }
+  },
+
   selectType(e) {
     this.setData({ activeType: e.currentTarget.dataset.type }, this.checkForm);
   },
@@ -38,6 +44,7 @@ Page({
     }).then(() => {
       wx.showToast({ title: '已提交', icon: 'success' });
       this.setData({
+        activeType: '',
         description: '',
         serialNo: '',
         canSubmit: false,

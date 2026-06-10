@@ -1,7 +1,7 @@
 <view class="detail-container">
   <view class="header-section">
     <text class="template-title">{{title || '模板详情'}}</text>
-    <text class="template-desc">{{description || '填写字段后生成可发送文本。'}}</text>
+    <text class="template-desc">{{description || '填写关键信息后生成可编辑文本。'}}</text>
   </view>
 
   <view class="fields-section" wx:if="{{fields.length > 0}}">
@@ -44,6 +44,6 @@
     loading="{{isGenerating}}"
     bindtap="generateResult"
   >
-    {{isGenerating ? '生成中' : '生成文本'}}
+    {{isGenerating ? '正在生成' : '生成文本'}}
   </button>
 </view>

@@ -1,4 +1,3 @@
-<!--pages/admin/feedback-detail.wxml-->
 <view class="detail-container">
   <view class="card">
     <text class="card-title">反馈信息</text>

@@ -1,17 +1,23 @@
 <view class="result-container">
   <view class="result-section">
     <view class="section-header">
-      <text class="result-label">可发送正文</text>
-      <text class="provider-tag" wx:if="{{provider}}">{{provider}}</text>
+      <text class="result-label">生成结果</text>
+      <text class="provider-tag" wx:if="{{provider}}">{{status === 'ai_generated' ? '智能生成' : '模板生成'}}</text>
     </view>
-    <scroll-view class="result-box" scroll-y>
-      <text class="result-text" wx:if="{{bodyText}}">{{bodyText}}</text>
-      <text class="result-empty" wx:else>等待生成...</text>
-    </scroll-view>
+    <view class="result-box">
+      <textarea
+        class="result-textarea"
+        value="{{bodyText}}"
+        maxlength="-1"
+        auto-height="{{true}}"
+        bindinput="onBodyInput"
+        placeholder="生成后的正文会显示在这里"
+      />
+    </view>
   </view>
 
   <view class="confirm-section" wx:if="{{confirmText}}">
-    <text class="result-label">待确认项</text>
+    <text class="result-label">发送前确认</text>
     <view class="confirm-box">
       <text class="confirm-text">{{confirmText}}</text>
     </view>
@@ -19,13 +25,13 @@
 
   <view class="action-section">
     <button class="btn btn-primary action-btn" bindtap="sendToComputer">
-      发送到电脑
+      使用这段
     </button>
     <button class="btn btn-outline action-btn" bindtap="copyResult">
       复制正文
     </button>
     <button class="btn btn-plain action-btn" bindtap="regenerate">
-      返回编辑
+      返回修改
     </button>
   </view>
 </view>

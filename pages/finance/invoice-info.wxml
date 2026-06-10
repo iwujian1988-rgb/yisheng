@@ -1,4 +1,3 @@
-<!--pages/finance/invoice-info.wxml-->
 <view class="invoice-container">
   <view class="form-section">
     <view class="form-title"><text class="form-title-text">开票信息</text></view>

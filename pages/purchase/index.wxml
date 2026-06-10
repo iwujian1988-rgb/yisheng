@@ -2,7 +2,7 @@
 <view class="purchase-container">
   <view class="intro-section">
     <view class="intro-icon">
-      <text class="intro-icon-text">&#9881;</text>
+      <text class="intro-icon-text">⚙</text>
     </view>
     <text class="intro-title">开通传输服务</text>
     <text class="intro-desc">本产品为设备配套服务，购买传输设备后即可开通使用。</text>
@@ -24,7 +24,7 @@
     </view>
     <view class="step-item">
       <text class="step-num">4</text>
-      <text class="step-text">在小程序中完成设备绑定</text>
+      <text class="step-text">在首页通过蓝牙连接设备</text>
     </view>
   </view>
 

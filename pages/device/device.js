@@ -1,10 +1,10 @@
 const authSession = require('../../services/auth/session');
+const deviceBinding = require('../../services/device/binding');
 
 Page({
   data: {
-    // unbound | bound | unavailable — 由外部通过 onLoad 传入
     status: 'unbound',
-    binding: false,
+    loading: false,
     deviceModel: '',
     deviceSN: '',
     bindTime: '',
@@ -12,42 +12,87 @@ Page({
   },
 
   onLoad(options) {
-    const session = authSession.getStoredSessionSummary();
-    const device = session.device || {};
-    const status = options.status || (device.serialNo ? 'bound' : 'unbound');
+    this.applyInitialState(options || {});
+  },
 
+  onShow() {
+    this.refreshDevice();
+  },
+
+  applyInitialState(options) {
+    const session = authSession.getStoredSessionSummary();
+    const device = session.device || wx.getStorageSync('boundDevice') || {};
+    const status = options.status || (device.serialNo ? 'bound' : 'unbound');
     this.setData({
       status,
       deviceModel: options.deviceModel || device.model || '',
       deviceSN: options.deviceSN || device.serialNo || '',
-      bindTime: options.bindTime || '',
+      bindTime: options.bindTime || device.boundAt || '',
       unavailableReason: options.unavailableReason || ''
     });
   },
 
-  bindDevice() {
-    wx.showToast({ title: '等待接入设备绑定服务', icon: 'none' });
+  refreshDevice() {
+    this.setData({ loading: true });
+    deviceBinding.getMyDevice()
+      .then((device) => {
+        const nextDevice = device || {};
+        this.setData({
+          status: nextDevice.serialNo ? 'bound' : 'unbound',
+          deviceModel: nextDevice.model || '',
+          deviceSN: nextDevice.serialNo || '',
+          bindTime: nextDevice.boundAt || '',
+          unavailableReason: ''
+        });
+      })
+      .catch((error) => {
+        this.setData({
+          status: 'unavailable',
+          unavailableReason: error.message || '当前无法读取设备状态'
+        });
+      })
+      .finally(() => {
+        this.setData({ loading: false });
+      });
+  },
+
+  connectDevice() {
+    wx.reLaunch({ url: '/pages/home/home' });
   },
 
   unbindDevice() {
+    if (!this.data.deviceSN) {
+      wx.showToast({ title: '暂无设备记录', icon: 'none' });
+      return;
+    }
     wx.showModal({
       title: '确认解绑',
-      content: '解绑后需要重新绑定才能继续使用传输功能',
+      content: '解绑只会清除后台记录，不影响后续通过蓝牙连接设备。',
       confirmText: '解绑',
       confirmColor: '#F5222D',
       success: (res) => {
-        if (res.confirm) {
-          wx.showToast({ title: '等待接入设备绑定服务', icon: 'none' });
-        }
+        if (!res.confirm) return;
+        this.setData({ loading: true });
+        deviceBinding.unbindDevice(this.data.deviceSN, 'user_request')
+          .then(() => {
+            wx.showToast({ title: '已解绑', icon: 'success' });
+            this.refreshDevice();
+          })
+          .catch((error) => {
+            wx.showToast({ title: error.message || '解绑失败', icon: 'none' });
+          })
+          .finally(() => {
+            this.setData({ loading: false });
+          });
       }
     });
   },
 
   retryConnection() {
-    wx.showToast({ title: '等待接入设备绑定服务', icon: 'none' });
+    this.refreshDevice();
   },
 
   contactSupport() {
-    wx.showToast({ title: '客服功能开发中', icon: 'none' });
+    wx.navigateTo({ url: '/pages/support/device-issue?serialNo=' + encodeURIComponent(this.data.deviceSN || '') });
   }
 });

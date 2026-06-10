@@ -1,13 +1,38 @@
 {
-  "description": "病历传输小程序项目配置文件",
+  "description": "文本传输助手项目配置文件",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "backend"
+      },
+      {
+        "type": "folder",
+        "value": "docs"
+      },
+      {
+        "type": "folder",
+        "value": "ble-demo"
+      },
+      {
+        "type": "folder",
+        "value": "prototypes"
+      },
+      {
+        "type": "folder",
+        "value": ".git"
+      },
+      {
+        "type": "file",
+        "value": "package.json"
+      }
+    ],
     "include": []
   },
   "setting": {
     "bundle": false,
     "userConfirmedBundleSwitch": false,
-    "urlCheck": true,
+    "urlCheck": false,
     "scopeDataCheck": false,
     "coverView": true,
     "es6": true,
@@ -47,8 +72,9 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
+  "miniprogramRoot": "./",
   "libVersion": "3.16.0",
-  "appid": "wxefb8656ad98f7142",
+  "appid": "wx2c6d9d808c080a13",
   "projectname": "bingli",
   "condition": {},
   "editorSetting": {

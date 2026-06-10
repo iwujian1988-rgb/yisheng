@@ -1,5 +1,7 @@
 const milestones = require('../../services/customer/milestones');
 
+const EXPORT_APPLY_KEY = 'customerDataExportApply';
+
 Page({
   data: {
     exportable: [],
@@ -11,6 +13,11 @@ Page({
   },
 
   applyExport() {
-    wx.showToast({ title: '等待接入数据服务', icon: 'none' });
+    wx.setStorageSync(EXPORT_APPLY_KEY, {
+      status: 'submitted',
+      createdAt: Date.now(),
+      exportable: this.data.exportable
+    });
+    wx.showToast({ title: '已提交申请', icon: 'success' });
   }
 });

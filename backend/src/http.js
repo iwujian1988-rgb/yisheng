@@ -32,13 +32,26 @@ function sendText(res, statusCode, text, headers) {
   res.end(text);
 }
 
-function parseBody(req) {
+function parseBody(req, options) {
+  var maxBytes = options && options.maxBytes ? Number(options.maxBytes) : 0;
   return new Promise((resolve, reject) => {
     var chunks = [];
+    var totalBytes = 0;
+    var exceeded = false;
     req.on('data', (chunk) => {
+      if (exceeded) return;
+      totalBytes += chunk.length;
+      if (maxBytes && totalBytes > maxBytes) {
+        exceeded = true;
+        return;
+      }
       chunks.push(chunk);
     });
     req.on('end', () => {
+      if (exceeded) {
+        reject(new Error('REQUEST_BODY_TOO_LARGE'));
+        return;
+      }
       var raw = Buffer.concat(chunks).toString('utf8');
       if (!raw) {
         resolve({});

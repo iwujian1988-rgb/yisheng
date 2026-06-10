@@ -1,37 +1,29 @@
-<!--pages/device/device.wxml-->
 <view class="device-container">
-  <!-- 设备未绑定 -->
   <view class="status-section" wx:if="{{status === 'unbound'}}">
     <view class="icon-circle icon-unbound">
-      <text class="icon-text">&#9881;</text>
+      <text class="icon-text">!</text>
     </view>
-    <text class="status-title">未绑定设备</text>
-    <text class="status-desc">请将传输硬件插入电脑 USB 口，然后在下方点击绑定</text>
+    <text class="status-title">暂未连接设备</text>
+    <text class="status-desc">设备不需要提前绑定。请将硬件插入电脑，通过蓝牙连接结果确认设备是否可用。</text>
 
     <view class="info-card">
-      <text class="info-label">绑定步骤：</text>
-      <text class="info-step">1. 将硬件插入电脑 USB 口</text>
-      <text class="info-step">2. 等待电脑识别设备</text>
-      <text class="info-step">3. 点击下方按钮完成绑定</text>
+      <text class="info-label">连接前检查</text>
+      <text class="info-step">1. 将硬件插入目标电脑 USB 口</text>
+      <text class="info-step">2. 打开手机蓝牙并靠近设备</text>
+      <text class="info-step">3. 回到首页搜索设备并开始连接</text>
     </view>
 
-    <button
-      class="btn btn-primary action-btn {{binding ? '' : ''}}"
-      disabled="{{binding}}"
-      loading="{{binding}}"
-      bindtap="bindDevice"
-    >
-      {{binding ? '绑定中...' : '绑定设备'}}
+    <button class="btn btn-primary action-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="connectDevice">
+      去连接设备
     </button>
   </view>
 
-  <!-- 设备已绑定 -->
   <view class="status-section" wx:if="{{status === 'bound'}}">
     <view class="icon-circle icon-bound">
-      <text class="icon-text">&#10003;</text>
+      <text class="icon-text">✓</text>
     </view>
-    <text class="status-title">设备已绑定</text>
-    <text class="status-desc">传输硬件已连接，可以正常使用</text>
+    <text class="status-title">设备记录已存在</text>
+    <text class="status-desc">当前账号有历史设备记录；实际可用状态以后续蓝牙连接结果为准。</text>
 
     <view class="detail-card">
       <view class="detail-row">
@@ -45,30 +37,29 @@
       </view>
       <view class="detail-divider"></view>
       <view class="detail-row">
-        <text class="detail-label">绑定时间</text>
+        <text class="detail-label">记录时间</text>
         <text class="detail-value">{{bindTime || '--'}}</text>
       </view>
     </view>
 
-    <button class="btn btn-outline action-btn" bindtap="unbindDevice">
-      解绑设备
+    <button class="btn btn-outline action-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="unbindDevice">
+      清除设备记录
     </button>
   </view>
 
-  <!-- 设备不可用 -->
   <view class="status-section" wx:if="{{status === 'unavailable'}}">
     <view class="icon-circle icon-unavailable">
-      <text class="icon-text">&#9888;</text>
+      <text class="icon-text">!</text>
     </view>
-    <text class="status-title">设备不可用</text>
-    <text class="status-desc">{{unavailableReason || '当前设备无法使用，请检查连接或联系客服'}}</text>
+    <text class="status-title">设备状态不可用</text>
+    <text class="status-desc">{{unavailableReason || '当前无法读取设备状态，请检查网络或稍后重试。'}}</text>
 
     <view class="action-group">
-      <button class="btn btn-primary action-btn" bindtap="retryConnection">
+      <button class="btn btn-primary action-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="retryConnection">
         重新检测
       </button>
       <button class="btn btn-outline action-btn" bindtap="contactSupport">
-        联系客服
+        联系支持
       </button>
     </view>
   </view>

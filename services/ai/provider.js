@@ -1,5 +1,6 @@
 const { request, getBaseUrl } = require('../api/client');
 const { ENDPOINTS } = require('../api/endpoints');
+const { isBluetoothConnected } = require('../entitlements/features');
 
 function summarizeRedactionHits(redactionHits) {
   const hits = redactionHits || [];
@@ -36,6 +37,8 @@ function callBackendAi(payload) {
     data: {
       taskType: payload.type,
       redactedText: payload.safeText || '',
+      actionId: payload.actionId || '',
+      deviceConnected: isBluetoothConnected(),
       promptId: payload.prompt && payload.prompt.id ? payload.prompt.id : '',
       promptTitle: payload.prompt && payload.prompt.title ? payload.prompt.title : '',
       inputSummary: {
@@ -65,7 +68,7 @@ function callDevAi(payload) {
     '',
     '【待确认】',
     '1. 请确认正文中的事实、时间、对象和数字是否准确。',
-    '2. 请确认是否还有必须补充的信息。',
+    '2. 请确认是否还有需要补充的信息。',
     '3. 脱敏命中：' + hitSummary
   ].join('\n');
   const sections = splitAiSections(resultText);

@@ -1,4 +1,3 @@
-<!--pages/admin/device-detail.wxml-->
 <view class="detail-container">
   <view class="card">
     <text class="card-title">设备信息</text>
@@ -26,6 +25,6 @@
 
   <view class="action-section">
     <button class="btn btn-primary action-btn" bindtap="unbindDevice">解绑设备</button>
-    <button class="btn btn-outline action-btn" bindtap="disableDevice">禁用设备</button>
+    <button class="btn btn-outline action-btn" bindtap="disableDevice">停用设备</button>
   </view>
 </view>

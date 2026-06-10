@@ -3,14 +3,16 @@ const transferSettings = require('../../services/settings/transfer-settings');
 Page({
   data: {
     speedMode: 'balanced',
-    systemMode: 'WIN11'
+    systemMode: 'WIN11',
+    encodingMode: 'AUTO'
   },
 
   onLoad(options) {
     const storedSettings = transferSettings.getTransferSettings();
     this.setData({
       speedMode: options.speedMode || storedSettings.speedMode,
-      systemMode: options.systemMode || storedSettings.systemMode
+      systemMode: options.systemMode || storedSettings.systemMode,
+      encodingMode: options.encodingMode || storedSettings.encodingMode
     });
   },
 
@@ -22,9 +24,13 @@ Page({
     this.setData({ systemMode: e.currentTarget.dataset.system });
   },
 
+  selectEncoding(e) {
+    this.setData({ encodingMode: e.currentTarget.dataset.encoding });
+  },
+
   saveSettings() {
-    const { speedMode, systemMode } = this.data;
-    transferSettings.saveTransferSettings({ speedMode, systemMode });
+    const { speedMode, systemMode, encodingMode } = this.data;
+    transferSettings.saveTransferSettings({ speedMode, systemMode, encodingMode });
     wx.showToast({ title: '设置已保存', icon: 'success' });
   }
 });

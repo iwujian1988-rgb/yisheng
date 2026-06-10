@@ -20,17 +20,20 @@ function publicUser(user) {
   };
 }
 
+function publicDevice(device) {
+  if (!device) return null;
+  var next = Object.assign({}, device);
+  delete next.proofCodeHash;
+  next.hasProofCode = Boolean(device.proofCodeHash);
+  return next;
+}
+
 function createAuthModule(deps) {
   var store = deps.store;
   var sessions = deps.sessions;
 
   function getBoundDevice(userId) {
-    return store.devices.find((item) => item.boundUserId === userId) || null;
-  }
-
-  function getTemplateAccess(userId) {
-    var device = getBoundDevice(userId);
-    return device && device.templateAccess === 'professional' ? 'professional' : 'general';
+    return store.devices.find((item) => item.boundUserId === userId && item.bindStatus === 'bound') || null;
   }
 
   function buildUserSession(user, token) {
@@ -41,8 +44,8 @@ function createAuthModule(deps) {
       purchaseStatus: user.memberStatus === 'active' ? 'paid' : 'none',
       deviceBindingStatus: device ? 'bound' : 'not_bound',
       serviceStatus: user.memberStatus,
-      templateAccess: getTemplateAccess(user.id),
-      device: device
+      device: publicDevice(device),
+      features: user.features || {}
     };
   }
 
@@ -197,6 +200,7 @@ function createAuthModule(deps) {
       disabledReason: '',
       lastLogin: now,
       registerSource: 'phone',
+      features: {},
       createdAt: now,
       updatedAt: now
     };
@@ -300,6 +304,7 @@ function createAuthModule(deps) {
         disabledReason: '',
         lastLogin: '',
         registerSource: 'wechat',
+        features: {},
         createdAt: now,
         updatedAt: now
       };
@@ -354,5 +359,6 @@ function createAuthModule(deps) {
 
 module.exports = {
   createAuthModule,
+  publicDevice,
   publicUser
 };

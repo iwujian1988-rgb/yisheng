@@ -37,16 +37,18 @@
   background-color: #FFFFFF;
   border-radius: 8px;
   padding: 18px;
-  height: 280px;
+  min-height: 280px;
   border: 1px solid #E5E5E5;
   box-sizing: border-box;
 }
 
-.result-text {
+.result-textarea {
+  width: 100%;
+  min-height: 260px;
   font-size: 15px;
   color: #333333;
   line-height: 1.8;
-  white-space: pre-wrap;
+  box-sizing: border-box;
 }
 
 .result-empty {

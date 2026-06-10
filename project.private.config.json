@@ -1,9 +1,9 @@
 {
   "libVersion": "3.16.0",
-  "projectname": "%E8%88%92%E5%85%8B%E5%B8%AE%E5%86%99",
+  "projectname": "repo",
   "condition": {},
   "setting": {
-    "urlCheck": true,
+    "urlCheck": false,
     "coverView": true,
     "lazyloadPlaceholderEnable": false,
     "skylineRenderEnable": false,

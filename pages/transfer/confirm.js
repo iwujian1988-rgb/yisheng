@@ -2,18 +2,18 @@ const draftService = require('../../services/content/draft');
 const transferQueue = require('../../services/transfer/queue');
 
 const SOURCE_LABELS = {
-  manual: '手动输入',
-  ocr: '拍照识别',
-  asr: '录音转写',
-  ai: 'AI 整理',
-  template: '模板生成'
+  manual: '直接编辑',
+  ocr: '图片取字',
+  asr: '语音成稿',
+  ai: '智能润色',
+  template: '场景模板'
 };
 
 Page({
   data: {
     text: '',
     source: 'manual',
-    sourceLabel: '手动输入'
+    sourceLabel: '直接编辑'
   },
 
   onLoad(options) {

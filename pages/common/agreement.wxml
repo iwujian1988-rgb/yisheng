@@ -22,7 +22,7 @@
 
     <view class="section">
       <text class="section-title">五、免责声明</text>
-      <text class="section-text">AI 生成、OCR 识别、录音转写和模板整理结果均需用户确认。本产品不保证自动生成内容完全准确，用户应对最终发送内容负责。</text>
+      <text class="section-text">智能润色、图片取字、语音成稿和模板整理结果均需用户确认。本产品不保证自动生成内容完全准确，用户应对最终发送内容负责。</text>
     </view>
   </view>
 
@@ -39,7 +39,7 @@
 
     <view class="section">
       <text class="section-title">三、第三方 AI 脱敏说明</text>
-      <text class="section-text">如使用 AI 整理功能，文本在发送至 AI 服务前会进行必要的脱敏处理。用户仍应在提交前检查是否包含不应发送的信息。</text>
+      <text class="section-text">如使用智能套装能力，文本在提交服务前会进行必要的脱敏处理。用户仍应在提交前检查是否包含不应发送的信息。</text>
     </view>
 
     <view class="section">

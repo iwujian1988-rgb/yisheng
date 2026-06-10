@@ -1,33 +1,62 @@
-<!-- pages/asr/index.wxml -->
 <view class="asr-container">
-  <view class="record-section">
+  <view class="record-panel">
+    <text class="panel-title">语音转文字</text>
+    <text class="panel-desc">最长支持 60 分钟。结束后会自动转写，转写结果可以手动修改。</text>
+
     <view
-      class="record-btn {{recording ? 'recording' : ''}}"
+      class="record-btn {{recording ? 'recording' : ''}} {{transcribing ? 'disabled' : ''}}"
       bindtap="toggleRecord"
     >
-      <text class="record-icon">{{recording ? '&#9632;' : '&#9679;'}}</text>
+      <text class="record-icon">{{recording ? '停止' : '录音'}}</text>
     </view>
-    <text class="record-status">{{recording ? '录音中，点击停止' : '点击开始录音'}}</text>
-    <text wx:if="{{recording}}" class="record-hint">请对准手机麦克风说话</text>
+
+    <text class="record-status">{{recording ? '正在录音 ' + recordDurationText : statusText}}</text>
+    <text wx:if="{{recording}}" class="record-hint">请保持小程序在前台，并靠近手机麦克风。</text>
+    <text wx:elif="{{hasRecoverableAudio && !transcribing}}" class="record-hint">上次录音已保留，失败后可直接重试。</text>
   </view>
 
   <view class="result-section">
-    <text class="result-label">转写结果</text>
+    <view class="result-head">
+      <text class="result-label">转写结果</text>
+      <text wx:if="{{resultMeta}}" class="result-meta">{{resultMeta.elapsedMs}}ms</text>
+    </view>
     <view class="result-box">
-      <text wx:if="{{transcribing}}" class="result-empty">正在转写...</text>
-      <text wx:elif="{{resultText}}" class="result-text">{{resultText}}</text>
+      <text wx:if="{{transcribing}}" class="result-empty">正在上传并转写，请不要关闭小程序。</text>
+      <textarea
+        wx:elif="{{editableText}}"
+        class="result-textarea"
+        value="{{editableText}}"
+        maxlength="-1"
+        auto-height="{{true}}"
+        bindinput="onTextInput"
+        placeholder="转写结果会显示在这里"
+      />
       <text wx:elif="{{errorMessage}}" class="result-empty">{{errorMessage}}</text>
-      <text wx:else class="result-empty">完成录音后开始转写</text>
+      <text wx:else class="result-empty">录音结束后，文字会显示在这里。</text>
     </view>
   </view>
 
   <view class="action-section">
     <button
-      class="btn btn-primary action-btn"
-      disabled="{{!resultText}}"
+      class="secondary-btn"
+      disabled="{{recording || transcribing || !hasRecoverableAudio}}"
+      bindtap="retryTranscribe"
+    >
+      重试转写
+    </button>
+    <button
+      class="secondary-btn"
+      disabled="{{recording || transcribing || !editableText}}"
+      bindtap="goSmartEdit"
+    >
+      智能整理
+    </button>
+    <button
+      class="primary-btn"
+      disabled="{{recording || transcribing || !editableText}}"
       bindtap="confirmResult"
     >
-      确认并使用
+      使用这段
     </button>
   </view>
 </view>

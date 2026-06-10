@@ -2,7 +2,7 @@
 <view class="error-container">
   <view class="error-section">
     <view class="error-icon-circle">
-      <text class="error-icon-text">&#9888;</text>
+      <text class="error-icon-text">!</text>
     </view>
     <text class="error-title">{{title || '出现错误'}}</text>
     <text class="error-message">{{message || '请稍后重试'}}</text>

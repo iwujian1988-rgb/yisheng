@@ -24,5 +24,19 @@ Page({
 
   setFilter(e) {
     this.setData({ filter: e.currentTarget.dataset.filter }, this.refreshTickets);
+  },
+
+  goDetail(e) {
+    const ticket = ticketsService.getTicketById(e.currentTarget.dataset.id);
+    if (!ticket) {
+      wx.showToast({ title: '工单不存在', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/ops/ticket-detail?ticketId=' + encodeURIComponent(ticket.id) +
+        '&ticketType=' + encodeURIComponent(ticket.type || '') +
+        '&ticketStatus=' + encodeURIComponent(ticket.status || '') +
+        '&ticketDesc=' + encodeURIComponent(ticket.desc || '')
+    });
   }
 });

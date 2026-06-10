@@ -12,19 +12,34 @@
   </view>
 
   <view class="result-section">
-    <text class="result-label">识别文本</text>
+    <text class="result-label">提取文本</text>
+    <view wx:if="{{resultMeta}}" class="meta-row">
+      <text class="meta-item">{{resultMeta.provider || 'OCR'}}</text>
+      <text class="meta-item">{{resultMeta.elapsedMs}}ms</text>
+      <text class="meta-item">可信度 {{resultMeta.confidence}}</text>
+      <text wx:if="{{resultMeta.regionCount}}" class="meta-item">{{resultMeta.regionCount}} 处文本</text>
+    </view>
+    <view class="safety-note">
+      <text>请核对提取内容，确认无误后再使用。</text>
+    </view>
     <view class="result-box">
-      <text class="result-text" wx:if="{{resultText}}">{{resultText}}</text>
-      <text class="result-empty" wx:else>暂无识别文本</text>
+      <textarea
+        wx:if="{{resultText}}"
+        class="result-textarea"
+        value="{{resultText}}"
+        maxlength="-1"
+        bindinput="updateResultText"
+      />
+      <text class="result-empty" wx:else>暂无提取文本</text>
     </view>
   </view>
 
   <view class="action-section">
-    <button class="btn btn-primary action-btn" bindtap="confirmResult">
+    <button class="btn btn-primary action-btn" disabled="{{!resultText}}" bindtap="confirmResult">
       确认使用
     </button>
     <button class="btn btn-outline action-btn" bindtap="reRecognize">
-      重新识别
+      重新选择
     </button>
   </view>
 </view>

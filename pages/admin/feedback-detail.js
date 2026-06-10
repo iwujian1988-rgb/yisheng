@@ -1,6 +1,8 @@
-// pages/admin/feedback-detail.js
+const adminDashboard = require('../../services/admin/dashboard');
+
 Page({
   data: {
+    id: '',
     feedbackType: '',
     submitTime: '',
     processStatus: '',
@@ -9,14 +11,11 @@ Page({
   },
 
   onLoad(options) {
-    var keys = ['feedbackType', 'submitTime', 'processStatus', 'content'];
-    var data = {};
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      if (options[key]) {
-        data[key] = decodeURIComponent(options[key]);
-      }
-    }
+    const keys = ['id', 'feedbackType', 'submitTime', 'processStatus', 'content'];
+    const data = {};
+    keys.forEach((key) => {
+      if (options[key]) data[key] = decodeURIComponent(options[key]);
+    });
     this.setData(data);
   },
 
@@ -25,7 +24,22 @@ Page({
   },
 
   submitReview() {
-    if (!this.data.reviewRemark) return;
-    wx.showToast({ title: '等待接入反馈服务', icon: 'none' });
+    if (!this.data.id) {
+      wx.showToast({ title: '缺少反馈 ID', icon: 'none' });
+      return;
+    }
+    if (!this.data.reviewRemark) {
+      wx.showToast({ title: '请输入处理备注', icon: 'none' });
+      return;
+    }
+    adminDashboard.updateFeedback(this.data.id, {
+      status: 'reviewed',
+      reviewRemark: this.data.reviewRemark
+    }).then(() => {
+      wx.showToast({ title: '已提交处理', icon: 'success' });
+      wx.navigateBack();
+    }).catch((error) => {
+      wx.showToast({ title: error.message || '提交失败', icon: 'none' });
+    });
   }
 });

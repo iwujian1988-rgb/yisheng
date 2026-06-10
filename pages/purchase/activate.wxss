@@ -1,84 +1,128 @@
-/* pages/purchase/activate.wxss */
 .activate-container {
   min-height: 100vh;
   background-color: #F5F7FA;
-  padding: 16px 32px;
+  padding: 32rpx;
+  box-sizing: border-box;
 }
 
-.intro-card {
-  background-color: rgba(74, 144, 226, 0.08);
-  border-radius: 8px;
-  padding: 14px 16px;
-  margin-bottom: 28px;
+.hero-card,
+.help-card {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  box-sizing: border-box;
 }
 
-.intro-text {
-  font-size: 14px;
-  color: #4A90E2;
+.hero-card {
+  margin-bottom: 28rpx;
+}
+
+.hero-title {
+  display: block;
+  font-size: 40rpx;
+  line-height: 1.3;
+  color: #18233C;
+  font-weight: 700;
+  margin-bottom: 14rpx;
+}
+
+.hero-desc {
+  display: block;
+  font-size: 28rpx;
   line-height: 1.6;
+  color: #5C667A;
 }
 
 .form-section {
-  margin-bottom: 32px;
-}
-
-.input-group {
-  margin-bottom: 0;
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+  box-sizing: border-box;
 }
 
 .input-label {
-  font-size: 14px;
-  color: #333333;
-  font-weight: 500;
-  margin-bottom: 8px;
   display: block;
+  font-size: 28rpx;
+  color: #18233C;
+  font-weight: 600;
+  margin-bottom: 16rpx;
 }
 
 .input {
   width: 100%;
-  height: 52px;
-  padding: 0 16px;
-  background-color: #FFFFFF;
-  border: 1px solid #E5E5E5;
-  border-radius: 12px;
-  font-size: 15px;
-  color: #333333;
+  height: 96rpx;
+  padding: 0 24rpx;
+  background-color: #F7F9FC;
+  border: 2rpx solid #DCE3EE;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  color: #18233C;
   box-sizing: border-box;
 }
 
-.input:focus {
-  border-color: #4A90E2;
-}
-
 .input-placeholder {
-  color: #999999;
+  color: #9AA3B5;
 }
 
 .error-text {
-  font-size: 12px;
-  color: #F5222D;
-  margin-top: 4px;
   display: block;
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #E5484D;
 }
 
 .submit-btn {
   width: 100%;
-  height: 52px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 500;
+  height: 96rpx;
+  line-height: 96rpx;
+  border-radius: 12rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+  margin: 0 0 28rpx;
+  border: none;
 }
 
-.btn-primary {
-  background-color: #4A90E2;
+.submit-btn::after,
+.support-btn::after {
+  border: none;
+}
+
+.submit-ready {
+  background-color: #1677FF;
   color: #FFFFFF;
 }
 
-.btn-primary:active {
-  opacity: 0.8;
+.submit-disabled {
+  background-color: #D8DDE6;
+  color: #FFFFFF;
 }
 
-.disabled {
-  background-color: #CCCCCC;
-  color: #FFFFFF;
+.help-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.help-title {
+  font-size: 30rpx;
+  color: #18233C;
+  font-weight: 700;
+}
+
+.help-desc {
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: #5C667A;
+}
+
+.support-btn {
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 12rpx;
+  margin-top: 10rpx;
+  background-color: #EEF5FF;
+  color: #1677FF;
+  font-size: 28rpx;
+  font-weight: 600;
 }

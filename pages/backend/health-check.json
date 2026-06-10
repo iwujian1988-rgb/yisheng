@@ -1,1 +1,6 @@
-{"usingComponents":{},"navigationBarTitleText":"健康检查","navigationBarTextStyle":"black","navigationBarBackgroundColor":"#FFFFFF"}
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "后端检查",
+  "navigationBarTextStyle": "black",
+  "navigationBarBackgroundColor": "#FFFFFF"
+}

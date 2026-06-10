@@ -5,7 +5,7 @@ Page({
     activeTab: 'connect',
     tabs: [
       { key: 'connect', name: '首次连接' },
-      { key: 'bind', name: '设备绑定' },
+      { key: 'bind', name: '设备连接' },
       { key: 'transfer', name: '文本传输' },
       { key: 'faq', name: '常见问题' }
     ],

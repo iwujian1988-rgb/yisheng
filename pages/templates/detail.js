@@ -1,4 +1,4 @@
-const aiAssistant = require('../../services/ai/assistant');
+const featureEntitlements = require('../../services/entitlements/features');
 const templateCatalog = require('../../services/templates/catalog');
 const templateRenderer = require('../../services/templates/renderer');
 
@@ -85,24 +85,26 @@ Page({
       return;
     }
 
-    const rawText = templateRenderer.renderTemplateFields(this.data.title, this.data.fields);
+    const template = this.data.template || {};
+    if (
+      (template.requiresAi || template.type === 'ai_template' || template.type === 'ai_enhanced') &&
+      !featureEntitlements.guardAiFeature('aiTemplateEnhance', 'AI 增强模板')
+    ) {
+      return;
+    }
+
     this.setData({ isGenerating: true });
 
     templateCatalog.generateTemplate(this.data.template || {}, this.data.fields)
-      .catch(() => {
-        return aiAssistant.generateTemplateContent({
-          template: this.data.template || {},
-          text: rawText
-        });
-      })
       .then((result) => {
-        const bodyText = result.bodyText || result.resultText || rawText;
+        const bodyText = result.bodyText || result.resultText || '';
         templateRenderer.saveTemplateResult({
           bodyText,
           resultText: result.resultText || bodyText,
           confirmText: result.confirmText || templateRenderer.buildConfirmText(this.data.fields),
           rawText: result.rawText || result.resultText || bodyText,
           provider: result.provider || 'template-engine',
+          status: result.status || '',
           source: 'template'
         });
         wx.navigateTo({ url: '/pages/templates/result' });

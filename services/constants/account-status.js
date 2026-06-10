@@ -49,14 +49,6 @@ function resolveAccountStatus(profile) {
     return ACCOUNT_STATUS.REGISTERED_NOT_PAID;
   }
 
-  if (profile.deviceBindingStatus === DEVICE_BINDING_STATUS.CONFLICT) {
-    return ACCOUNT_STATUS.DEVICE_CONFLICT;
-  }
-
-  if (profile.deviceBindingStatus !== DEVICE_BINDING_STATUS.BOUND) {
-    return ACCOUNT_STATUS.PAID_NOT_BOUND;
-  }
-
   return ACCOUNT_STATUS.ACTIVE;
 }
 
@@ -72,4 +64,3 @@ module.exports = {
   resolveAccountStatus,
   canUseCoreFeatures
 };
-

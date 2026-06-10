@@ -1,8 +1,19 @@
-// pages/demo/index.js
 Page({
   data: {},
-  goScenario: function () { wx.navigateTo({ url: '/pages/demo/scenario-select' }); },
-  goDevice: function () { wx.showToast({ title: '等待接入设备模拟', icon: 'none' }); },
-  goTransfer: function () { wx.showToast({ title: '等待接入传输演示', icon: 'none' }); },
-  goAI: function () { wx.showToast({ title: '等待接入AI预览', icon: 'none' }); }
+
+  goScenario() {
+    wx.navigateTo({ url: '/pages/demo/scenario-select' });
+  },
+
+  goDevice() {
+    wx.navigateTo({ url: '/pages/device/checklist' });
+  },
+
+  goTransfer() {
+    wx.navigateTo({ url: '/pages/transfer/queue' });
+  },
+
+  goAI() {
+    wx.navigateTo({ url: '/pages/ai/detail' });
+  }
 });

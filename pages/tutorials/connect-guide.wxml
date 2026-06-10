@@ -35,6 +35,6 @@
   <!-- 常见问题入口 -->
   <view class="faq-entry" bindtap="goToFaq">
     <text class="faq-text">遇到问题？查看常见问题</text>
-    <text class="faq-arrow">&#10095;</text>
+    <text class="faq-arrow">›</text>
   </view>
 </view>

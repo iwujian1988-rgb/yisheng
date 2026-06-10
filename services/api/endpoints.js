@@ -12,8 +12,10 @@ const ENDPOINTS = {
     paidUsers: '/api/admin/paid-users',
     paidUserDetail: '/api/admin/paid-users/{id}',
     devices: '/api/admin/devices',
+    deviceUnbind: '/api/admin/devices/{id}/unbind',
     serviceRecords: '/api/admin/service-records',
     feedbacks: '/api/admin/feedbacks',
+    feedbackDetail: '/api/admin/feedbacks/{id}',
     activationCodes: '/api/admin/activation-codes',
     activationCodesImport: '/api/admin/activation-codes/import',
     auditLogs: '/api/admin/audit-logs'
@@ -36,6 +38,7 @@ const ENDPOINTS = {
   },
   ai: {
     assistant: '/api/ai/assistant',
+    quickActions: '/api/ai/quick-actions',
     templates: '/api/ai/templates',
     templateDetail: '/api/ai/templates/{id}',
     templateGenerate: '/api/ai/templates/{id}/generate',

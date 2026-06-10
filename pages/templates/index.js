@@ -2,12 +2,9 @@ const templateCatalog = require('../../services/templates/catalog');
 
 Page({
   data: {
-    activeTab: 'office',
+    activeTab: 'all',
     tabs: [
-      { key: 'office', name: '办公' },
-      { key: 'report', name: '汇报' },
-      { key: 'email', name: '邮件' },
-      { key: 'notice', name: '通知' }
+      { key: 'all', name: '全部' }
     ],
     templates: [],
     filteredTemplates: [],
@@ -22,9 +19,15 @@ Page({
   loadTemplates() {
     this.setData({ isLoading: true, loadError: '' });
     templateCatalog.listTemplates()
-      .then((templates) => {
+      .then((result) => {
+        var templates = result.templates || [];
+        var categories = result.categories || [];
+        var tabs = [{ key: 'all', name: '全部' }].concat(
+          categories.map(function (c) { return { key: c, name: c }; })
+        );
         this.setData({
-          templates: templates || [],
+          templates: templates,
+          tabs: tabs,
           isLoading: false
         });
         this.applyFilter();
@@ -45,16 +48,17 @@ Page({
   },
 
   applyFilter() {
-    const activeTab = this.data.activeTab;
-    const filteredTemplates = (this.data.templates || []).filter((item) => {
-      return (item.category || item.scene || 'office') === activeTab;
+    var activeTab = this.data.activeTab;
+    var filteredTemplates = (this.data.templates || []).filter((item) => {
+      if (activeTab === 'all') return true;
+      return (item.category || item.scene || '') === activeTab;
     });
     this.setData({ filteredTemplates });
   },
 
   openTemplate(e) {
-    const id = e.currentTarget.dataset.id;
-    const template = (this.data.templates || []).find((item) => item.id === id);
+    var id = e.currentTarget.dataset.id;
+    var template = (this.data.templates || []).find((item) => item.id === id);
     if (!template) {
       wx.showToast({ title: '模板不可用', icon: 'none' });
       return;

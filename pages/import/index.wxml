@@ -2,57 +2,57 @@
   <view class="entry-list">
     <view class="entry-card" bindtap="goManualInput">
       <view class="entry-icon icon-manual">
-        <text class="icon-text">&#9998;</text>
+        <text class="icon-text">TXT</text>
       </view>
       <view class="entry-info">
-        <text class="entry-title">手动输入</text>
-        <text class="entry-desc">直接在文本框中输入内容。</text>
+        <text class="entry-title">直接编辑</text>
+        <text class="entry-desc">粘贴或输入文字，确认后发送到电脑。</text>
       </view>
-      <text class="entry-arrow">&#10095;</text>
+      <text class="entry-arrow">›</text>
     </view>
 
     <view class="entry-card" bindtap="goOcr">
       <view class="entry-icon icon-ocr">
-        <text class="icon-text">&#128247;</text>
+        <text class="icon-text">OCR</text>
       </view>
       <view class="entry-info">
-        <text class="entry-title">拍照识别</text>
-        <text class="entry-desc">选择图片后进入文字识别流程。</text>
+        <text class="entry-title">图片识别</text>
+        <text class="entry-desc">从照片、截图或文档图片中提取文字。</text>
       </view>
-      <text class="entry-arrow">&#10095;</text>
+      <text class="entry-arrow">›</text>
     </view>
 
     <view class="entry-card" bindtap="goAsr">
       <view class="entry-icon icon-asr">
-        <text class="icon-text">&#127908;</text>
+        <text class="icon-text">ASR</text>
       </view>
       <view class="entry-info">
-        <text class="entry-title">录音转写</text>
-        <text class="entry-desc">进入语音转写流程。</text>
+        <text class="entry-title">语音转写</text>
+        <text class="entry-desc">把录音内容转成可编辑文本。</text>
       </view>
-      <text class="entry-arrow">&#10095;</text>
+      <text class="entry-arrow">›</text>
     </view>
 
     <view class="entry-card" bindtap="goAi">
       <view class="entry-icon icon-ai">
-        <text class="icon-text">&#9733;</text>
+        <text class="icon-text">AI</text>
       </view>
       <view class="entry-info">
-        <text class="entry-title">AI 整理</text>
-        <text class="entry-desc">润色、总结或规范已有文本。</text>
+        <text class="entry-title">智能创作</text>
+        <text class="entry-desc">根据快捷指令整理、生成或优化文本。</text>
       </view>
-      <text class="entry-arrow">&#10095;</text>
+      <text class="entry-arrow">›</text>
     </view>
 
     <view class="entry-card" bindtap="goTemplate">
       <view class="entry-icon icon-template">
-        <text class="icon-text">&#9783;</text>
+        <text class="icon-text">TPL</text>
       </view>
       <view class="entry-info">
-        <text class="entry-title">模板生成</text>
-        <text class="entry-desc">选择模板并填写字段。</text>
+        <text class="entry-title">场景模板</text>
+        <text class="entry-desc">选择常用场景，按字段补充关键信息。</text>
       </view>
-      <text class="entry-arrow">&#10095;</text>
+      <text class="entry-arrow">›</text>
     </view>
   </view>
 </view>

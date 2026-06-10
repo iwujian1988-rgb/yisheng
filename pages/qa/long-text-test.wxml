@@ -34,6 +34,7 @@
     <textarea
       class="form-textarea"
       value="{{outputText}}"
+      maxlength="-1"
       placeholder="粘贴电脑端实际输出文本，用于比对"
       bindinput="onOutputInput"
     />

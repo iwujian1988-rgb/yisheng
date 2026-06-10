@@ -1,6 +1,6 @@
 <view class="bind-container">
   <view class="tip-card">
-    <text class="tip-text">请确认传输设备已插入电脑 USB 口，且设备指示灯正常。</text>
+    <text class="tip-text">请确认传输设备已连接目标电脑，设备指示灯正常，再输入序列号和校验码。</text>
   </view>
 
   <view class="form-section">

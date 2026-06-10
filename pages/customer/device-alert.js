@@ -1,7 +1,7 @@
-// pages/customer/device-alert.js
 Page({
   data: { alertMsg: '', deviceName: '', alertType: '', alertTime: '' },
-  onLoad: function (options) {
+
+  onLoad(options) {
     this.setData({
       alertMsg: decodeURIComponent(options.msg || ''),
       deviceName: decodeURIComponent(options.device || ''),
@@ -9,5 +9,10 @@ Page({
       alertTime: decodeURIComponent(options.time || '')
     });
   },
-  contactSupport: function () { wx.showToast({ title: '等待接入技术支持', icon: 'none' }); }
+
+  contactSupport() {
+    wx.navigateTo({
+      url: '/pages/support/device-issue?serialNo=' + encodeURIComponent(this.data.deviceName || '')
+    });
+  }
 });

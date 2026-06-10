@@ -12,17 +12,17 @@
     <view class="info-card">
       <view class="info-item" bindtap="goToServiceIntro">
         <text class="info-label">服务说明</text>
-        <text class="info-arrow">&#10095;</text>
+        <text class="info-arrow">›</text>
       </view>
       <view class="info-divider"></view>
       <view class="info-item" bindtap="goToPrivacy">
         <text class="info-label">隐私政策</text>
-        <text class="info-arrow">&#10095;</text>
+        <text class="info-arrow">›</text>
       </view>
       <view class="info-divider"></view>
       <view class="info-item" bindtap="goToAgreement">
         <text class="info-label">用户协议</text>
-        <text class="info-arrow">&#10095;</text>
+        <text class="info-arrow">›</text>
       </view>
     </view>
   </view>

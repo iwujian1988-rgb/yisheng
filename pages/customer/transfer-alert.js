@@ -1,7 +1,7 @@
-// pages/customer/transfer-alert.js
 Page({
   data: { alertMsg: '', transferTime: '', alertType: '', deviceName: '' },
-  onLoad: function (options) {
+
+  onLoad(options) {
     this.setData({
       alertMsg: decodeURIComponent(options.msg || ''),
       transferTime: decodeURIComponent(options.time || ''),
@@ -9,6 +9,12 @@ Page({
       deviceName: decodeURIComponent(options.device || '')
     });
   },
-  retryTransfer: function () { wx.showToast({ title: '等待接入重传服务', icon: 'none' }); },
-  contactSupport: function () { wx.showToast({ title: '等待接入技术支持', icon: 'none' }); }
+
+  retryTransfer() {
+    wx.navigateTo({ url: '/pages/transfer/queue' });
+  },
+
+  contactSupport() {
+    wx.navigateTo({ url: '/pages/transfer/failure-reason' });
+  }
 });

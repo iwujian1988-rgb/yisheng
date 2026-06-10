@@ -1,7 +1,11 @@
-// pages/support/index.js
 Page({
   contactSupport() {
-    wx.showToast({ title: '等待接入客服服务', icon: 'none' });
+    wx.showModal({
+      title: '联系支持',
+      content: '请先提交设备问题或反馈表单，现场人员会根据设备序列号和问题描述处理。',
+      showCancel: false,
+      confirmText: '知道了'
+    });
   },
 
   reportDeviceIssue() {
@@ -9,10 +13,10 @@ Page({
   },
 
   reportAccountIssue() {
-    wx.showToast({ title: '等待接入客服服务', icon: 'none' });
+    wx.navigateTo({ url: '/pages/feedback/index?type=account' });
   },
 
   reportTransferIssue() {
-    wx.showToast({ title: '等待接入客服服务', icon: 'none' });
+    wx.navigateTo({ url: '/pages/transfer/failure-reason' });
   }
 });

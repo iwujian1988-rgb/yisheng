@@ -1,0 +1,11 @@
+{
+  "name": "yisheng-miniprogram-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "release:check": "npm --prefix backend run release:check",
+    "smoke": "npm --prefix backend run smoke",
+    "smoke:trial-flow": "npm --prefix backend run smoke:trial-flow",
+    "smoke:ocr-worker": "npm --prefix backend run smoke:ocr-worker"
+  }
+}

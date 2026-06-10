@@ -10,11 +10,11 @@ function createId() {
 
 function sourceLabel(source) {
   const labels = {
-    manual: '手动输入',
-    ocr: '图片识别',
-    asr: '录音转写',
-    ai: 'AI 整理',
-    template: '模板生成',
+    manual: '直接编辑',
+    ocr: 'OCR识别',
+    asr: '语音记录',
+    ai: 'AI润色',
+    template: '模板',
     qa_long_text: '长文本测试'
   };
   return labels[source] || '文本';
@@ -73,8 +73,12 @@ function saveLocalRawRecords(records) {
   wx.setStorageSync(HISTORY_KEY, records.map(normalizeRecord));
 }
 
+function hasToken() {
+  return Boolean(wx.getStorageSync('token'));
+}
+
 function getHistoryRecords() {
-  if (!getBaseUrl()) {
+  if (!getBaseUrl() || !hasToken()) {
     return Promise.resolve(getLocalRawRecords().map(toListItem));
   }
 
@@ -84,6 +88,11 @@ function getHistoryRecords() {
   }).then((records) => {
     const list = Array.isArray(records) ? records : [];
     return list.map(toListItem);
+  }).catch((error) => {
+    if (error && error.statusCode === 401) {
+      return getLocalRawRecords().map(toListItem);
+    }
+    return Promise.reject(error);
   });
 }
 
@@ -109,7 +118,7 @@ function buildProtectedRecord(payload) {
 function saveHistoryRecord(payload) {
   const record = buildProtectedRecord(payload || {});
 
-  if (!getBaseUrl()) {
+  if (!getBaseUrl() || !hasToken()) {
     const nextRecords = [record].concat(getLocalRawRecords());
     saveLocalRawRecords(nextRecords);
     return Promise.resolve(toListItem(record));
@@ -132,7 +141,7 @@ function saveHistoryRecord(payload) {
 }
 
 function getProtectedRecordById(id) {
-  if (!getBaseUrl()) {
+  if (!getBaseUrl() || !hasToken()) {
     return Promise.resolve(getLocalRawRecords().find((record) => record.id === id) || null);
   }
 
@@ -142,8 +151,26 @@ function getProtectedRecordById(id) {
   });
 }
 
+function getHistoryDetail(id) {
+  return getProtectedRecordById(id).then((record) => {
+    const normalized = normalizeRecord(record || {});
+    const protectedPayload = normalized.protectedPayload || (
+      normalized.ciphertext ? {
+        ciphertext: normalized.ciphertext,
+        envelope: normalized.envelope || {}
+      } : null
+    );
+    const text = protectedPayload ? crypto.revealPlaintext(protectedPayload) : '';
+    return Object.assign({}, toListItem(normalized), {
+      text,
+      envelope: normalized.envelope || (protectedPayload && protectedPayload.envelope) || null
+    });
+  });
+}
+
 module.exports = {
   getHistoryRecords,
   saveHistoryRecord,
-  getProtectedRecordById
+  getProtectedRecordById,
+  getHistoryDetail
 };

@@ -14,7 +14,7 @@
   <view class="card">
     <text class="card-title">设备状态</text>
     <view class="info-row">
-      <text class="info-label">绑定设备</text>
+      <text class="info-label">设备记录</text>
       <text class="info-value">{{deviceSerial || '--'}}</text>
     </view>
     <view class="info-row">
@@ -34,15 +34,15 @@
     <view class="entry-list">
       <view class="entry-item" bindtap="goTransfer">
         <text class="entry-text">发送文本</text>
-        <text class="entry-arrow">&#10095;</text>
+        <text class="entry-arrow">›</text>
       </view>
       <view class="entry-item" bindtap="goHistory">
         <text class="entry-text">历史记录</text>
-        <text class="entry-arrow">&#10095;</text>
+        <text class="entry-arrow">›</text>
       </view>
       <view class="entry-item" bindtap="goHelp">
         <text class="entry-text">帮助中心</text>
-        <text class="entry-arrow">&#10095;</text>
+        <text class="entry-arrow">›</text>
       </view>
     </view>
   </view>

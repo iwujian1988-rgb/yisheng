@@ -32,7 +32,7 @@
       <picker mode="date" value="{{handoverDate}}" bindchange="onDateChange">
         <view class="field-picker">
           <text class="{{handoverDate ? 'picker-value' : 'picker-placeholder'}}">{{handoverDate || '请选择日期'}}</text>
-          <text class="picker-arrow">&#10095;</text>
+          <text class="picker-arrow">›</text>
         </view>
       </picker>
     </view>

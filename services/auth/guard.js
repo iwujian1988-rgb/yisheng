@@ -8,7 +8,11 @@ function getHomeEntryUrl() {
     return '/pages/login/login';
   }
 
-  if (session.accountStatus !== ACCOUNT_STATUS.ACTIVE) {
+  if (
+    session.accountStatus !== ACCOUNT_STATUS.ACTIVE &&
+    session.accountStatus !== ACCOUNT_STATUS.PAID_NOT_BOUND &&
+    session.accountStatus !== ACCOUNT_STATUS.DEVICE_CONFLICT
+  ) {
     return '/pages/account-status/account-status?accountStatus=' + (session.accountStatus || '');
   }
 

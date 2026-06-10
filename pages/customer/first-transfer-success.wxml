@@ -1,7 +1,7 @@
 <!--pages/customer/first-transfer-success.wxml-->
 <view class="success-container">
   <view class="success-section">
-    <view class="success-circle">&#10003;</view>
+    <view class="success-circle">✓</view>
     <text class="success-title">首次传输成功</text>
     <text class="success-desc">文本已成功发送到电脑，您可以继续使用或查看历史记录。</text>
   </view>

@@ -19,8 +19,7 @@ Page({
   },
 
   checkForm() {
-    const canBind = Boolean(this.data.serialNo && this.data.verifyCode);
-    this.setData({ canBind });
+    this.setData({ canBind: Boolean(this.data.serialNo && this.data.verifyCode) });
   },
 
   bindDevice() {

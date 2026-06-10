@@ -28,6 +28,10 @@ async function run() {
 
   const health = await request('/api/health');
   assert(health.service, 'health missing service');
+  assert(health.storeMode === 'memory', 'health should expose store mode');
+  assert(Object.prototype.hasOwnProperty.call(health, 'ocrConfigured'), 'health missing OCR config state');
+  assert(Object.prototype.hasOwnProperty.call(health, 'asrConfigured'), 'health missing ASR config state');
+  assert(Object.prototype.hasOwnProperty.call(health, 'aiConfigured'), 'health missing AI config state');
 
   const adminLogin = await request('/api/admin/auth/login', {
     method: 'POST',
@@ -48,7 +52,6 @@ async function run() {
     body: JSON.stringify({ code: 'smoke-test' })
   });
   assert(userLogin.token, 'user token missing');
-  assert(userLogin.templateAccess === 'general', 'default template access should be general');
 
   const userTemplates = await request('/api/ai/templates', {
     headers: {
@@ -98,7 +101,6 @@ async function run() {
       Authorization: 'Bearer ' + activatedUser.token
     }
   });
-  assert(session.templateAccess === 'professional', 'professional device should unlock professional templates');
 
   const createdTemplate = await request('/api/admin/templates', {
     method: 'POST',

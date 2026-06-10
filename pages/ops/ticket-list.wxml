@@ -1,4 +1,3 @@
-<!--pages/ops/ticket-list.wxml-->
 <view class="ticket-container">
   <view class="filter-bar">
     <view class="filter-item {{filter === 'all' ? 'filter-active' : ''}}" bindtap="setFilter" data-filter="all">
@@ -17,7 +16,7 @@
   </view>
 
   <view class="ticket-list" wx:if="{{tickets.length > 0}}">
-    <view class="ticket-card" wx:for="{{tickets}}" wx:key="id">
+    <view class="ticket-card" wx:for="{{tickets}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
       <view class="ticket-header">
         <text class="ticket-type">{{item.type}}</text>
         <text class="ticket-status {{item.status === 'open' ? 'status-open' : 'status-closed'}}">{{item.status === 'open' ? '处理中' : '已关闭'}}</text>

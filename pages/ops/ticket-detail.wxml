@@ -1,4 +1,3 @@
-<!--pages/ops/ticket-detail.wxml-->
 <view class="detail-container">
   <view class="card">
     <text class="card-title">工单信息</text>

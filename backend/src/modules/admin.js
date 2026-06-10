@@ -3,7 +3,8 @@ const { createId, nowIso } = require('../security/ids');
 const { maskPhone, paginate } = require('../security/masking');
 const { writeAudit } = require('../security/audit');
 const { hashPassword } = require('../security/password');
-const { toCsv } = require('../security/csv');
+const { parseCsvText, toCsv } = require('../security/csv');
+const { publicDevice } = require('./auth');
 
 function createAdminModule(deps) {
   var store = deps.store;
@@ -40,6 +41,70 @@ function createAdminModule(deps) {
     return errors;
   }
 
+  function normalizeDevicePayload(body) {
+    return {
+      serialNo: String(body.serialNo || body.serial_no || body['序列号'] || '').trim(),
+      proofCode: String(body.proofCode || body.proof_code || body['校验码'] || '').trim(),
+      reservedUserId: String(body.reservedUserId || body.reserved_user_id || body.userId || body.user_id || body['预留用户ID'] || '').trim(),
+      mac: String(body.mac || body.MAC || '').trim(),
+      model: String(body.model || body['型号'] || '').trim(),
+      firmwareVersion: String(body.firmwareVersion || body.firmware_version || body['固件版本'] || '').trim(),
+      protocolVersion: String(body.protocolVersion || body.protocol_version || body['协议版本'] || '').trim()
+    };
+  }
+
+  function validateDevicePayload(input) {
+    var errors = [];
+    if (!input.serialNo) errors.push('serialNo required');
+    if (input.serialNo && !/^[a-zA-Z0-9_-]{3,128}$/.test(input.serialNo)) errors.push('serialNo format invalid');
+    if (input.reservedUserId && !store.users.some((item) => item.id === input.reservedUserId)) {
+      errors.push('reserved user not found');
+    }
+    return errors;
+  }
+
+  function upsertDevice(input, now) {
+    var proofCode = input.proofCode;
+    var device = store.devices.find((item) => item.serialNo === input.serialNo);
+    var created = false;
+    if (!device) {
+      created = true;
+      device = {
+        id: createId('device'),
+        mac: input.mac,
+        serialNo: input.serialNo,
+        model: input.model,
+        firmwareVersion: input.firmwareVersion,
+        protocolVersion: input.protocolVersion,
+        proofCodeHash: proofCode ? hashPassword(proofCode) : '',
+        bindStatus: input.reservedUserId ? 'reserved' : 'unbound',
+        reservedUserId: input.reservedUserId,
+        boundUserId: '',
+        boundAt: '',
+        createdAt: now,
+        updatedAt: now
+      };
+      store.devices.push(device);
+    } else {
+      if (device.bindStatus === 'bound' && input.reservedUserId && device.boundUserId !== input.reservedUserId) {
+        throw new Error('DEVICE_ALREADY_BOUND');
+      }
+      ['mac', 'model', 'firmwareVersion', 'protocolVersion'].forEach((key) => {
+        if (input[key] !== undefined && input[key] !== '') device[key] = input[key];
+      });
+      if (proofCode) device.proofCodeHash = hashPassword(proofCode);
+      if (device.bindStatus !== 'bound') {
+        device.bindStatus = input.reservedUserId ? 'reserved' : 'unbound';
+        device.reservedUserId = input.reservedUserId;
+      }
+      device.updatedAt = now;
+    }
+    return {
+      created: created,
+      device: device
+    };
+  }
+
   function adminOnly(req, res) {
     return auth.requireAdmin(req, res, ['super_admin', 'operations_admin', 'customer_service_admin']);
   }
@@ -63,7 +128,7 @@ function createAdminModule(deps) {
       if (status && user.memberStatus !== status) return false;
       return true;
     }).map((user) => {
-      var boundDevice = store.devices.find((device) => device.boundUserId === user.id);
+      var boundDevice = store.devices.find((device) => device.boundUserId === user.id && device.bindStatus === 'bound');
       return {
         id: user.id,
         phone: maskPhone(user.phone),
@@ -72,8 +137,7 @@ function createAdminModule(deps) {
         status: user.status,
         memberStatus: user.memberStatus,
         memberEnd: user.memberEnd,
-        boundDevice: boundDevice ? boundDevice.serialNo : '',
-        templateAccess: boundDevice ? boundDevice.templateAccess || 'general' : 'general'
+        boundDevice: boundDevice ? boundDevice.serialNo : ''
       };
     });
     ok(res, paginate(users, ctx.query));
@@ -86,7 +150,7 @@ function createAdminModule(deps) {
       fail(res, 404, 'USER_NOT_FOUND', 'user not found');
       return;
     }
-    var boundDevice = store.devices.find((device) => device.boundUserId === user.id) || null;
+    var boundDevice = store.devices.find((device) => device.boundUserId === user.id && device.bindStatus === 'bound') || null;
     ok(res, {
       id: user.id,
       phone: maskPhone(user.phone),
@@ -99,8 +163,7 @@ function createAdminModule(deps) {
       disabledReason: user.disabledReason,
       lastLogin: user.lastLogin,
       registerSource: user.registerSource,
-      boundDevice: boundDevice,
-      templateAccess: boundDevice ? boundDevice.templateAccess || 'general' : 'general'
+      boundDevice: publicDevice(boundDevice)
     });
   }
 
@@ -140,6 +203,7 @@ function createAdminModule(deps) {
         disabledReason: '',
         lastLogin: '',
         registerSource: 'admin_created',
+        features: {},
         createdAt: now,
         updatedAt: now
       };
@@ -150,7 +214,7 @@ function createAdminModule(deps) {
       user.updatedAt = now;
     }
     if (body.serialNo) {
-      var nextTemplateAccess = body.templateAccess === 'professional' ? 'professional' : 'general';
+      var proofCode = String(body.proofCode || '').trim();
       var device = store.devices.find((item) => item.serialNo === body.serialNo);
       if (!device) {
         device = {
@@ -160,8 +224,9 @@ function createAdminModule(deps) {
           model: '',
           firmwareVersion: '',
           protocolVersion: '',
-          templateAccess: nextTemplateAccess,
+          proofCodeHash: proofCode ? hashPassword(proofCode) : '',
           bindStatus: 'reserved',
+          reservedUserId: user.id,
           boundUserId: '',
           boundAt: '',
           createdAt: now,
@@ -169,7 +234,11 @@ function createAdminModule(deps) {
         };
         store.devices.push(device);
       } else {
-        device.templateAccess = nextTemplateAccess;
+        if (proofCode) device.proofCodeHash = hashPassword(proofCode);
+        if (device.bindStatus !== 'bound') {
+          device.bindStatus = 'reserved';
+          device.reservedUserId = user.id;
+        }
         device.updatedAt = now;
       }
     }
@@ -179,7 +248,13 @@ function createAdminModule(deps) {
       module: 'paid_user',
       actionType: 'create_or_open',
       targetId: user.id,
-      afterJson: { phone: maskPhone(user.phone), openid: user.openid ? 'provided' : '', memberEnd: user.memberEnd }
+      afterJson: {
+        phone: maskPhone(user.phone),
+        openid: user.openid ? 'provided' : '',
+        memberEnd: user.memberEnd,
+        serialNo: body.serialNo || '',
+        hasProofCode: Boolean(body.proofCode)
+      }
     });
     ok(res, {
       id: user.id,
@@ -187,8 +262,7 @@ function createAdminModule(deps) {
       openidMasked: user.openid ? user.openid.slice(0, 8) + '...' : '',
       status: user.memberStatus,
       expiryDate: user.memberEnd,
-      serialNo: body.serialNo || '',
-      templateAccess: body.templateAccess === 'professional' ? 'professional' : 'general'
+      serialNo: body.serialNo || ''
     });
   }
 
@@ -209,13 +283,6 @@ function createAdminModule(deps) {
     if (body.status) user.memberStatus = body.status;
     if (body.expiryDate) user.memberEnd = body.expiryDate;
     if (body.disabledReason !== undefined) user.disabledReason = body.disabledReason;
-    if (body.templateAccess) {
-      var boundDevice = store.devices.find((device) => device.boundUserId === user.id);
-      if (boundDevice) {
-        boundDevice.templateAccess = body.templateAccess === 'professional' ? 'professional' : 'general';
-        boundDevice.updatedAt = nowIso();
-      }
-    }
     user.updatedAt = nowIso();
     writeAudit(store, {
       actor: actor,
@@ -230,13 +297,11 @@ function createAdminModule(deps) {
         memberEnd: user.memberEnd
       }
     });
-    var responseDevice = store.devices.find((device) => device.boundUserId === user.id);
     ok(res, {
       id: user.id,
       phone: maskPhone(user.phone),
       memberStatus: user.memberStatus,
-      memberEnd: user.memberEnd,
-      templateAccess: responseDevice ? responseDevice.templateAccess || 'general' : 'general'
+      memberEnd: user.memberEnd
     });
   }
 
@@ -248,11 +313,105 @@ function createAdminModule(deps) {
       return String(device.serialNo || '').indexOf(keyword) !== -1 || String(device.mac || '').indexOf(keyword) !== -1;
     }).map((device) => {
       var user = store.users.find((item) => item.id === device.boundUserId);
-      return Object.assign({}, device, {
+      return Object.assign(publicDevice(device), {
         boundUserPhone: user ? maskPhone(user.phone) : ''
       });
     });
     ok(res, paginate(devices, ctx.query));
+  }
+
+  async function createDevice(req, res) {
+    var actor = adminOnly(req, res);
+    if (!actor) return;
+    var body = await parseBody(req);
+    var input = normalizeDevicePayload(body);
+    var errors = validateDevicePayload(input);
+    if (errors.length) {
+      fail(res, 400, 'DEVICE_INVALID', errors.join('; '));
+      return;
+    }
+    var now = nowIso();
+    var result;
+    try {
+      result = upsertDevice(input, now);
+    } catch (error) {
+      if (error.message === 'DEVICE_ALREADY_BOUND') {
+        fail(res, 409, 'DEVICE_ALREADY_BOUND', 'device already bound');
+        return;
+      }
+      throw error;
+    }
+    writeAudit(store, {
+      actor: actor,
+      ip: getIp(req),
+      module: 'device',
+      actionType: 'create_or_update',
+      targetId: result.device.id,
+      afterJson: {
+        serialNo: input.serialNo,
+        bindStatus: result.device.bindStatus,
+        reservedUserId: input.reservedUserId ? 'provided' : '',
+        hasProofCode: Boolean(input.proofCode || result.device.proofCodeHash)
+      }
+    });
+    ok(res, publicDevice(result.device));
+  }
+
+  async function importDevices(req, res) {
+    var actor = adminOnly(req, res);
+    if (!actor) return;
+    var body = await parseBody(req);
+    var rawRows = Array.isArray(body.devices) ? body.devices : parseCsvText(body.devicesText || body.csv || '');
+    if (!rawRows.length) {
+      fail(res, 400, 'DEVICES_REQUIRED', 'devices or devicesText required');
+      return;
+    }
+    if (rawRows.length > 500) {
+      fail(res, 413, 'TOO_MANY_DEVICES', 'at most 500 devices per import');
+      return;
+    }
+    var now = nowIso();
+    var imported = [];
+    var errors = [];
+    rawRows.forEach((row, index) => {
+      var input = normalizeDevicePayload(row);
+      var rowNumber = row.rowNumber || index + 1;
+      var validation = validateDevicePayload(input);
+      if (validation.length) {
+        errors.push({ rowNumber: rowNumber, serialNo: input.serialNo, error: validation.join('; ') });
+        return;
+      }
+      try {
+        var result = upsertDevice(input, now);
+        imported.push({
+          rowNumber: rowNumber,
+          id: result.device.id,
+          serialNo: result.device.serialNo,
+          created: result.created,
+          bindStatus: result.device.bindStatus,
+          hasProofCode: Boolean(result.device.proofCodeHash)
+        });
+      } catch (error) {
+        errors.push({ rowNumber: rowNumber, serialNo: input.serialNo, error: error.message });
+      }
+    });
+    writeAudit(store, {
+      actor: actor,
+      ip: getIp(req),
+      module: 'device',
+      actionType: 'import',
+      targetId: '',
+      afterJson: {
+        importedCount: imported.length,
+        errorCount: errors.length
+      }
+    });
+    ok(res, {
+      importedCount: imported.length,
+      errorCount: errors.length,
+      imported: imported,
+      errors: errors
+    });
   }
 
   function dashboard(req, res) {
@@ -300,7 +459,7 @@ function createAdminModule(deps) {
       afterJson: { bindStatus: device.bindStatus },
       detail: String(body.reason || '')
     });
-    ok(res, device);
+    ok(res, publicDevice(device));
   }
 
   function listOrders(req, res, ctx) {
@@ -396,8 +555,9 @@ function createAdminModule(deps) {
     var actor = adminOnly(req, res);
     if (!actor) return;
     var body = await parseBody(req);
-    var rawText = String(body.codesText || body.codes || '');
-    var codes = rawText.split(/\s+/).map((item) => item.trim()).filter(Boolean);
+    var rawInput = body.codesText || body.codes || '';
+    var rawText = Array.isArray(rawInput) ? rawInput.join('\n') : String(rawInput);
+    var codes = rawText.split(/[\s,]+/).map((item) => item.trim()).filter(Boolean);
     if (!codes.length) {
       fail(res, 400, 'ACTIVATION_CODES_REQUIRED', 'activation codes required');
       return;
@@ -489,6 +649,10 @@ function createAdminModule(deps) {
       creatorId: actor.id,
       promptContent: String(body.promptContent || ''),
       variableDefs: normalizeTemplateVariables(body.variableDefs),
+      outputStructure: Array.isArray(body.outputStructure) ? body.outputStructure : [],
+      qualityRules: Array.isArray(body.qualityRules) ? body.qualityRules : [],
+      missingInfoRules: Array.isArray(body.missingInfoRules) ? body.missingInfoRules : [],
+      forbiddenRules: Array.isArray(body.forbiddenRules) ? body.forbiddenRules : [],
       status: 'draft',
       useCount: 0,
       createdAt: now,
@@ -525,6 +689,10 @@ function createAdminModule(deps) {
     });
     if (item.audience !== 'professional') item.audience = 'general';
     if (body.variableDefs !== undefined) item.variableDefs = normalizeTemplateVariables(body.variableDefs);
+    if (Array.isArray(body.outputStructure)) item.outputStructure = body.outputStructure;
+    if (Array.isArray(body.qualityRules)) item.qualityRules = body.qualityRules;
+    if (Array.isArray(body.missingInfoRules)) item.missingInfoRules = body.missingInfoRules;
+    if (Array.isArray(body.forbiddenRules)) item.forbiddenRules = body.forbiddenRules;
     item.updatedAt = nowIso();
     writeAudit(store, {
       actor: actor,
@@ -534,6 +702,82 @@ function createAdminModule(deps) {
       targetId: item.id,
       beforeJson: before,
       afterJson: item
+    });
+    ok(res, item);
+  }
+
+  function listQuickActions(req, res) {
+    if (!adminOnly(req, res)) return;
+    ok(res, paginate(store.quickActions, {}));
+  }
+
+  async function createQuickAction(req, res) {
+    var actor = adminOnly(req, res);
+    if (!actor) return;
+    var body = await parseBody(req);
+    if (!body.actionCode || !body.title) {
+      fail(res, 400, 'QUICKACTION_INVALID', 'actionCode and title required');
+      return;
+    }
+    if (store.quickActions.some((qa) => qa.actionCode === String(body.actionCode))) {
+      fail(res, 409, 'QUICKACTION_CODE_EXISTS', 'actionCode already exists');
+      return;
+    }
+    var now = nowIso();
+    var item = {
+      id: createId('qa'),
+      actionCode: String(body.actionCode),
+      title: String(body.title),
+      description: String(body.description || ''),
+      category: String(body.category || ''),
+      audience: body.audience === 'professional' ? 'professional' : 'general',
+      placeholder: String(body.placeholder || ''),
+      promptContent: String(body.promptContent || ''),
+      outputStructure: Array.isArray(body.outputStructure) ? body.outputStructure : [],
+      qualityRules: Array.isArray(body.qualityRules) ? body.qualityRules : [],
+      missingInfoRules: Array.isArray(body.missingInfoRules) ? body.missingInfoRules : [],
+      forbiddenRules: Array.isArray(body.forbiddenRules) ? body.forbiddenRules : [],
+      sortOrder: Number(body.sortOrder || 0),
+      status: 'published',
+      createdAt: now,
+      updatedAt: now
+    };
+    store.quickActions.push(item);
+    writeAudit(store, {
+      actor: actor,
+      ip: getIp(req),
+      module: 'quickAction',
+      actionType: 'create',
+      targetId: item.id
+    });
+    ok(res, item);
+  }
+
+  async function updateQuickAction(req, res, ctx) {
+    var actor = adminOnly(req, res);
+    if (!actor) return;
+    var body = await parseBody(req);
+    var item = store.quickActions.find((qa) => qa.id === ctx.params.id);
+    if (!item) {
+      fail(res, 404, 'QUICKACTION_NOT_FOUND', 'quick action not found');
+      return;
+    }
+    ['title', 'description', 'category', 'audience', 'placeholder', 'promptContent', 'status'].forEach((key) => {
+      if (body[key] !== undefined) item[key] = body[key];
+    });
+    if (item.audience !== 'professional') item.audience = 'general';
+    if (body.sortOrder !== undefined) item.sortOrder = Number(body.sortOrder);
+    if (Array.isArray(body.outputStructure)) item.outputStructure = body.outputStructure;
+    if (Array.isArray(body.qualityRules)) item.qualityRules = body.qualityRules;
+    if (Array.isArray(body.missingInfoRules)) item.missingInfoRules = body.missingInfoRules;
+    if (Array.isArray(body.forbiddenRules)) item.forbiddenRules = body.forbiddenRules;
+    item.updatedAt = nowIso();
+    writeAudit(store, {
+      actor: actor,
+      ip: getIp(req),
+      module: 'quickAction',
+      actionType: 'update',
+      targetId: item.id
     });
     ok(res, item);
   }
@@ -706,15 +950,41 @@ function createAdminModule(deps) {
     });
   }
 
+  function exportDeviceImportTemplate(req, res) {
+    if (!adminOnly(req, res)) return;
+    sendText(res, 200, toCsv([
+      { key: 'serialNo', label: 'serialNo' },
+      { key: 'proofCode', label: 'proofCode' },
+      { key: 'reservedUserId', label: 'reservedUserId' },
+      { key: 'model', label: 'model' },
+      { key: 'firmwareVersion', label: 'firmwareVersion' },
+      { key: 'protocolVersion', label: 'protocolVersion' }
+    ], [{
+      serialNo: 'TXT-HID-001',
+      proofCode: '2468',
+      reservedUserId: '',
+      model: 'TXT-HID',
+      firmwareVersion: '1.0',
+      protocolVersion: 'locked'
+    }]), {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="device-import-template.csv"'
+    });
+  }
+
   return {
+    createDevice,
     createPaidUser,
     createAdminUser,
+    createQuickAction,
     createTemplate,
     cancelOrder,
     dashboard,
     exportAuditLogs,
+    exportDeviceImportTemplate,
     exportUsers,
     forceUnbindDevice,
+    importDevices,
     importActivationCodes,
     listActivationCodes,
     listAdminUsers,
@@ -723,6 +993,7 @@ function createAdminModule(deps) {
     listFeedbacks,
     listOrders,
     listPaidUsers,
+    listQuickActions,
     listServiceRecords,
     listTemplates,
     listTokenUsage,
@@ -733,6 +1004,7 @@ function createAdminModule(deps) {
     updateAdminUser,
     updateFeedback,
     updatePaidUser,
+    updateQuickAction,
     updateTemplate
   };
 }
