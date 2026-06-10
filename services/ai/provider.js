@@ -1,6 +1,5 @@
 const { request, getBaseUrl } = require('../api/client');
 const { ENDPOINTS } = require('../api/endpoints');
-const { isBluetoothConnected } = require('../entitlements/features');
 
 function summarizeRedactionHits(redactionHits) {
   const hits = redactionHits || [];
@@ -35,16 +34,8 @@ function callBackendAi(payload) {
     url: ENDPOINTS.ai.assistant,
     method: 'POST',
     data: {
-      taskType: payload.type,
       redactedText: payload.safeText || '',
-      actionId: payload.actionId || '',
-      deviceConnected: isBluetoothConnected(),
-      promptId: payload.prompt && payload.prompt.id ? payload.prompt.id : '',
-      promptTitle: payload.prompt && payload.prompt.title ? payload.prompt.title : '',
-      inputSummary: {
-        textLength: (payload.safeText || '').length,
-        redactionHits: payload.redactionHits || []
-      }
+      actionId: payload.actionId || ''
     }
   }).then((data) => {
     const sections = splitAiSections(data.resultText || data.rawText || data.bodyText || '');
@@ -84,16 +75,22 @@ function callDevAi(payload) {
   });
 }
 
+function withBackendOrLocal(backendFn, localFn) {
+  return getBaseUrl() ? backendFn() : localFn();
+}
+
 function callAi(payload) {
-  if (getBaseUrl()) {
-    return callBackendAi(payload || {});
-  }
-  return callDevAi(payload || {});
+  var p = payload || {};
+  return withBackendOrLocal(
+    function () { return callBackendAi(p); },
+    function () { return callDevAi(p); }
+  );
 }
 
 module.exports = {
-  callAi,
-  callBackendAi,
-  callDevAi,
-  splitAiSections
+  callAi: callAi,
+  callBackendAi: callBackendAi,
+  callDevAi: callDevAi,
+  withBackendOrLocal: withBackendOrLocal,
+  splitAiSections: splitAiSections
 };

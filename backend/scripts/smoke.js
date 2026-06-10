@@ -59,7 +59,7 @@ async function run() {
       Authorization: 'Bearer ' + userLogin.token
     }
   });
-  assert(Array.isArray(userTemplates), 'user template list missing');
+  assert(Array.isArray(userTemplates.templates), 'user template list missing');
 
   await request('/api/admin/activation-codes/import', {
     method: 'POST',
@@ -137,7 +137,7 @@ async function run() {
       Authorization: 'Bearer ' + activatedUser.token
     }
   });
-  assert(professionalTemplates.some((item) => item.templateCode === 'pro_smoke_summary'), 'professional template missing');
+  assert(professionalTemplates.templates.some((item) => item.templateCode === 'pro_smoke_summary'), 'professional template missing');
 
   const generated = await request('/api/ai/templates/' + createdTemplate.id + '/generate', {
     method: 'POST',

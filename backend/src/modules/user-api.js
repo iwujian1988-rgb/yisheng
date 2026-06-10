@@ -17,15 +17,23 @@ function createUserApiModule(deps) {
       algorithm === 'dev-local-base64-placeholder';
   }
 
-  function canAccessTemplate(template, hasDevice) {
+  function canAccessTemplate(template, hasDevice, isMember) {
     if (!template || template.status !== 'published') return false;
-    if (template.audience === 'professional' && !hasDevice) return false;
+    if (template.audience === 'professional') {
+      return isMember && hasDevice;
+    }
     return true;
   }
 
   function isMemberActive(userId) {
     var user = store.users.find((item) => item.id === userId);
     return Boolean(user && user.memberStatus === 'active');
+  }
+
+  function hasBoundDevice(userId) {
+    return store.devices.some(
+      function (d) { return d.boundUserId === userId && d.bindStatus === 'bound'; }
+    );
   }
 
   function publicQuickAction(item) {
@@ -333,6 +341,44 @@ function createUserApiModule(deps) {
     ok(res, publicDevice(device));
   }
 
+  async function autoBindDevice(req, res) {
+    var actor = auth.requireUser(req, res);
+    if (!actor) return;
+    var user = store.users.find((item) => item.id === actor.id);
+    if (!user || user.memberStatus !== 'active') {
+      fail(res, 403, 'ENTITLEMENT_REQUIRED', 'active service required');
+      return;
+    }
+    var existing = store.devices.find(
+      (item) => item.boundUserId === actor.id && item.bindStatus === 'bound'
+    );
+    if (existing) {
+      ok(res, publicDevice(existing));
+      return;
+    }
+    var body = await parseBody(req);
+    var bleName = String(body.bleDeviceName || '').trim();
+    var bleId = String(body.bleDeviceId || '').trim();
+    var now = nowIso();
+    var device = {
+      id: createId('device'),
+      mac: bleId,
+      serialNo: bleName || 'BLE-AUTO',
+      model: 'TXT-HID',
+      firmwareVersion: '',
+      protocolVersion: '',
+      proofCodeHash: '',
+      bindStatus: 'bound',
+      reservedUserId: '',
+      boundUserId: actor.id,
+      boundAt: now,
+      createdAt: now,
+      updatedAt: now
+    };
+    store.devices.push(device);
+    ok(res, publicDevice(device));
+  }
+
   async function unbindDevice(req, res) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
@@ -547,13 +593,10 @@ function createUserApiModule(deps) {
   function listTemplates(req, res, ctx) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
-    if (!isMemberActive(actor.id)) {
-      fail(res, 403, 'MEMBER_REQUIRED', 'templates require active membership');
-      return;
-    }
-    var hasDevice = ctx && ctx.query && ctx.query.deviceConnected === 'true';
+    var isMember = isMemberActive(actor.id);
+    var hasDevice = hasBoundDevice(actor.id);
     var accessible = store.templates
-      .filter((item) => canAccessTemplate(item, hasDevice));
+      .filter((item) => canAccessTemplate(item, hasDevice, isMember));
     var categories = [];
     accessible.forEach((item) => {
       if (item.category && categories.indexOf(item.category) === -1) {
@@ -569,7 +612,7 @@ function createUserApiModule(deps) {
   function listQuickActions(req, res, ctx) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
-    var hasDevice = ctx && ctx.query && ctx.query.deviceConnected === 'true';
+    var hasDevice = hasBoundDevice(actor.id);
     var accessible = (store.quickActions || [])
       .filter((item) => canAccessQuickAction(item, hasDevice))
       .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
@@ -591,13 +634,10 @@ function createUserApiModule(deps) {
   function templateDetail(req, res, ctx) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
-    if (!isMemberActive(actor.id)) {
-      fail(res, 403, 'MEMBER_REQUIRED', 'templates require active membership');
-      return;
-    }
-    var hasDevice = ctx && ctx.query && ctx.query.deviceConnected === 'true';
+    var isMember = isMemberActive(actor.id);
+    var hasDevice = hasBoundDevice(actor.id);
     var item = findTemplate(ctx.params.id);
-    if (!canAccessTemplate(item, hasDevice)) {
+    if (!canAccessTemplate(item, hasDevice, isMember)) {
       fail(res, 404, 'TEMPLATE_NOT_FOUND', 'template not found');
       return;
     }
@@ -607,17 +647,18 @@ function createUserApiModule(deps) {
   async function generateTemplate(req, res, ctx) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
-    if (!isMemberActive(actor.id)) {
-      fail(res, 403, 'MEMBER_REQUIRED', 'templates require active membership');
+    var isMember = isMemberActive(actor.id);
+    if (!isMember) {
+      fail(res, 403, 'MEMBER_REQUIRED', 'template generation requires active membership');
       return;
     }
-    var body = await parseBody(req);
-    var hasDevice = body.deviceConnected === true || body.deviceConnected === 'true';
+    var hasDevice = hasBoundDevice(actor.id);
     var item = findTemplate(ctx.params.id);
-    if (!canAccessTemplate(item, hasDevice)) {
+    if (!canAccessTemplate(item, hasDevice, isMember)) {
       fail(res, 404, 'TEMPLATE_NOT_FOUND', 'template not found');
       return;
     }
+    var body = await parseBody(req);
     var values = normalizeFieldValues(body.values || body.fields || {});
     var missing = (item.variableDefs || []).filter((field) => {
       return field.required && !String(values[field.key] || '').trim();
@@ -675,6 +716,7 @@ function createUserApiModule(deps) {
 
   return {
     activatePurchase,
+    autoBindDevice,
     bindDevice,
     firmware,
     generateTemplate,

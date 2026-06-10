@@ -113,8 +113,23 @@ function createAdminModule(deps) {
     return auth.requireAdmin(req, res, ['super_admin']);
   }
 
+  function withGuard(fn) {
+    return function (req, res, ctx) {
+      var actor = adminOnly(req, res);
+      if (!actor) return;
+      return fn(req, res, Object.assign({}, ctx, { actor: actor }));
+    };
+  }
+
+  function withSuperGuard(fn) {
+    return function (req, res, ctx) {
+      var actor = superAdminOnly(req, res);
+      if (!actor) return;
+      return fn(req, res, Object.assign({}, ctx, { actor: actor }));
+    };
+  }
+
   function listPaidUsers(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
     var keyword = String(ctx.query.keyword || '').trim();
     var status = String(ctx.query.status || '').trim();
     var users = store.users.filter((user) => {
@@ -144,7 +159,6 @@ function createAdminModule(deps) {
   }
 
   function paidUserDetail(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
     var user = store.users.find((item) => item.id === ctx.params.id);
     if (!user) {
       fail(res, 404, 'USER_NOT_FOUND', 'user not found');
@@ -167,9 +181,8 @@ function createAdminModule(deps) {
     });
   }
 
-  async function createPaidUser(req, res) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+  async function createPaidUser(req, res, ctx) {
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var phone = String(body.phone || '').trim();
     var openid = String(body.openid || '').trim();
@@ -267,8 +280,7 @@ function createAdminModule(deps) {
   }
 
   async function updatePaidUser(req, res, ctx) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var user = store.users.find((item) => item.id === ctx.params.id);
     if (!user) {
@@ -306,8 +318,7 @@ function createAdminModule(deps) {
   }
 
   function listDevices(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
-    var keyword = String(ctx.query.keyword || '').trim();
+ var keyword = String(ctx.query.keyword || '').trim();
     var devices = store.devices.filter((device) => {
       if (!keyword) return true;
       return String(device.serialNo || '').indexOf(keyword) !== -1 || String(device.mac || '').indexOf(keyword) !== -1;
@@ -320,9 +331,8 @@ function createAdminModule(deps) {
     ok(res, paginate(devices, ctx.query));
   }
 
-  async function createDevice(req, res) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+  async function createDevice(req, res, ctx) {
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var input = normalizeDevicePayload(body);
     var errors = validateDevicePayload(input);
@@ -357,9 +367,8 @@ function createAdminModule(deps) {
     ok(res, publicDevice(result.device));
   }
 
-  async function importDevices(req, res) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+  async function importDevices(req, res, ctx) {
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var rawRows = Array.isArray(body.devices) ? body.devices : parseCsvText(body.devicesText || body.csv || '');
     if (!rawRows.length) {
@@ -415,8 +424,7 @@ function createAdminModule(deps) {
   }
 
   function dashboard(req, res) {
-    if (!adminOnly(req, res)) return;
-    var activeUsers = store.users.filter((item) => item.memberStatus === 'active').length;
+ var activeUsers = store.users.filter((item) => item.memberStatus === 'active').length;
     var boundDevices = store.devices.filter((item) => item.bindStatus === 'bound').length;
     var pendingFeedbacks = store.feedbacks.filter((item) => item.status === 'pending').length;
     var unusedCodes = store.activationCodes.filter((item) => item.status === 'unused').length;
@@ -433,8 +441,7 @@ function createAdminModule(deps) {
   }
 
   async function forceUnbindDevice(req, res, ctx) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+    var actor = ctx.actor;
     var device = store.devices.find((item) => item.id === ctx.params.id);
     if (!device) {
       fail(res, 404, 'DEVICE_NOT_FOUND', 'device not found');
@@ -463,8 +470,7 @@ function createAdminModule(deps) {
   }
 
   function listOrders(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
-    var orders = store.orders.map((order) => {
+ var orders = store.orders.map((order) => {
       var user = store.users.find((item) => item.id === order.userId);
       return Object.assign({}, order, {
         userPhone: user ? maskPhone(user.phone) : ''
@@ -474,8 +480,7 @@ function createAdminModule(deps) {
   }
 
   function orderDetail(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
-    var order = store.orders.find((item) => item.id === ctx.params.id || item.orderNo === ctx.params.id);
+ var order = store.orders.find((item) => item.id === ctx.params.id || item.orderNo === ctx.params.id);
     if (!order) {
       fail(res, 404, 'ORDER_NOT_FOUND', 'order not found');
       return;
@@ -487,8 +492,7 @@ function createAdminModule(deps) {
   }
 
   async function changeOrderStatus(req, res, ctx, nextStatus, actionType) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var order = store.orders.find((item) => item.id === ctx.params.id || item.orderNo === ctx.params.id);
     if (!order) {
@@ -521,8 +525,7 @@ function createAdminModule(deps) {
   }
 
   function listServiceRecords(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
-    var records = store.users.map((user) => ({
+ var records = store.users.map((user) => ({
       id: 'svc_' + user.id,
       userId: user.id,
       phone: maskPhone(user.phone),
@@ -535,8 +538,7 @@ function createAdminModule(deps) {
   }
 
   function listActivationCodes(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
-    var status = String(ctx.query.status || '').trim();
+ var status = String(ctx.query.status || '').trim();
     var items = store.activationCodes.filter((item) => {
       return !status || item.status === status;
     }).map((item) => ({
@@ -551,9 +553,8 @@ function createAdminModule(deps) {
     ok(res, paginate(items, ctx.query));
   }
 
-  async function importActivationCodes(req, res) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+  async function importActivationCodes(req, res, ctx) {
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var rawInput = body.codesText || body.codes || '';
     var rawText = Array.isArray(rawInput) ? rawInput.join('\n') : String(rawInput);
@@ -597,8 +598,7 @@ function createAdminModule(deps) {
   }
 
   function listTokenUsage(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
-    var items = store.tokenUsageRecords.map((record) => {
+ var items = store.tokenUsageRecords.map((record) => {
       var user = store.users.find((item) => item.id === record.userId);
       return Object.assign({}, record, {
         userPhone: user ? maskPhone(user.phone) : ''
@@ -608,13 +608,11 @@ function createAdminModule(deps) {
   }
 
   function listTemplates(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
-    ok(res, paginate(store.templates, ctx.query));
+ ok(res, paginate(store.templates, ctx.query));
   }
 
   function templateDetail(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
-    var item = store.templates.find((template) => template.id === ctx.params.id || template.templateCode === ctx.params.id);
+ var item = store.templates.find((template) => template.id === ctx.params.id || template.templateCode === ctx.params.id);
     if (!item) {
       fail(res, 404, 'TEMPLATE_NOT_FOUND', 'template not found');
       return;
@@ -622,9 +620,8 @@ function createAdminModule(deps) {
     ok(res, item);
   }
 
-  async function createTemplate(req, res) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+  async function createTemplate(req, res, ctx) {
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var errors = validateTemplatePayload(body, false);
     if (errors.length) {
@@ -670,8 +667,7 @@ function createAdminModule(deps) {
   }
 
   async function updateTemplate(req, res, ctx) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var item = store.templates.find((template) => template.id === ctx.params.id || template.templateCode === ctx.params.id);
     if (!item) {
@@ -707,13 +703,11 @@ function createAdminModule(deps) {
   }
 
   function listQuickActions(req, res) {
-    if (!adminOnly(req, res)) return;
-    ok(res, paginate(store.quickActions, {}));
+ ok(res, paginate(store.quickActions, {}));
   }
 
-  async function createQuickAction(req, res) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+  async function createQuickAction(req, res, ctx) {
+    var actor = ctx.actor;
     var body = await parseBody(req);
     if (!body.actionCode || !body.title) {
       fail(res, 400, 'QUICKACTION_INVALID', 'actionCode and title required');
@@ -754,8 +748,7 @@ function createAdminModule(deps) {
   }
 
   async function updateQuickAction(req, res, ctx) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var item = store.quickActions.find((qa) => qa.id === ctx.params.id);
     if (!item) {
@@ -783,13 +776,11 @@ function createAdminModule(deps) {
   }
 
   function listFeedbacks(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
-    ok(res, paginate(store.feedbacks, ctx.query));
+ ok(res, paginate(store.feedbacks, ctx.query));
   }
 
   async function updateFeedback(req, res, ctx) {
-    var actor = adminOnly(req, res);
-    if (!actor) return;
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var item = store.feedbacks.find((feedback) => feedback.id === ctx.params.id);
     if (!item) {
@@ -813,7 +804,6 @@ function createAdminModule(deps) {
   }
 
   function listAdminUsers(req, res, ctx) {
-    if (!superAdminOnly(req, res)) return;
     ok(res, paginate(store.adminUsers.map((item) => ({
       id: item.id,
       account: item.account,
@@ -826,9 +816,8 @@ function createAdminModule(deps) {
     })), ctx.query));
   }
 
-  async function createAdminUser(req, res) {
-    var actor = superAdminOnly(req, res);
-    if (!actor) return;
+  async function createAdminUser(req, res, ctx) {
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var account = String(body.account || '').trim();
     if (!account || !body.password) {
@@ -868,8 +857,7 @@ function createAdminModule(deps) {
   }
 
   async function updateAdminUser(req, res, ctx) {
-    var actor = superAdminOnly(req, res);
-    if (!actor) return;
+    var actor = ctx.actor;
     var body = await parseBody(req);
     var item = store.adminUsers.find((adminUser) => adminUser.id === ctx.params.id);
     if (!item) {
@@ -902,13 +890,11 @@ function createAdminModule(deps) {
   }
 
   function listAuditLogs(req, res, ctx) {
-    if (!adminOnly(req, res)) return;
-    ok(res, paginate(store.auditLogs, ctx.query));
+ ok(res, paginate(store.auditLogs, ctx.query));
   }
 
   function exportUsers(req, res) {
-    if (!adminOnly(req, res)) return;
-    var rows = store.users.slice(0, 10000).map((user) => ({
+ var rows = store.users.slice(0, 10000).map((user) => ({
       id: user.id,
       phone: maskPhone(user.phone),
       nickname: user.nickname || '',
@@ -934,8 +920,7 @@ function createAdminModule(deps) {
   }
 
   function exportAuditLogs(req, res) {
-    if (!adminOnly(req, res)) return;
-    var rows = store.auditLogs.slice(0, 10000);
+ var rows = store.auditLogs.slice(0, 10000);
     sendText(res, 200, toCsv([
       { key: 'operatorAccount', label: '操作人' },
       { key: 'ip', label: 'IP' },
@@ -951,8 +936,7 @@ function createAdminModule(deps) {
   }
 
   function exportDeviceImportTemplate(req, res) {
-    if (!adminOnly(req, res)) return;
-    sendText(res, 200, toCsv([
+ sendText(res, 200, toCsv([
       { key: 'serialNo', label: 'serialNo' },
       { key: 'proofCode', label: 'proofCode' },
       { key: 'reservedUserId', label: 'reservedUserId' },
@@ -973,39 +957,39 @@ function createAdminModule(deps) {
   }
 
   return {
-    createDevice,
-    createPaidUser,
-    createAdminUser,
-    createQuickAction,
-    createTemplate,
-    cancelOrder,
-    dashboard,
-    exportAuditLogs,
-    exportDeviceImportTemplate,
-    exportUsers,
-    forceUnbindDevice,
-    importDevices,
-    importActivationCodes,
-    listActivationCodes,
-    listAdminUsers,
-    listAuditLogs,
-    listDevices,
-    listFeedbacks,
-    listOrders,
-    listPaidUsers,
-    listQuickActions,
-    listServiceRecords,
-    listTemplates,
-    listTokenUsage,
-    orderDetail,
-    paidUserDetail,
-    refundOrder,
-    templateDetail,
-    updateAdminUser,
-    updateFeedback,
-    updatePaidUser,
-    updateQuickAction,
-    updateTemplate
+    createDevice: withGuard(createDevice),
+    createPaidUser: withGuard(createPaidUser),
+    createAdminUser: withSuperGuard(createAdminUser),
+    createQuickAction: withGuard(createQuickAction),
+    createTemplate: withGuard(createTemplate),
+    cancelOrder: withGuard(cancelOrder),
+    dashboard: withGuard(dashboard),
+    exportAuditLogs: withGuard(exportAuditLogs),
+    exportDeviceImportTemplate: withGuard(exportDeviceImportTemplate),
+    exportUsers: withGuard(exportUsers),
+    forceUnbindDevice: withGuard(forceUnbindDevice),
+    importDevices: withGuard(importDevices),
+    importActivationCodes: withGuard(importActivationCodes),
+    listActivationCodes: withGuard(listActivationCodes),
+    listAdminUsers: withSuperGuard(listAdminUsers),
+    listAuditLogs: withGuard(listAuditLogs),
+    listDevices: withGuard(listDevices),
+    listFeedbacks: withGuard(listFeedbacks),
+    listOrders: withGuard(listOrders),
+    listPaidUsers: withGuard(listPaidUsers),
+    listQuickActions: withGuard(listQuickActions),
+    listServiceRecords: withGuard(listServiceRecords),
+    listTemplates: withGuard(listTemplates),
+    listTokenUsage: withGuard(listTokenUsage),
+    orderDetail: withGuard(orderDetail),
+    paidUserDetail: withGuard(paidUserDetail),
+    refundOrder: withGuard(refundOrder),
+    templateDetail: withGuard(templateDetail),
+    updateAdminUser: withSuperGuard(updateAdminUser),
+    updateFeedback: withGuard(updateFeedback),
+    updatePaidUser: withGuard(updatePaidUser),
+    updateQuickAction: withGuard(updateQuickAction),
+    updateTemplate: withGuard(updateTemplate)
   };
 }
 
