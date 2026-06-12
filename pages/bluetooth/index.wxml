@@ -1,0 +1,42 @@
+<view class="container">
+  <view class="status-card {{status === 'error' ? 'error' : ''}}">
+    <view class="status-indicator">
+      <view class="status-ring {{status}}">
+        <view class="status-dot"></view>
+      </view>
+    </view>
+    <text class="status-text">{{statusText}}</text>
+  </view>
+
+  <view class="device-list" wx:if="{{devices.length > 0}}">
+    <text class="list-title">发现设备</text>
+    <view
+      class="device-item"
+      wx:for="{{devices}}"
+      wx:key="deviceId"
+      bindtap="connectDevice"
+      data-id="{{item.deviceId}}"
+      data-name="{{item.name}}"
+    >
+      <view class="device-info">
+        <text class="device-name">{{item.name}}</text>
+        <text class="device-id">{{item.deviceId}}</text>
+      </view>
+      <text class="device-rssi">信号 {{item.RSSI}}</text>
+    </view>
+  </view>
+
+  <view class="action-area">
+    <button
+      class="scan-btn {{status === 'scanning' || status === 'connecting' || status === 'binding' ? 'disabled' : ''}}"
+      bindtap="{{status === 'idle' || status === 'empty' || status === 'error' ? 'startScan' : (status === 'connected' ? '' : 'retry')}}"
+      disabled="{{status === 'scanning' || status === 'connecting' || status === 'binding' || status === 'connected'}}"
+    >
+      <text wx:if="{{status === 'scanning'}}">扫描中...</text>
+      <text wx:elif="{{status === 'connecting'}}">连接中...</text>
+      <text wx:elif="{{status === 'binding'}}">绑定中...</text>
+      <text wx:elif="{{status === 'connected'}}">已连接</text>
+      <text wx:else>{{status === 'error' ? '重新扫描' : '开始扫描'}}</text>
+    </button>
+  </view>
+</view>

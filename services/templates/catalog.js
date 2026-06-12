@@ -1,23 +1,24 @@
 const { request, getBaseUrl } = require('../api/client');
 const { ENDPOINTS, fillPath } = require('../api/endpoints');
-const { isBluetoothConnected } = require('../entitlements/features');
 
-function listTemplates() {
+function listTemplates(connected) {
   if (!getBaseUrl()) {
     return Promise.resolve({ templates: [], categories: [] });
   }
+  var url = ENDPOINTS.ai.templates;
   return request({
-    url: ENDPOINTS.ai.templates,
-    method: 'GET',
-    data: { deviceConnected: isBluetoothConnected() }
+    url: url,
+    method: 'GET'
   }).then((data) => {
     if (data && Array.isArray(data.templates)) {
       return data;
     }
     if (Array.isArray(data)) {
       var cats = [];
-      data.forEach(function (t) {
-        if (t.category && cats.indexOf(t.category) === -1) cats.push(t.category);
+      data.forEach(function (template) {
+        if (template.category && cats.indexOf(template.category) === -1) {
+          cats.push(template.category);
+        }
       });
       return { templates: data, categories: cats };
     }
@@ -33,7 +34,7 @@ function listLocalTemplates() {
 
 function valuesFromFields(fields) {
   var values = {};
-  (fields || []).forEach((field) => {
+  (fields || []).forEach(function (field) {
     values[field.key] = String(field.value || '').trim();
   });
   return values;
@@ -48,14 +49,15 @@ function generateTemplate(template, fields) {
     });
   }
 
+  var url = fillPath(ENDPOINTS.ai.templateGenerate, {
+    id: currentTemplate.id || currentTemplate.templateCode
+  });
+
   return request({
-    url: fillPath(ENDPOINTS.ai.templateGenerate, {
-      id: currentTemplate.id || currentTemplate.templateCode
-    }),
+    url: url,
     method: 'POST',
     data: {
-      values: valuesFromFields(fields),
-      deviceConnected: isBluetoothConnected()
+      values: valuesFromFields(fields)
     }
   });
 }

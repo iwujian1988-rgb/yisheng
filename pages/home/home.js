@@ -59,6 +59,7 @@ Page({
   },
 
   goTemplates() {
+    if (!featureEntitlements.guardAiFeature('templates', '场景模板')) return;
     wx.navigateTo({ url: '/pages/templates/index' });
   },
 

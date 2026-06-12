@@ -103,16 +103,19 @@ function getBugReports() {
 }
 
 function submitBugReport(payload) {
-  const report = {
+  var steps = String(payload.steps || '');
+  var expected = String(payload.expected || '');
+  var actual = String(payload.actual || '');
+  var report = {
     id: 'bug_' + Date.now(),
     type: payload.type || '',
-    stepsLength: (payload.steps || '').length,
-    hasExpected: Boolean(payload.expected),
-    hasActual: Boolean(payload.actual),
+    reproduceSteps: steps,
+    expectedResult: expected,
+    actualResult: actual,
     createdAt: Date.now()
   };
 
-  if (!report.type || !report.stepsLength) {
+  if (!report.type || !steps) {
     return Promise.reject({
       code: 'BUG_REPORT_REQUIRED',
       message: '请选择问题类型并填写复现步骤'
@@ -127,9 +130,17 @@ function submitBugReport(payload) {
     });
   }
 
-  const reports = [report].concat(getBugReports());
+  var localReport = {
+    id: report.id,
+    type: report.type,
+    stepsLength: steps.length,
+    hasExpected: Boolean(expected),
+    hasActual: Boolean(actual),
+    createdAt: report.createdAt
+  };
+  var reports = [localReport].concat(getBugReports());
   wx.setStorageSync(BUG_REPORTS_KEY, reports);
-  return Promise.resolve(report);
+  return Promise.resolve(localReport);
 }
 
 module.exports = {

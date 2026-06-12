@@ -10,6 +10,7 @@ const { createAuthModule } = require('./modules/auth');
 const { createAdminModule } = require('./modules/admin');
 const { createUserApiModule } = require('./modules/user-api');
 const { createProviderGatewayModule } = require('./modules/provider-gateway');
+const { createSmartCreationModule } = require('./modules/smart-creation');
 
 const store = createStore();
 const sessions = createSessionManager(config.sessionTtlSeconds);
@@ -17,6 +18,7 @@ const auth = createAuthModule({ store, sessions });
 const admin = createAdminModule({ store, auth });
 const userApi = createUserApiModule({ store, auth });
 const providers = createProviderGatewayModule({ auth, store });
+const smartCreation = createSmartCreationModule({ store, auth });
 const router = createRouter();
 
 function serveAdminAsset(req, res) {
@@ -54,16 +56,12 @@ router.get('/api/health', (req, res) => {
     asrEngine: config.asrEngine,
     asrConfigured: Boolean(config.asrWorkerUrl),
     aiProvider: config.aiProvider,
-    aiConfigured: Boolean(config.aiApiKey && (config.aiChatCompletionsUrl || config.aiBaseUrl))
+    aiConfigured: Boolean(config.aiApiKey && (config.aiChatCompletionsUrl || config.aiBaseUrl)),
+    wechatConfigured: Boolean(config.wechatAppId && config.wechatAppSecret)
   });
 });
 
 router.post('/api/admin/auth/login', auth.adminLogin);
-router.post('/api/auth/login', auth.userLogin);
-router.post('/api/auth/register-code', auth.requestRegisterCode);
-router.post('/api/auth/register', auth.register);
-router.post('/api/auth/reset-code', auth.requestResetCode);
-router.post('/api/auth/reset-password', auth.resetPassword);
 router.post('/api/auth/wechat-login', auth.wechatLogin);
 router.get('/api/auth/me', auth.me);
 
@@ -103,6 +101,10 @@ router.patch('/api/admin/admin-users/:id', admin.updateAdminUser);
 
 router.get('/api/devices/me', userApi.mineDevice);
 router.post('/api/devices/bind', userApi.bindDevice);
+router.post('/api/devices/auto-bind', userApi.autoBindDevice);
+router.post('/api/devices/session/start', userApi.startDeviceSession);
+router.post('/api/devices/session/verify', userApi.verifyDeviceSession);
+router.post('/api/devices/session/refresh', userApi.refreshDeviceSession);
 router.post('/api/devices/unbind', userApi.unbindDevice);
 router.get('/api/devices/firmware', userApi.firmware);
 router.get('/api/purchase/entitlement', userApi.purchaseEntitlement);
@@ -122,6 +124,11 @@ router.post('/api/qa/long-text-tests', userApi.saveLongTextTest);
 router.post('/api/qa/bug-reports', userApi.submitBugReport);
 
 router.post('/api/ai/assistant', providers.aiAssistant);
+
+router.get('/api/ai/modes', smartCreation.listModes);
+router.post('/api/ai/user-templates', smartCreation.createUserTemplate);
+router.get('/api/ai/user-templates', smartCreation.listUserTemplates);
+router.delete('/api/ai/user-templates/:id', smartCreation.deleteUserTemplate);
 router.post('/api/ocr/recognize', providers.ocrRecognize);
 router.post('/api/asr/transcribe', providers.asrTranscribe);
 

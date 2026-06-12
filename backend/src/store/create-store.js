@@ -18,7 +18,10 @@ function ensureCollections(store) {
     'auditLogs',
     'activationCodes',
     'longTextTests',
-    'bugReports'
+    'bugReports',
+    'userTemplates',
+    'deviceSessionChallenges',
+    'deviceSessions'
   ].forEach((key) => {
     if (!Array.isArray(store[key])) store[key] = [];
   });

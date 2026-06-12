@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数据流转关系 — 文本传输助手</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; color: #1f2937; padding: 32px; }
+h1 { font-size: 24px; margin-bottom: 8px; }
+.subtitle { color: #64748b; font-size: 14px; margin-bottom: 32px; }
+.section { background: #fff; border-radius: 12px; padding: 28px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.section h2 { font-size: 17px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; }
+
+/* flow diagram */
+.flow { display: flex; align-items: center; gap: 0; flex-wrap: wrap; padding: 8px 0; }
+.flow-row { display: flex; align-items: center; gap: 0; width: 100%; margin-bottom: 12px; }
+.flow-row:last-child { margin-bottom: 0; }
+
+.node { border-radius: 10px; padding: 12px 18px; font-size: 13px; font-weight: 600; text-align: center; min-width: 120px; position: relative; line-height: 1.4; }
+.node small { display: block; font-weight: 400; font-size: 11px; margin-top: 3px; opacity: .7; }
+
+.node-user { background: #dbeafe; color: #1e40af; }
+.node-input { background: #fef3c7; color: #92400e; }
+.node-process { background: #ede9fe; color: #5b21b6; }
+.node-guard { background: #fce7f3; color: #9d174d; }
+.node-ai { background: #d1fae5; color: #065f46; }
+.node-output { background: #cffafe; color: #155e75; }
+.node-device { background: #fde68a; color: #78350f; }
+.node-shared { background: #e0e7ff; color: #3730a3; border: 2px dashed #818cf8; }
+.node-template { background: #fbcfe8; color: #831843; }
+
+.arrow { font-size: 20px; color: #94a3b8; margin: 0 8px; flex-shrink: 0; }
+.arrow-down { display: block; text-align: center; color: #94a3b8; font-size: 20px; margin: 4px 0; }
+
+/* grid layout for shared */
+.shared-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 20px; }
+.shared-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+.shared-card h3 { font-size: 14px; margin-bottom: 8px; }
+.shared-card p { font-size: 12px; color: #64748b; line-height: 1.6; }
+
+/* legend */
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #475569; }
+.legend-dot { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+
+/* full map */
+.map-container { overflow-x: auto; }
+.map { display: grid; grid-template-columns: 140px 40px 180px 40px 180px 40px 160px 40px 180px; grid-template-rows: auto; align-items: center; gap: 0; min-width: 960px; padding: 16px 0; }
+.map .col-header { font-size: 11px; color: #94a3b8; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.map .arrow-h { text-align: center; color: #94a3b8; font-size: 18px; }
+
+/* note */
+.note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 14px 18px; font-size: 13px; color: #92400e; line-height: 1.7; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<h1>文本传输助手 — 核心模块数据流转</h1>
+<p class="subtitle">模板创作 / 智能创作 / 图片取字 (OCR) / 语音转写 (ASR) 的数据关系</p>
+
+<!-- ===== 总览图 ===== -->
+<div class="section">
+<h2>总览：四条数据通路</h2>
+<div class="map-container">
+<div class="map">
+  <!-- row 1: headers -->
+  <div></div><div></div><div class="col-header">输入</div><div></div><div class="col-header">处理</div><div></div><div class="col-header">输出</div><div></div><div class="col-header">传输</div>
+
+  <!-- row 2: OCR -->
+  <div class="node node-input" style="grid-column:1">图片取字<br><small>OCR</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-user">拍照 / 选图</div>
+  <div class="arrow-h">→</div>
+  <div class="node node-process">OCR Worker<br><small>图片→文字</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-output">识别文本<br><small>可编辑</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-device">草稿 → 编辑器<br><small>→ BLE 发送到电脑</small></div>
+
+  <!-- row 3: ASR -->
+  <div class="node node-input" style="grid-column:1">语音转写<br><small>ASR</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-user">录音</div>
+  <div class="arrow-h">→</div>
+  <div class="node node-process">ASR Worker<br><small>语音→文字</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-output">转写文本<br><small>可编辑</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-device">草稿 → 编辑器<br><small>→ BLE 发送到电脑</small></div>
+
+  <!-- row 4: AI -->
+  <div class="node node-ai" style="grid-column:1">智能创作<br><small>AI</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-user">输入文本<br><small>或选快捷任务</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-guard">内容脱敏<br><small>Content Guard</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-process">AI Provider<br><small>GLM / DeepSeek</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-device">草稿 → 编辑器<br><small>→ BLE 发送到电脑</small></div>
+
+  <!-- row 5: Template -->
+  <div class="node node-template" style="grid-column:1">模板创作<br><small>Template</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-user">选模板 + 填字段</div>
+  <div class="arrow-h">→</div>
+  <div class="node node-process">模板引擎<br><small>基础渲染</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-process">AI 增强<br><small>可选</small></div>
+  <div class="arrow-h">→</div>
+  <div class="node node-device">草稿 → 编辑器<br><small>→ BLE 发送到电脑</small></div>
+</div>
+</div>
+</div>
+
+<!-- ===== OCR 详细流 ===== -->
+<div class="section">
+<h2>图片取字 (OCR) 数据流</h2>
+<div class="flow">
+  <div class="flow-row">
+    <div class="node node-user">用户拍照/选图</div>
+    <div class="arrow">→</div>
+    <div class="node node-process">小程序转 base64</div>
+    <div class="arrow">→</div>
+    <div class="node node-process">POST /api/ocr/recognize</div>
+    <div class="arrow">→</div>
+    <div class="node node-process">后端转发 → OCR Worker<br><small>(RapidOCR / PaddleOCR)</small></div>
+    <div class="arrow">→</div>
+    <div class="node node-output">返回识别文字</div>
+  </div>
+  <div class="flow-row" style="padding-left: 60%">
+    <div class="arrow-down">↓</div>
+  </div>
+  <div class="flow-row" style="padding-left: 60%">
+    <div class="node node-output">结果页预览/编辑</div>
+    <div class="arrow">→</div>
+    <div class="node node-shared">存草稿</div>
+    <div class="arrow">→</div>
+    <div class="node node-device">编辑器 → BLE → 电脑</div>
+  </div>
+</div>
+</div>
+
+<!-- ===== ASR 详细流 ===== -->
+<div class="section">
+<h2>语音转写 (ASR) 数据流</h2>
+<div class="flow">
+  <div class="flow-row">
+    <div class="node node-user">用户录音</div>
+    <div class="arrow">→</div>
+    <div class="node node-process">小程序转 base64</div>
+    <div class="arrow">→</div>
+    <div class="node node-process">POST /api/asr/transcribe</div>
+    <div class="arrow">→</div>
+    <div class="node node-process">后端转发 → ASR Worker<br><small>(Faster-Whisper)</small></div>
+    <div class="arrow">→</div>
+    <div class="node node-output">返回转写文字</div>
+  </div>
+  <div class="flow-row" style="padding-left: 60%">
+    <div class="arrow-down">↓</div>
+  </div>
+  <div class="flow-row" style="padding-left: 60%">
+    <div class="node node-output">结果页预览/编辑</div>
+    <div class="arrow">→</div>
+    <div class="node node-shared">存草稿</div>
+    <div class="arrow">→</div>
+    <div class="node node-device">编辑器 → BLE → 电脑</div>
+  </div>
+</div>
+</div>
+
+<!-- ===== AI 详细流 ===== -->
+<div class="section">
+<h2>智能创作 (AI) 数据流</h2>
+<div class="flow">
+  <div class="flow-row">
+    <div class="node node-user">用户输入文本</div>
+    <div class="arrow">→</div>
+    <div class="node node-guard">内容脱敏<br><small>去除手机号、身份证等</small></div>
+    <div class="arrow">→</div>
+    <div class="node node-process">POST /api/ai/assistant<br><small>携带 actionId 或纯文本</small></div>
+    <div class="arrow">→</div>
+    <div class="node node-process">后端组装 Prompt<br><small>+ 快捷任务规则</small></div>
+    <div class="arrow">→</div>
+    <div class="node node-ai">AI Provider<br><small>GLM-4-Flash</small></div>
+  </div>
+  <div class="flow-row" style="padding-left: 70%">
+    <div class="arrow-down">↓</div>
+  </div>
+  <div class="flow-row" style="padding-left: 50%">
+    <div class="node node-output">返回结构化文本<br><small>【正文】+【待确认】</small></div>
+    <div class="arrow">→</div>
+    <div class="node node-output">用户确认/编辑</div>
+    <div class="arrow">→</div>
+    <div class="node node-shared">存草稿</div>
+    <div class="arrow">→</div>
+    <div class="node node-device">编辑器 → BLE → 电脑</div>
+  </div>
+</div>
+<div class="note">
+  <strong>快捷任务 (Quick Actions)</strong> 是 AI 的预设模式 — 每个快捷任务定义了 promptContent、outputStructure、qualityRules 等规则，用户点选后自动附加到 AI 请求中，相当于"预设好的 AI 对话模板"。
+</div>
+</div>
+
+<!-- ===== Template 详细流 ===== -->
+<div class="section">
+<h2>模板创作 (Template) 数据流</h2>
+<div class="flow">
+  <div class="flow-row">
+    <div class="node node-user">用户选择模板</div>
+    <div class="arrow">→</div>
+    <div class="node node-user">填写字段<br><small>(主题、内容、时间…)</small></div>
+    <div class="arrow">→</div>
+    <div class="node node-process">POST /api/ai/templates/:id/generate</div>
+  </div>
+  <div class="flow-row" style="padding-left: 30%">
+    <div class="arrow-down">↓</div>
+  </div>
+  <div class="flow-row" style="padding-left: 15%">
+    <div class="node node-process" style="border: 2px solid #065f46;">AI 增强？<br><small>有 AI 配置 → 走 AI</small></div>
+    <div style="margin: 0 16px; font-size: 12px; color: #64748b; text-align: center;">Yes ↓&nbsp;&nbsp;&nbsp;&nbsp;No →</div>
+    <div class="node node-process">基础模板引擎<br><small>字段渲染 + 结构拼接</small></div>
+  </div>
+  <div class="flow-row" style="padding-left: 15%">
+    <div class="node node-ai">AI 生成结构化文本<br><small>使用模板的 promptContent<br>+ outputStructure + 质量规则</small></div>
+    <div style="margin: 0 12px"></div>
+    <div class="node node-process">基础渲染结果<br><small>【正文】+【待确认】</small></div>
+  </div>
+  <div class="flow-row" style="padding-left: 40%">
+    <div class="arrow-down">↘&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↙</div>
+  </div>
+  <div class="flow-row" style="padding-left: 40%">
+    <div class="node node-output">用户确认/编辑</div>
+    <div class="arrow">→</div>
+    <div class="node node-shared">存草稿</div>
+    <div class="arrow">→</div>
+    <div class="node node-device">编辑器 → BLE → 电脑</div>
+  </div>
+</div>
+</div>
+
+<!-- ===== 模块间交叉关系 ===== -->
+<div class="section">
+<h2>模块间数据交叉</h2>
+<div class="flow" style="flex-direction: column; gap: 16px;">
+  <div class="flow-row">
+    <div class="node node-input">OCR 识别结果</div>
+    <div class="arrow">→</div>
+    <div class="node node-shared">文本</div>
+    <div class="arrow">→</div>
+    <div class="node node-ai">AI 智能润色</div>
+    <div class="arrow">→</div>
+    <div class="node node-output">整理后文本</div>
+    <div class="arrow">→</div>
+    <div class="node node-device">→ BLE → 电脑</div>
+  </div>
+  <div class="flow-row">
+    <div class="node node-input">ASR 转写结果</div>
+    <div class="arrow">→</div>
+    <div class="node node-shared">文本</div>
+    <div class="arrow">→</div>
+    <div class="node node-ai">AI 智能润色</div>
+    <div class="arrow">→</div>
+    <div class="node node-output">整理后文本</div>
+    <div class="arrow">→</div>
+    <div class="node node-device">→ BLE → 电脑</div>
+  </div>
+  <div class="flow-row">
+    <div class="node node-input">OCR / ASR 结果</div>
+    <div class="arrow">→</div>
+    <div class="node node-shared">文本</div>
+    <div class="arrow">→</div>
+    <div class="node node-template">套用模板</div>
+    <div class="arrow">→</div>
+    <div class="node node-output">结构化文本</div>
+    <div class="arrow">→</div>
+    <div class="node node-device">→ BLE → 电脑</div>
+  </div>
+</div>
+<div class="note">
+  <strong>交叉路径</strong>：OCR/ASR 产出的文本可以作为 AI 智能创作的输入（润色、整理），也可以直接套用模板进行结构化。四条通路共享"草稿箱"和"BLE 传输"两个汇聚点。
+</div>
+</div>
+
+<!-- ===== 共享组件 ===== -->
+<div class="section">
+<h2>共享组件</h2>
+<div class="shared-grid">
+  <div class="shared-card">
+    <h3>🛡️ 内容脱敏 (Content Guard)</h3>
+    <p>AI 发送前自动检测并去除手机号、身份证号、银行卡号等敏感信息，脱敏命中记录在【待确认】中提示用户。</p>
+    <p style="margin-top:6px"><strong>被谁用</strong>：AI 智能创作</p>
+  </div>
+  <div class="shared-card">
+    <h3>📝 草稿箱 (Draft Service)</h3>
+    <p>所有模块的产出都可以存入草稿箱，用户可随时从草稿箱恢复内容到编辑器。</p>
+    <p style="margin-top:6px"><strong>被谁用</strong>：OCR / ASR / AI / 模板</p>
+  </div>
+  <div class="shared-card">
+    <h3>📡 BLE 传输 (Transfer)</h3>
+    <p>最终汇聚点 — 编辑器通过蓝牙 HID 协议将文本模拟键盘输入发送到电脑。</p>
+    <p style="margin-top:6px"><strong>被谁用</strong>：所有模块的最终输出</p>
+  </div>
+  <div class="shared-card">
+    <h3>🔐 会员权限 (Entitlement)</h3>
+    <p>OCR / ASR / AI / 模板生成都需要会员。非会员可以绑定设备、手动输入文本、通过 BLE 发送。</p>
+    <p style="margin-top:6px"><strong>被谁用</strong>：所有 AI 相关功能</p>
+  </div>
+  <div class="shared-card">
+    <h3>⚡ 快捷任务 (Quick Actions)</h3>
+    <p>预设的 AI 任务芯片，定义了 promptContent + 输出结构 + 质量规则。用户点选即可执行特定类型的 AI 处理。</p>
+    <p style="margin-top:6px"><strong>被谁用</strong>：AI 智能创作</p>
+  </div>
+  <div class="shared-card">
+    <h3>📊 历史记录 (History)</h3>
+    <p>所有成功发送的内容以加密形式存储在后端，用户可查看历史记录。客户端只保存密文。</p>
+    <p style="margin-top:6px"><strong>被谁用</strong>：所有模块的发送结果</p>
+  </div>
+</div>
+</div>
+
+<!-- ===== 权限模型 ===== -->
+<div class="section">
+<h2>权限模型</h2>
+<div class="flow" style="flex-direction: column; gap: 12px;">
+  <div class="flow-row">
+    <div class="node node-user" style="min-width: 100px">非会员</div>
+    <div class="arrow">可使用</div>
+    <div class="node node-output">微信登录 / 设备绑定 / 手动输入文本 / BLE 发送</div>
+  </div>
+  <div class="flow-row">
+    <div class="node node-ai" style="min-width: 100px">会员</div>
+    <div class="arrow">额外可用</div>
+    <div class="node node-process">AI 智能创作 / OCR 图片取字 / ASR 语音转写 / 模板生成 / 专业模板</div>
+  </div>
+</div>
+</div>
+
+<!-- legend -->
+<div class="section" style="padding: 16px 28px;">
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#dbeafe"></div>用户操作</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fef3c7"></div>模块入口</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ede9fe"></div>后端处理</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fce7f3"></div>安全/脱敏</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#d1fae5"></div>AI 相关</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fbcfe8"></div>模板相关</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#cffafe"></div>输出/结果</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fde68a"></div>设备/传输</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e0e7ff; border: 2px dashed #818cf8"></div>共享组件</div>
+</div>
+</div>
+
+</body>
+</html>

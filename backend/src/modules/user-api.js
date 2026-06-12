@@ -3,6 +3,7 @@ const { createId, nowIso } = require('../security/ids');
 const { config } = require('../config');
 const { verifyPassword } = require('../security/password');
 const { publicDevice } = require('./auth');
+const deviceSession = require('../security/device-session');
 
 function createUserApiModule(deps) {
   var store = deps.store;
@@ -17,23 +18,15 @@ function createUserApiModule(deps) {
       algorithm === 'dev-local-base64-placeholder';
   }
 
-  function canAccessTemplate(template, hasDevice, isMember) {
+  function canAccessTemplate(template, isMember, hasProfessionalAccess) {
     if (!template || template.status !== 'published') return false;
-    if (template.audience === 'professional') {
-      return isMember && hasDevice;
-    }
+    if (template.audience === 'professional') return isMember && hasProfessionalAccess;
     return true;
   }
 
   function isMemberActive(userId) {
     var user = store.users.find((item) => item.id === userId);
     return Boolean(user && user.memberStatus === 'active');
-  }
-
-  function hasBoundDevice(userId) {
-    return store.devices.some(
-      function (d) { return d.boundUserId === userId && d.bindStatus === 'bound'; }
-    );
   }
 
   function publicQuickAction(item) {
@@ -43,20 +36,16 @@ function createUserApiModule(deps) {
       title: item.title,
       description: item.description || '',
       category: item.category || '',
-      audience: item.audience || 'general',
       placeholder: item.placeholder || '',
-      promptContent: item.promptContent || '',
-      outputStructure: item.outputStructure || [],
-      qualityRules: item.qualityRules || [],
-      missingInfoRules: item.missingInfoRules || [],
-      forbiddenRules: item.forbiddenRules || [],
+      inputHint: item.inputHint || '',
+      outputHint: item.outputHint || '',
       sortOrder: Number(item.sortOrder || 0)
     };
   }
 
-  function canAccessQuickAction(item, hasDevice) {
+  function canAccessQuickAction(item, isMember, hasProfessionalAccess) {
     if (!item || item.status !== 'published') return false;
-    if (item.audience === 'professional' && !hasDevice) return false;
+    if (item.audience === 'professional') return isMember && hasProfessionalAccess;
     return true;
   }
 
@@ -72,9 +61,6 @@ function createUserApiModule(deps) {
       type: item.type,
       variableDefs: item.variableDefs || [],
       outputStructure: item.outputStructure || [],
-      qualityRules: item.qualityRules || [],
-      missingInfoRules: item.missingInfoRules || [],
-      forbiddenRules: item.forbiddenRules || [],
       useCount: item.useCount
     };
   }
@@ -177,9 +163,14 @@ function createUserApiModule(deps) {
 
   function normalizeSectionedText(text, fallbackConfirmText) {
     var value = String(text || '').trim();
-    if (value.indexOf('\u3010\u6B63\u6587\u3011') !== -1 && value.indexOf('\u3010\u5F85\u786E\u8BA4\u3011') !== -1) {
-      return value;
+    if (!value) {
+      return '\u3010\u6B63\u6587\u3011\n\n\u3010\u5F85\u786E\u8BA4\u3011\n' + (fallbackConfirmText || '\u8BF7\u786E\u8BA4\u6B63\u6587\u662F\u5426\u51C6\u786E\u3002');
     }
+    var hasBody = value.indexOf('\u3010\u6B63\u6587\u3011') !== -1;
+    var hasConfirm = value.indexOf('\u3010\u5F85\u786E\u8BA4\u3011') !== -1;
+    if (hasBody && hasConfirm) return value;
+    if (hasConfirm && !hasBody) return '\u3010\u6B63\u6587\u3011\n' + value;
+    if (hasBody && !hasConfirm) return value + '\n\n\u3010\u5F85\u786E\u8BA4\u3011\n' + (fallbackConfirmText || '\u8BF7\u786E\u8BA4\u6B63\u6587\u662F\u5426\u51C6\u786E\u3002');
     return ['\u3010\u6B63\u6587\u3011', value, '', '\u3010\u5F85\u786E\u8BA4\u3011', fallbackConfirmText || '\u8BF7\u786E\u8BA4\u6B63\u6587\u662F\u5426\u51C6\u786E\u3002'].join('\n');
   }
 
@@ -188,31 +179,33 @@ function createUserApiModule(deps) {
     var qualityRules = Array.isArray(template.qualityRules) ? template.qualityRules : [];
     var missingInfoRules = Array.isArray(template.missingInfoRules) ? template.missingInfoRules : [];
     var forbiddenRules = Array.isArray(template.forbiddenRules) ? template.forbiddenRules : [];
-    var systemLines = [
-      '\u4F60\u662F\u4E00\u4E2A\u6A21\u677F\u5316\u6587\u672C\u751F\u6210\u52A9\u624B\u3002',
-      '\u4F60\u5FC5\u987B\u53EA\u57FA\u4E8E\u7528\u6237\u5DF2\u7ECF\u63D0\u4F9B\u7684\u4FE1\u606F\u751F\u6210\u6B63\u6587\uFF0C\u4E0D\u80FD\u65B0\u589E\u3001\u731C\u6D4B\u6216\u7F16\u9020\u672A\u63D0\u4F9B\u7684\u4E8B\u5B9E\u3002',
-      '\u4F60\u53EF\u4EE5\u628A\u53E3\u8BED\u5316\u3001\u96F6\u6563\u7684\u8F93\u5165\u6574\u7406\u6210\u7ED3\u6784\u5B8C\u6574\u3001\u8868\u8FBE\u6E05\u695A\u3001\u4FBF\u4E8E\u53D1\u9001\u5230\u7535\u8111\u7684\u6587\u672C\u3002',
-      '\u5982\u679C\u4FE1\u606F\u7F3A\u5931\uFF0C\u5FC5\u987B\u5199\u6210\u201C\u672A\u63D0\u4F9B\u201D\u201C\u5F85\u8865\u5145\u201D\u6216\u201C\u5F85\u7528\u6237\u786E\u8BA4\u201D\uFF0C\u4E0D\u80FD\u5199\u6210\u786E\u5B9A\u4E8B\u5B9E\u3002',
-      '\u8F93\u51FA\u5FC5\u987B\u4E25\u683C\u5305\u542B\u4E24\u4E2A\u6807\u9898\uFF1A\u3010\u6B63\u6587\u3011\u548C\u3010\u5F85\u786E\u8BA4\u3011\u3002',
-      '\u3010\u6B63\u6587\u3011\u53EA\u653E\u7528\u6237\u53EF\u4EE5\u590D\u5236\u53D1\u9001\u7684\u6587\u672C\u3002',
-      '\u3010\u5F85\u786E\u8BA4\u3011\u5217\u51FA\u7528\u6237\u53D1\u9001\u524D\u9700\u8981\u6838\u5BF9\u3001\u8865\u5145\u6216\u786E\u8BA4\u7684\u4E8B\u9879\u3002',
-      '\u4E0D\u8981\u8F93\u51FA\u89E3\u91CA\u8FC7\u7A0B\uFF0C\u4E0D\u8981\u8F93\u51FA\u5F00\u53D1\u914D\u7F6E\uFF0C\u4E0D\u8981\u63D0\u5230 prompt\u3001provider\u3001worker\u3001API\u3002'
-    ];
+    var systemLines;
     if (template.promptContent) {
-      systemLines.push('\u5F53\u524D\u6A21\u677F\u89C4\u5219\uFF1A\n' + template.promptContent);
+      systemLines = [template.promptContent];
+    } else {
+      systemLines = [
+        '\u4F60\u662F\u4E00\u4E2A\u6A21\u677F\u5316\u6587\u672C\u751F\u6210\u52A9\u624B\uFF0C\u628A\u7528\u6237\u63D0\u4F9B\u7684\u96F6\u6563\u8F93\u5165\u6574\u7406\u4E3A\u7ED3\u6784\u5B8C\u6574\u3001\u8868\u8FBE\u6E05\u695A\u7684\u6587\u672C\u3002',
+        '\u53EA\u57FA\u4E8E\u7528\u6237\u63D0\u4F9B\u7684\u4FE1\u606F\u751F\u6210\u6B63\u6587\uFF0C\u4E0D\u7F16\u9020\u672A\u63D0\u4F9B\u7684\u4E8B\u5B9E\u3002',
+        '\u7F3A\u5931\u4FE1\u606F\u5199\u6210"\u672A\u63D0\u4F9B"\u6216"\u5F85\u8865\u5145"\u3002'
+      ];
     }
+    systemLines.push('');
+    systemLines.push('\u8F93\u51FA\u683C\u5F0F\u8981\u6C42\uFF1A');
+    systemLines.push('- \u6B63\u6587\u76F4\u63A5\u8F93\u51FA\uFF0C\u4E0D\u8981\u52A0"\u3010\u6B63\u6587\u3011"\u6807\u9898');
+    systemLines.push('- \u672B\u5C3E\u52A0\u4E00\u6BB5"\u3010\u5F85\u786E\u8BA4\u3011"\uFF0C\u5217\u51FA\u9700\u8981\u6838\u5BF9\u6216\u8865\u5145\u7684\u4E8B\u9879');
     if (outputStructure.length) {
-      systemLines.push('\u6B63\u6587\u5EFA\u8BAE\u7ED3\u6784\uFF1A\n' + outputStructure.map((item, index) => (index + 1) + '. ' + item).join('\n'));
+      systemLines.push('\u53C2\u8003\u7ED3\u6784\uFF1A\n' + outputStructure.map((item, index) => (index + 1) + '. ' + item).join('\n'));
     }
     if (qualityRules.length) {
-      systemLines.push('\u751F\u6210\u65F6\u91CD\u70B9\u68C0\u67E5\uFF1A\n' + qualityRules.map((item) => '- ' + item).join('\n'));
+      systemLines.push('\u8D28\u91CF\u68C0\u67E5\uFF1A\n' + qualityRules.map((item) => '- ' + item).join('\n'));
     }
     if (missingInfoRules.length) {
-      systemLines.push('\u7F3A\u5931\u4FE1\u606F\u5904\u7406\u89C4\u5219\uFF1A\n' + missingInfoRules.map((item) => '- ' + item).join('\n'));
+      systemLines.push('\u7F3A\u5931\u4FE1\u606F\u89C4\u5219\uFF1A\n' + missingInfoRules.map((item) => '- ' + item).join('\n'));
     }
     if (forbiddenRules.length) {
       systemLines.push('\u7981\u6B62\u89C4\u5219\uFF1A\n' + forbiddenRules.map((item) => '- ' + item).join('\n'));
     }
+    systemLines.push('\u4E0D\u8981\u8F93\u51FA\u89E3\u91CA\u8FC7\u7A0B\uFF0C\u4E0D\u8981\u63D0\u5230 prompt\u3001provider\u3001worker\u3001API\u3002');
     return [
       { role: 'system', content: systemLines.join('\n') },
       {
@@ -244,8 +237,8 @@ function createUserApiModule(deps) {
         body: JSON.stringify({
           model: config.aiModel,
           messages: buildTemplateAiMessages(template, values),
-          temperature: 0.2,
-          max_tokens: 1800
+          temperature: 0.3,
+          max_tokens: 3000
         }),
         signal: controller.signal
       });
@@ -285,11 +278,6 @@ function createUserApiModule(deps) {
     var serialNo = String(body.serialNo || '').trim();
     if (!serialNo) {
       fail(res, 400, 'SERIAL_REQUIRED', 'serialNo required');
-      return;
-    }
-    var user = store.users.find((item) => item.id === actor.id);
-    if (!user || user.memberStatus !== 'active') {
-      fail(res, 403, 'ENTITLEMENT_REQUIRED', 'active service required');
       return;
     }
     var now = nowIso();
@@ -344,11 +332,6 @@ function createUserApiModule(deps) {
   async function autoBindDevice(req, res) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
-    var user = store.users.find((item) => item.id === actor.id);
-    if (!user || user.memberStatus !== 'active') {
-      fail(res, 403, 'ENTITLEMENT_REQUIRED', 'active service required');
-      return;
-    }
     var existing = store.devices.find(
       (item) => item.boundUserId === actor.id && item.bindStatus === 'bound'
     );
@@ -360,23 +343,92 @@ function createUserApiModule(deps) {
     var bleName = String(body.bleDeviceName || '').trim();
     var bleId = String(body.bleDeviceId || '').trim();
     var now = nowIso();
-    var device = {
-      id: createId('device'),
-      mac: bleId,
-      serialNo: bleName || 'BLE-AUTO',
-      model: 'TXT-HID',
-      firmwareVersion: '',
-      protocolVersion: '',
-      proofCodeHash: '',
-      bindStatus: 'bound',
-      reservedUserId: '',
-      boundUserId: actor.id,
-      boundAt: now,
-      createdAt: now,
-      updatedAt: now
-    };
-    store.devices.push(device);
+    var device = store.devices.find((item) => {
+      return (bleName && item.serialNo === bleName) || (bleId && item.mac === bleId);
+    });
+    if (!device) {
+      if (!config.allowUnknownDeviceBinding || config.env === 'production') {
+        fail(res, 404, 'DEVICE_NOT_REGISTERED', 'device is not registered');
+        return;
+      }
+      device = {
+        id: createId('device'),
+        mac: bleId,
+        serialNo: bleName || 'BLE-AUTO',
+        model: 'TXT-HID',
+        firmwareVersion: '',
+        protocolVersion: '',
+        proofCodeHash: '',
+        bindStatus: 'unbound',
+        reservedUserId: '',
+        boundUserId: '',
+        boundAt: '',
+        createdAt: now,
+        updatedAt: now
+      };
+      store.devices.push(device);
+    }
+    if (device.reservedUserId && device.reservedUserId !== actor.id) {
+      fail(res, 403, 'DEVICE_RESERVED_FOR_OTHER_USER', 'device is reserved for another user');
+      return;
+    }
+    if (device.boundUserId && device.boundUserId !== actor.id) {
+      fail(res, 409, 'DEVICE_ALREADY_BOUND', 'device already bound');
+      return;
+    }
+    if (bleId && !device.mac) device.mac = bleId;
+    device.bindStatus = 'bound';
+    device.boundUserId = actor.id;
+    device.reservedUserId = '';
+    device.boundAt = now;
+    device.updatedAt = now;
     ok(res, publicDevice(device));
+  }
+
+  async function startDeviceSession(req, res) {
+    var actor = auth.requireUser(req, res);
+    if (!actor) return;
+    var body = await parseBody(req);
+    if (!isMemberActive(actor.id)) {
+      fail(res, 403, 'MEMBER_REQUIRED', 'professional features require active membership');
+      return;
+    }
+    var device = deviceSession.findBoundDevice(store, actor.id, body);
+    if (!device) {
+      fail(res, 403, 'DEVICE_NOT_BOUND', 'device is not bound to current user');
+      return;
+    }
+    var challenge = deviceSession.createChallenge(store, actor.id, device);
+    ok(res, {
+      challengeId: challenge.id,
+      nonce: challenge.nonce,
+      expiresAt: challenge.expiresAt,
+      expiresIn: Math.floor(deviceSession.CHALLENGE_TTL_MS / 1000),
+      device: publicDevice(device)
+    });
+  }
+
+  async function verifyDeviceSession(req, res) {
+    var actor = auth.requireUser(req, res);
+    if (!actor) return;
+    var body = await parseBody(req);
+    var result = deviceSession.verifyChallengeAndIssue(store, actor.id, body);
+    if (!result.ok) {
+      fail(res, result.code === 'MEMBER_REQUIRED' ? 403 : 400, result.code, result.message);
+      return;
+    }
+    ok(res, result.data);
+  }
+
+  function refreshDeviceSession(req, res) {
+    var actor = auth.requireUser(req, res);
+    if (!actor) return;
+    var result = deviceSession.refreshDeviceSession(store, req, actor.id);
+    if (!result.ok) {
+      fail(res, 403, result.code, result.message);
+      return;
+    }
+    ok(res, result.data);
   }
 
   async function unbindDevice(req, res) {
@@ -594,9 +646,9 @@ function createUserApiModule(deps) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
     var isMember = isMemberActive(actor.id);
-    var hasDevice = hasBoundDevice(actor.id);
+    var hasProfessionalAccess = deviceSession.hasDeviceSession(store, req, actor.id, 'professional_templates');
     var accessible = store.templates
-      .filter((item) => canAccessTemplate(item, hasDevice, isMember));
+      .filter((item) => canAccessTemplate(item, isMember, hasProfessionalAccess));
     var categories = [];
     accessible.forEach((item) => {
       if (item.category && categories.indexOf(item.category) === -1) {
@@ -612,9 +664,11 @@ function createUserApiModule(deps) {
   function listQuickActions(req, res, ctx) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
-    var hasDevice = hasBoundDevice(actor.id);
+    var isMember = isMemberActive(actor.id);
+    var hasProfessionalAccess = deviceSession.hasDeviceSession(store, req, actor.id, 'professional_quick_actions');
     var accessible = (store.quickActions || [])
-      .filter((item) => canAccessQuickAction(item, hasDevice))
+      .filter((item) => canAccessQuickAction(item, isMember, hasProfessionalAccess))
+      .filter((item) => hasProfessionalAccess ? item.audience === 'professional' : item.audience !== 'professional')
       .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
     var categories = [];
     accessible.forEach((item) => {
@@ -635,10 +689,20 @@ function createUserApiModule(deps) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
     var isMember = isMemberActive(actor.id);
-    var hasDevice = hasBoundDevice(actor.id);
     var item = findTemplate(ctx.params.id);
-    if (!canAccessTemplate(item, hasDevice, isMember)) {
+    if (!item || item.status !== 'published') {
       fail(res, 404, 'TEMPLATE_NOT_FOUND', 'template not found');
+      return;
+    }
+    if (item.audience === 'professional') {
+      var detailAccess = deviceSession.resolveDeviceSession(store, req, actor.id, 'professional_templates');
+      if (!detailAccess.ok) {
+        fail(res, 403, detailAccess.code, detailAccess.message);
+        return;
+      }
+    }
+    if (!canAccessTemplate(item, isMember, item.audience === 'professional')) {
+      fail(res, 403, 'TEMPLATE_ACCESS_DENIED', 'template access denied');
       return;
     }
     ok(res, publicTemplate(item));
@@ -648,17 +712,29 @@ function createUserApiModule(deps) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
     var isMember = isMemberActive(actor.id);
+    var body = await parseBody(req);
     if (!isMember) {
       fail(res, 403, 'MEMBER_REQUIRED', 'template generation requires active membership');
       return;
     }
-    var hasDevice = hasBoundDevice(actor.id);
     var item = findTemplate(ctx.params.id);
-    if (!canAccessTemplate(item, hasDevice, isMember)) {
+    if (!item || item.status !== 'published') {
       fail(res, 404, 'TEMPLATE_NOT_FOUND', 'template not found');
       return;
     }
-    var body = await parseBody(req);
+    var hasProfessionalAccess = false;
+    if (item.audience === 'professional') {
+      var access = deviceSession.resolveDeviceSession(store, req, actor.id, 'professional_templates');
+      if (!access.ok) {
+        fail(res, 403, access.code, access.message);
+        return;
+      }
+      hasProfessionalAccess = true;
+    }
+    if (!canAccessTemplate(item, isMember, hasProfessionalAccess)) {
+      fail(res, 403, 'TEMPLATE_ACCESS_DENIED', 'template access denied');
+      return;
+    }
     var values = normalizeFieldValues(body.values || body.fields || {});
     var missing = (item.variableDefs || []).filter((field) => {
       return field.required && !String(values[field.key] || '').trim();
@@ -730,11 +806,14 @@ function createUserApiModule(deps) {
     purchaseRecords,
     saveHistory,
     saveLongTextTest,
+    startDeviceSession,
     submitBugReport,
     submitFeedback,
     submitIssue,
     templateDetail,
-    unbindDevice
+    refreshDeviceSession,
+    unbindDevice,
+    verifyDeviceSession
   };
 }
 

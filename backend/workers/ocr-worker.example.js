@@ -80,7 +80,10 @@ function runCommand(command, args) {
       timeout: COMMAND_TIMEOUT_MS,
       maxBuffer: COMMAND_MAX_BUFFER,
       encoding: 'buffer',
-      windowsHide: true
+      windowsHide: true,
+      env: Object.assign({}, process.env, {
+        PYTHONIOENCODING: 'utf-8'
+      })
     }, (error, stdout, stderr) => {
       if (error) {
         var detail = stderr ? Buffer.from(stderr).toString('utf8').trim() : error.message;

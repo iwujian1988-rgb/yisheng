@@ -1,6 +1,7 @@
 const { config } = require('../config');
 const { createId, nowIso } = require('../security/ids');
 const { hashPassword } = require('../security/password');
+const { applyQuickActionPresets } = require('./quick-action-presets');
 
 function createTemplate(now, payload) {
   return Object.assign({
@@ -214,7 +215,7 @@ function createMemoryStore() {
       qualityRules: ['保留所有事实细节', '口语转书面不丢信息', '术语使用规范'],
       missingInfoRules: ['无法确定的口语标注待确认', '模糊表述保留原意并标注'],
       forbiddenRules: ['不得编造未提及内容', '不得修改数值和时间', '不得添加诊断性判断'],
-      sortOrder: 100
+      sortOrder: 190
     }),
     createQuickAction(now, {
       actionCode: 'pro_progress_note', title: '病程记录', category: '日常记录',
@@ -226,7 +227,7 @@ function createMemoryStore() {
       qualityRules: ['时间线连贯', '数值保留原文', '处理措施可执行'],
       missingInfoRules: ['未提及查体写未查', '未提及处理写待补充'],
       forbiddenRules: ['不得编造体征数据', '不得替用户决定用药方案', '不得新增诊断'],
-      sortOrder: 110
+      sortOrder: 100
     }),
     createQuickAction(now, {
       actionCode: 'pro_outpatient', title: '门诊记录', category: '门诊',
@@ -238,7 +239,7 @@ function createMemoryStore() {
       qualityRules: ['主诉简洁准确', '现病史按时间线', '查体按系统'],
       missingInfoRules: ['缺少查体写未查', '缺少既往史写未提供'],
       forbiddenRules: ['不得编造症状', '不得虚构查体结果', '不得添加未提及的诊断'],
-      sortOrder: 120
+      sortOrder: 110
     }),
     createQuickAction(now, {
       actionCode: 'pro_operation', title: '手术记录', category: '手术',
@@ -250,7 +251,7 @@ function createMemoryStore() {
       qualityRules: ['步骤有序', '出血量等数值保留原文', '时间节点清楚'],
       missingInfoRules: ['未提及的步骤写待补充', '出血量未提供写待补充'],
       forbiddenRules: ['不得编造术中所见', '不得虚构操作步骤', '不得添加未执行的手术'],
-      sortOrder: 130
+      sortOrder: 150
     }),
     createQuickAction(now, {
       actionCode: 'pro_discharge', title: '出院小结', category: '入院出',
@@ -274,7 +275,7 @@ function createMemoryStore() {
       qualityRules: ['按患者分组', '事项可追踪', '轻重缓急标注'],
       missingInfoRules: ['患者信息不全标注待补充', '处理结果不明标注待跟进'],
       forbiddenRules: ['不得编造患者信息', '不得虚构处理结果', '不得遗漏待处理事项'],
-      sortOrder: 150
+      sortOrder: 130
     }),
     createQuickAction(now, {
       actionCode: 'pro_consultation', title: '会诊记录', category: '会诊',
@@ -298,7 +299,7 @@ function createMemoryStore() {
       qualityRules: ['数值和单位保留原文', '异常值醒目标注', '按项目分组'],
       missingInfoRules: ['模糊数值标注待确认', '缺失单位提示待补充'],
       forbiddenRules: ['不得自行解释异常含义', '不得添加未提及的检查项目', '不得修改数值'],
-      sortOrder: 170
+      sortOrder: 120
     }),
     createQuickAction(now, {
       actionCode: 'pro_completeness', title: '查漏补缺', category: '质量检查',
@@ -310,7 +311,7 @@ function createMemoryStore() {
       qualityRules: ['逐项对照', '不遗漏关键要素', '建议具体'],
       missingInfoRules: ['无法判断类型的记录标注待确认'],
       forbiddenRules: ['不得编造缺失内容', '不得替用户补充信息', '不得添加主观判断'],
-      sortOrder: 180
+      sortOrder: 170
     }),
     createQuickAction(now, {
       actionCode: 'pro_key_points', title: '要点提取', category: '通用处理',
@@ -322,7 +323,7 @@ function createMemoryStore() {
       qualityRules: ['要点完整不遗漏', '数据准确', '按重要性排序'],
       missingInfoRules: ['无法确定的标注待确认'],
       forbiddenRules: ['不得推断未明确表述的结论', '不得添加主观判断'],
-      sortOrder: 190
+      sortOrder: 180
     }),
     createQuickAction(now, {
       actionCode: 'pro_polish', title: '文本润色', category: '通用处理',
@@ -337,6 +338,10 @@ function createMemoryStore() {
       sortOrder: 200
     })
   ];
+
+  applyQuickActionPresets(quickActions, function (payload) {
+    return createQuickAction(now, payload);
+  });
 
   return {
     adminUsers: [admin],
@@ -353,7 +358,9 @@ function createMemoryStore() {
     auditLogs: [],
     activationCodes: [],
     longTextTests: [],
-    bugReports: []
+    bugReports: [],
+    deviceSessionChallenges: [],
+    deviceSessions: []
   };
 }
 

@@ -3,62 +3,132 @@
     <view wx:if="{{messages.length === 0}}" class="welcome-message">
       <view class="bot-avatar">AI</view>
       <view class="welcome-bubble">
-        <text class="welcome-title">选择上方的任务类型，或直接输入内容</text>
-        <text class="welcome-desc">选任务后 AI 会按对应规则处理你的文字。</text>
+        <text class="welcome-title">{{isProfessionalWorkspace ? '选择一个常用场景，把原始内容交给 AI 整理' : '选择处理方式，输入内容后交给 AI'}}</text>
+        <text class="welcome-desc">{{isProfessionalWorkspace ? '可以直接输入，也可以用语音或图片先把内容带进来。' : '适合整理、润色、提取、检查和格式转换。'}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{collapsedHistory.length > 0}}" class="history-section">
+      <view wx:for="{{collapsedHistory}}" wx:key="index" class="history-round">
+        <view class="history-summary" bindtap="toggleHistory" data-index="{{index}}">
+          <text class="history-tag">第 {{index + 1}} 轮</text>
+          <text class="history-preview">{{item.userSummary}}...</text>
+          <text class="history-expand">{{item.expanded ? '收起' : '展开'}}</text>
+        </view>
+        <view wx:if="{{item.expanded}}" class="history-detail">
+          <view class="history-msg history-user-msg">
+            <text class="history-label">你</text>
+            <text class="history-text">{{item.userFull}}</text>
+          </view>
+          <view class="history-msg history-ai-msg">
+            <text class="history-label">AI</text>
+            <text class="history-text">{{item.assistantFull}}</text>
+          </view>
+        </view>
       </view>
     </view>
 
     <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
       <view class="message {{item.role === 'user' ? 'message-user' : 'message-ai'}}">
         <view class="message-bubble">
-          <text class="message-text">{{item.content}}</text>
+          <view wx:if="{{item.role === 'assistant'}}" class="ai-label">AI 生成</view>
+          <text class="message-text" user-select="{{true}}">{{item.content}}</text>
+          <view wx:if="{{item.confirmText}}" class="confirm-section">
+            <text class="confirm-label">发送前请确认</text>
+            <text class="confirm-text" user-select="{{true}}">{{item.confirmText}}</text>
+          </view>
           <view class="message-actions" wx:if="{{item.role === 'assistant' && item.bodyText}}">
             <text class="use-result" bindtap="useResult" data-id="{{item.id}}">使用这段</text>
           </view>
         </view>
       </view>
     </view>
+
+    <view wx:if="{{round > 0}}" class="session-footer">
+      <text class="round-info">第 {{round}} 轮 / 最多 {{maxRounds}} 轮</text>
+      <text class="new-session" bindtap="resetSession">新建</text>
+    </view>
+
+    <view class="disclaimer">
+      <text class="disclaimer-text">AI 生成内容仅供参考，请核实后使用。</text>
+    </view>
   </scroll-view>
 
   <view class="composer">
-    <scroll-view wx:if="{{quickActions.length > 0}}" class="action-scroll" scroll-x>
-      <view
-        wx:for="{{quickActions}}"
-        wx:key="id"
-        class="action-chip {{activeAction && activeAction.id === item.id ? 'active' : ''}}"
-        data-id="{{item.id}}"
-        bindtap="selectAction"
-      >
-        {{item.title}}
+    <scroll-view wx:if="{{isProfessionalWorkspace}}" class="action-scroll" scroll-x>
+      <view class="action-row">
+        <view
+          wx:for="{{quickActions}}"
+          wx:key="id"
+          class="action-chip {{item.actionCode === 'pro_free_text' ? 'free' : ''}} {{activeAction && activeAction.id === item.id ? 'active' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="selectAction"
+        >
+          {{item.title}}
+        </view>
       </view>
     </scroll-view>
 
-    <view class="mode-hint">
-      <text class="mode-label">{{activeAction ? '当前模式：' + activeAction.title : '自由模式'}}</text>
-      <text wx:if="{{activeAction}}" class="mode-clear" bindtap="clearAction">切换</text>
+    <scroll-view wx:else class="action-scroll" scroll-x>
+      <view class="action-row">
+        <view
+          wx:for="{{modes}}"
+          wx:key="key"
+          class="action-chip {{activeMode && activeMode.key === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="selectMode"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </scroll-view>
+
+    <view wx:if="{{isProfessionalWorkspace && activeAction}}" class="active-hint {{activeAction.actionCode === 'pro_free_text' ? 'free-hint' : ''}}">
+      <text class="hint-title">{{activeAction.category ? activeAction.category + ' - ' + activeAction.title : activeAction.title}}</text>
+      <text class="hint-line">{{activeAction.inputHint || activeAction.placeholder || '输入原始内容，AI 会按当前场景整理。'}}</text>
+      <text class="hint-line">{{activeAction.outputHint || activeAction.description || '输出整理后的正文和待确认项。'}}</text>
+      <text class="hint-line">信息越完整，结果越接近可直接使用；缺失、不确定或明显不匹配的内容会放到待确认，不会替你编。</text>
     </view>
 
-    <textarea
-      class="input-field"
-      placeholder="{{activeAction && activeAction.placeholder ? activeAction.placeholder : '输入你要整理或生成的内容'}}"
-      placeholder-class="input-placeholder"
-      value="{{inputText}}"
-      bindinput="onInput"
-      maxlength="5000"
-      show-confirm-bar="{{false}}"
-    />
+    <view wx:if="{{!isProfessionalWorkspace && activeMode}}" class="active-hint">
+      <text>{{activeMode.description}}</text>
+    </view>
 
-    <view class="composer-actions">
-      <button class="tool-btn" bindtap="goVoice">语音</button>
-      <button class="tool-btn" bindtap="goImage">图片</button>
-      <button
-        class="send-btn {{inputText.length > 0 && !sending ? 'active' : ''}}"
-        disabled="{{inputText.length === 0 || sending}}"
-        loading="{{sending}}"
-        bindtap="sendMessage"
-      >
-        发送
-      </button>
+    <view wx:if="{{!isProfessionalWorkspace && showTemplateSelector}}" class="template-selector">
+      <picker wx:if="{{templates.system.length > 0 || templates.custom.length > 0}}" bindchange="onTemplateChange" range="{{templates.system.concat(templates.custom)}}" range-key="name">
+        <view class="template-picker">
+          <text class="template-picker-text">{{selectedTemplateId ? '已选择模板' : '选择模板，可选'}}</text>
+          <text class="template-picker-arrow">›</text>
+        </view>
+      </picker>
+      <view class="template-import-link" bindtap="goTemplateImport">
+        <text class="template-import-text">导入模板</text>
+      </view>
+    </view>
+
+    <view class="input-shell">
+      <textarea
+        class="input-field"
+        placeholder="{{isProfessionalWorkspace ? (activeAction.placeholder || '输入或粘贴原始内容') : (activeMode ? activeMode.placeholder : '请选择处理方式')}}"
+        placeholder-class="input-placeholder"
+        value="{{inputText}}"
+        bindinput="onInput"
+        maxlength="5000"
+        show-confirm-bar="{{false}}"
+        disabled="{{isProfessionalWorkspace ? !activeAction : !activeMode}}"
+      />
+      <view class="input-tools">
+        <button class="tool-btn" bindtap="goVoice">语音</button>
+        <button class="tool-btn" bindtap="goImage">图片</button>
+        <button
+          class="send-btn {{canSend ? 'active' : ''}}"
+          disabled="{{sendDisabled}}"
+          loading="{{sending}}"
+          bindtap="sendMessage"
+        >
+          {{sending ? '生成中' : '发送'}}
+        </button>
+      </view>
     </view>
   </view>
 </view>

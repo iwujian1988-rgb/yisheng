@@ -5,6 +5,7 @@ const {
   resolveAccountStatus,
   canUseCoreFeatures
 } = require('../constants/account-status');
+const deviceSession = require('../device/session');
 
 function normalizeSessionPayload(payload) {
   const data = payload && payload.data ? payload.data : payload;
@@ -46,6 +47,7 @@ function clearSession() {
   wx.removeStorageSync('deviceBindingStatus');
   wx.removeStorageSync('serviceStatus');
   wx.removeStorageSync('boundDevice');
+  deviceSession.clearDeviceSession();
 }
 
 function loginWithPassword(account, password) {

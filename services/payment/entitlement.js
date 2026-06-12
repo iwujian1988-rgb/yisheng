@@ -5,15 +5,10 @@ const activation = require('../purchase/activation');
 
 function getEntitlement() {
   if (!getBaseUrl()) {
-    const session = authSession.getStoredSessionSummary();
+    var session = authSession.getStoredSessionSummary();
     return Promise.resolve({
-      code: 'OK',
-      data: {
-        purchaseStatus: session.purchaseStatus || 'none',
-        serviceStatus: session.serviceStatus || '',
-        deviceBindingStatus: session.deviceBindingStatus || '',
-        accountStatus: session.accountStatus || ''
-      }
+      memberStatus: session.purchaseStatus === 'paid' ? 'active' : (session.memberStatus || 'none'),
+      memberEnd: session.memberEnd || ''
     });
   }
 

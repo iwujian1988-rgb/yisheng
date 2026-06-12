@@ -382,3 +382,24 @@ select {
   display: flex;
   gap: 6px;
 }
+
+.guide {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.guide-content {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 75vh;
+  overflow-y: auto;
+  font-family: Consolas, "SFMono-Regular", monospace;
+}

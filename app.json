@@ -1,8 +1,6 @@
 {
   "pages": [
     "pages/login/login",
-    "pages/register/register",
-    "pages/forgot-password/forgot-password",
     "pages/account-status/account-status",
     "pages/device/device",
     "pages/history/history",
@@ -40,6 +38,7 @@
     "pages/onboarding/index",
     "pages/device/checklist",
     "pages/import/index",
+    "pages/bluetooth/index",
     "pages/transfer/editor",
     "pages/transfer/confirm",
     "pages/history/detail",
@@ -55,6 +54,7 @@
     "pages/device/firmware",
     "pages/device/unbind-confirm",
     "pages/ai/review-result",
+    "pages/ai/template-import",
     "pages/common/encryption-note",
     "pages/admin/index",
     "pages/admin/paid-user-create",

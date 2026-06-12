@@ -3,6 +3,12 @@ process.env.STORE_MODE = 'memory';
 process.env.PORT = String(PORT);
 
 const { server } = require('../src/server');
+const { config } = require('../src/config');
+
+config.wechatAppId = '';
+config.wechatAppSecret = '';
+config.ocrWorkerUrl = '';
+config.asrWorkerUrl = '';
 
 const BASE_URL = 'http://127.0.0.1:' + PORT;
 
@@ -131,7 +137,7 @@ async function run() {
     body: JSON.stringify({ status: 'published' })
   });
 
-  const professionalTemplates = await request('/api/ai/templates', {
+  const professionalTemplates = await request('/api/ai/templates?connected=true', {
     headers: {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + activatedUser.token
@@ -139,7 +145,7 @@ async function run() {
   });
   assert(professionalTemplates.templates.some((item) => item.templateCode === 'pro_smoke_summary'), 'professional template missing');
 
-  const generated = await request('/api/ai/templates/' + createdTemplate.id + '/generate', {
+  const generated = await request('/api/ai/templates/' + createdTemplate.id + '/generate?connected=true', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

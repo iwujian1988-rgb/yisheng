@@ -1,12 +1,9 @@
 const { fail, getBearerToken, getIp, ok, parseBody } = require('../http');
 const { maskPhone } = require('../security/masking');
-const { hashPassword, verifyPassword } = require('../security/password');
+const { verifyPassword } = require('../security/password');
 const { writeAudit } = require('../security/audit');
 const { createId, nowIso } = require('../security/ids');
 const { config } = require('../config');
-
-const DEV_VERIFICATION_CODE = '123456';
-const PHONE_RE = /^1[3-9]\d{9}$/;
 
 function publicUser(user) {
   return {
@@ -117,139 +114,9 @@ function createAuthModule(deps) {
     });
   }
 
-  async function userLogin(req, res) {
-    var body = await parseBody(req);
-    var account = String(body.account || '').trim();
-    var user = store.users.find((item) => item.phone === account);
-    if (!user || user.status !== 'active' || !verifyPassword(body.password || '', user.passwordHash || '')) {
-      fail(res, 401, 'INVALID_CREDENTIALS', 'invalid account or password');
-      return;
-    }
-    var actor = {
-      kind: 'user',
-      id: user.id,
-      phone: user.phone
-    };
-    var token = sessions.issueSession(actor);
-    user.lastLogin = new Date().toISOString();
-    ok(res, buildUserSession(user, token));
-  }
-
-  function shouldExposeDevCode() {
-    return config.env !== 'production';
-  }
-
-  function validatePhonePassword(res, phone, password) {
-    if (!PHONE_RE.test(phone)) {
-      fail(res, 400, 'INVALID_PHONE', 'invalid phone');
-      return false;
-    }
-    if (String(password || '').length < 6) {
-      fail(res, 400, 'INVALID_PASSWORD', 'password too short');
-      return false;
-    }
-    return true;
-  }
-
-  function validateVerificationCode(res, code) {
-    if (String(code || '').trim() !== DEV_VERIFICATION_CODE) {
-      fail(res, 400, 'INVALID_VERIFICATION_CODE', 'invalid verification code');
-      return false;
-    }
-    return true;
-  }
-
-  async function requestRegisterCode(req, res) {
-    var body = await parseBody(req);
-    var phone = String(body.phone || '').trim();
-    if (!PHONE_RE.test(phone)) {
-      fail(res, 400, 'INVALID_PHONE', 'invalid phone');
-      return;
-    }
-    var data = {
-      phone: maskPhone(phone),
-      expiresIn: 300
-    };
-    if (shouldExposeDevCode()) data.verificationCode = DEV_VERIFICATION_CODE;
-    ok(res, data);
-  }
-
-  async function register(req, res) {
-    var body = await parseBody(req);
-    var phone = String(body.phone || '').trim();
-    var password = String(body.password || '');
-    if (!validatePhonePassword(res, phone, password)) return;
-    if (!validateVerificationCode(res, body.code)) return;
-    if (store.users.some((item) => item.phone === phone && item.status === 'active')) {
-      fail(res, 409, 'USER_ALREADY_EXISTS', 'user already exists');
-      return;
-    }
-    var now = nowIso();
-    var user = {
-      id: createId('user'),
-      openid: '',
-      unionid: '',
-      phone: phone,
-      nickname: '',
-      passwordHash: hashPassword(password),
-      status: 'active',
-      memberStatus: 'none',
-      memberStart: '',
-      memberEnd: '',
-      disabledAt: '',
-      disabledReason: '',
-      lastLogin: now,
-      registerSource: 'phone',
-      features: {},
-      createdAt: now,
-      updatedAt: now
-    };
-    store.users.push(user);
-    var actor = {
-      kind: 'user',
-      id: user.id,
-      phone: user.phone
-    };
-    var token = sessions.issueSession(actor);
-    ok(res, buildUserSession(user, token));
-  }
-
-  async function requestResetCode(req, res) {
-    var body = await parseBody(req);
-    var phone = String(body.phone || '').trim();
-    if (!PHONE_RE.test(phone)) {
-      fail(res, 400, 'INVALID_PHONE', 'invalid phone');
-      return;
-    }
-    var data = {
-      phone: maskPhone(phone),
-      expiresIn: 300
-    };
-    if (shouldExposeDevCode()) data.verificationCode = DEV_VERIFICATION_CODE;
-    ok(res, data);
-  }
-
-  async function resetPassword(req, res) {
-    var body = await parseBody(req);
-    var phone = String(body.phone || '').trim();
-    var password = String(body.password || '');
-    if (!validatePhonePassword(res, phone, password)) return;
-    if (!validateVerificationCode(res, body.code)) return;
-    var user = store.users.find((item) => item.phone === phone && item.status === 'active');
-    if (!user) {
-      fail(res, 404, 'USER_NOT_FOUND', 'user not found');
-      return;
-    }
-    user.passwordHash = hashPassword(password);
-    user.updatedAt = nowIso();
-    ok(res, {
-      phone: maskPhone(phone),
-      passwordUpdated: true
-    });
-  }
-
   async function exchangeWechatCode(code) {
     if (!config.wechatAppId || !config.wechatAppSecret) {
+      console.log('[auth] dev mode: skipping wechat code exchange');
       return {
         openid: 'dev-openid-' + String(code || 'anonymous'),
         unionid: ''
@@ -260,7 +127,16 @@ function createAuthModule(deps) {
       + '&secret=' + encodeURIComponent(config.wechatAppSecret)
       + '&js_code=' + encodeURIComponent(code)
       + '&grant_type=authorization_code';
-    var response = await fetch(url);
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, 10000);
+    var response;
+    try {
+      response = await fetch(url, { signal: controller.signal });
+    } catch (fetchErr) {
+      clearTimeout(timer);
+      throw new Error('微信登录服务暂不可用，请检查网络后重试');
+    }
+    clearTimeout(timer);
     var payload = await response.json();
     if (!response.ok || payload.errcode) {
       throw new Error(payload.errmsg || 'wechat code exchange failed');
@@ -282,7 +158,8 @@ function createAuthModule(deps) {
     try {
       wxIdentity = await exchangeWechatCode(code);
     } catch (error) {
-      fail(res, 502, 'WECHAT_LOGIN_FAILED', error.message);
+      console.error('[auth] wechat code exchange failed:', error.message);
+      fail(res, 502, 'WECHAT_LOGIN_FAILED', error.message || '微信登录失败');
       return;
     }
     var user = store.users.find((item) => {
@@ -348,11 +225,6 @@ function createAuthModule(deps) {
     me,
     requireAdmin,
     requireUser,
-    register,
-    requestRegisterCode,
-    requestResetCode,
-    resetPassword,
-    userLogin,
     wechatLogin
   };
 }

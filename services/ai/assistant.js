@@ -8,13 +8,21 @@ function generateContent(options) {
   const guarded = prepareTextForThirdPartyAi(rawText);
   const prompt = getPromptConfig(type);
 
-  return callAi({
+  var payload = {
     type,
     prompt,
     actionId: options.actionId || '',
+    connected: options.connected || false,
     safeText: guarded.safeText,
     redactionHits: guarded.redactionHits
-  }).then((response) => {
+  };
+  if (options.mode) payload.mode = options.mode;
+  if (options.templateId) payload.templateId = options.templateId;
+  if (Array.isArray(options.messages) && options.messages.length) {
+    payload.messages = options.messages;
+  }
+
+  return callAi(payload).then((response) => {
     return {
       resultText: response.resultText,
       bodyText: response.bodyText || response.resultText || '',

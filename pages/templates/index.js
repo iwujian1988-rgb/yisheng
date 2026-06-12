@@ -1,4 +1,5 @@
-const templateCatalog = require('../../services/templates/catalog');
+var templateCatalog = require('../../services/templates/catalog');
+var featureEntitlements = require('../../services/entitlements/features');
 
 Page({
   data: {
@@ -13,17 +14,31 @@ Page({
   },
 
   onLoad() {
+    if (!featureEntitlements.guardAiFeature('templates', '场景模板')) {
+      wx.navigateBack({
+        delta: 1,
+        fail: function () { wx.reLaunch({ url: '/pages/home/home' }); }
+      });
+      return;
+    }
     this.loadTemplates();
   },
 
   loadTemplates() {
     this.setData({ isLoading: true, loadError: '' });
-    templateCatalog.listTemplates()
+    var app = getApp();
+    var connected = Boolean(app && app.globalData && (app.globalData.deviceConnected || app.globalData.skipBluetoothForDev));
+    templateCatalog.listTemplates(connected)
       .then((result) => {
         var templates = result.templates || [];
-        var categories = result.categories || [];
+        var remainingCategories = [];
+        var seen = {};
+        templates.forEach(function(t) {
+          var cat = t.category || t.scene || '';
+          if (cat && !seen[cat]) { seen[cat] = true; remainingCategories.push(cat); }
+        });
         var tabs = [{ key: 'all', name: '全部' }].concat(
-          categories.map(function (c) { return { key: c, name: c }; })
+          remainingCategories.map(function (c) { return { key: c, name: c }; })
         );
         this.setData({
           templates: templates,

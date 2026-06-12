@@ -1,0 +1,85 @@
+.import-container {
+  min-height: 100vh;
+  padding: 28rpx;
+  background-color: #F5F7FA;
+  box-sizing: border-box;
+}
+
+.form-section {
+  margin-bottom: 28rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  padding: 0 24rpx;
+  background-color: #FFFFFF;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.form-textarea {
+  width: 100%;
+  height: 400rpx;
+  padding: 24rpx;
+  background-color: #FFFFFF;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.content-btn {
+  flex: 1;
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0;
+  border-radius: 36rpx;
+  font-size: 28rpx;
+  background-color: #F3F5F8;
+  color: #26324D;
+  border: none;
+}
+
+.content-btn::after {
+  border: none;
+}
+
+.save-btn {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+  background-color: #D8DDE6;
+  color: #FFFFFF;
+  border: none;
+  margin-top: 40rpx;
+}
+
+.save-btn.active {
+  background-color: #1677FF;
+}
+
+.save-btn::after {
+  border: none;
+}

@@ -23,6 +23,10 @@ const ENDPOINTS = {
   devices: {
     mine: '/api/devices/me',
     bind: '/api/devices/bind',
+    autoBind: '/api/devices/auto-bind',
+    sessionStart: '/api/devices/session/start',
+    sessionVerify: '/api/devices/session/verify',
+    sessionRefresh: '/api/devices/session/refresh',
     unbind: '/api/devices/unbind',
     firmware: '/api/devices/firmware'
   },
@@ -42,6 +46,9 @@ const ENDPOINTS = {
     templates: '/api/ai/templates',
     templateDetail: '/api/ai/templates/{id}',
     templateGenerate: '/api/ai/templates/{id}/generate',
+    modes: '/api/ai/modes',
+    userTemplates: '/api/ai/user-templates',
+    userTemplateDetail: '/api/ai/user-templates/{id}',
     redactionPreview: '/api/ai/redaction-preview'
   },
   ocr: {

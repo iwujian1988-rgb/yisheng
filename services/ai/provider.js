@@ -30,13 +30,19 @@ function splitAiSections(resultText) {
 }
 
 function callBackendAi(payload) {
+  var reqData = {
+    redactedText: payload.safeText || '',
+    actionId: payload.actionId || ''
+  };
+  if (payload.mode) reqData.mode = payload.mode;
+  if (payload.templateId) reqData.templateId = payload.templateId;
+  if (Array.isArray(payload.messages) && payload.messages.length) {
+    reqData.messages = payload.messages;
+  }
   return request({
     url: ENDPOINTS.ai.assistant,
     method: 'POST',
-    data: {
-      redactedText: payload.safeText || '',
-      actionId: payload.actionId || ''
-    }
+    data: reqData
   }).then((data) => {
     const sections = splitAiSections(data.resultText || data.rawText || data.bodyText || '');
     return {

@@ -23,7 +23,9 @@ var OCR_ERROR_MAP = {
   OCR_IMAGE_TOO_LARGE: '图片过大，请压缩或重新拍摄',
   REQUEST_BODY_TOO_LARGE: '图片过大，请压缩或重新拍摄',
   OCR_WORKER_FAILED: '图片取字暂时不可用，请稍后重试',
-  NETWORK_ERROR: '网络请求失败，请检查后端服务'
+  MEMBER_REQUIRED: '当前账号暂未开通该能力',
+  DEVICE_CONNECTION_REQUIRED: '请先连接设备后再使用图片识别',
+  NETWORK_ERROR: '网络请求失败，请检查后端服务和网络连接'
 };
 
 function recognizeImage(imageFile) {
@@ -34,7 +36,7 @@ function recognizeImage(imageFile) {
     fileRequiredMessage: '请先选择图片',
     notConfiguredCode: 'OCR_NOT_CONFIGURED',
     notConfiguredMessage: '图片取字服务尚未配置',
-    mockText: '这是一段本地测试识别结果。你可以继续编辑、套用模板，或发送到电脑。',
+    mockText: '这是本地测试识别结果。你可以继续编辑，或使用专业整理。',
     mockExtraFields: { regions: [], imageBytes: 0 },
     fallbackErrorMessage: '图片取字暂时不可用',
     endpoint: ENDPOINTS.ocr.recognize,

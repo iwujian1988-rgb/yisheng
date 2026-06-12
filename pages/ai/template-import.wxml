@@ -1,0 +1,37 @@
+<view class="import-container">
+  <view class="form-section">
+    <text class="form-label">模板名称</text>
+    <input
+      class="form-input"
+      placeholder="给模板取个名字"
+      value="{{name}}"
+      bindinput="onNameInput"
+      maxlength="30"
+    />
+  </view>
+
+  <view class="form-section">
+    <text class="form-label">模板内容</text>
+    <textarea
+      class="form-textarea"
+      placeholder="粘贴模板内容，或点下方按钮拍照识别"
+      value="{{content}}"
+      bindinput="onContentInput"
+      maxlength="10000"
+      show-confirm-bar="{{false}}"
+    />
+    <view class="content-actions">
+      <button class="content-btn" bindtap="goCamera">拍照识别</button>
+      <button class="content-btn" bindtap="pasteFromClipboard">粘贴文本</button>
+    </view>
+  </view>
+
+  <button
+    class="save-btn {{name.length > 0 && content.length > 0 && !saving ? 'active' : ''}}"
+    disabled="{{name.length === 0 || content.length === 0 || saving}}"
+    loading="{{saving}}"
+    bindtap="saveTemplate"
+  >
+    保存模板
+  </button>
+</view>

@@ -1,3 +1,5 @@
+const deviceSession = require('../device/session');
+
 function getAppInstance() {
   return typeof getApp === 'function' ? getApp() : null;
 }
@@ -26,6 +28,12 @@ function clearAuthStorage() {
   wx.removeStorageSync('deviceBindingStatus');
   wx.removeStorageSync('serviceStatus');
   wx.removeStorageSync('boundDevice');
+  deviceSession.clearDeviceSession();
+}
+
+function getDeviceSessionHeader() {
+  const token = deviceSession.getDeviceSessionToken();
+  return token ? { 'X-Device-Session': token } : {};
 }
 
 function handleUnauthorized() {
@@ -81,7 +89,16 @@ function request(options) {
     return notConfiguredError();
   }
 
-  return new Promise((resolve, reject) => {
+  const shouldRefreshDeviceSession = Boolean(
+    token &&
+    url !== '/api/auth/wechat-login' &&
+    url !== '/api/auth/login'
+  );
+  const beforeRequest = shouldRefreshDeviceSession
+    ? deviceSession.refreshIfNeeded().catch(() => null)
+    : Promise.resolve(null);
+
+  return beforeRequest.then(() => new Promise((resolve, reject) => {
     wx.request({
       url: baseUrl + url,
       method,
@@ -89,7 +106,7 @@ function request(options) {
       header: Object.assign({
         'Content-Type': 'application/json',
         Authorization: token ? 'Bearer ' + token : ''
-      }, header),
+      }, getDeviceSessionHeader(), header),
       success(res) {
         const body = res.data || {};
         if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -116,7 +133,7 @@ function request(options) {
         });
       }
     });
-  });
+  }));
 }
 
 function uploadFile(options) {
@@ -145,9 +162,9 @@ function uploadFile(options) {
       filePath,
       name,
       formData,
-      header: {
+      header: Object.assign({
         Authorization: token ? 'Bearer ' + token : ''
-      },
+      }, getDeviceSessionHeader()),
       success(res) {
         let body = {};
         try {

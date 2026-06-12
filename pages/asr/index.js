@@ -1,19 +1,25 @@
 const asrTranscriber = require('../../services/asr/transcriber');
 const featureEntitlements = require('../../services/entitlements/features');
-const draftService = require('../../services/transfer/draft');
+const draftService = require('../../services/content/draft');
 const aiAssistant = require('../../services/ai/assistant');
 const quickActionsService = require('../../services/ai/quick-actions');
 
 let recorderManager = null;
 let recordTimer = null;
+let chunkTimer = null;
+let autosaveTimer = null;
 
 const MAX_RECORD_MS = 60 * 60 * 1000;
+const CHUNK_RECORD_MS = 8 * 1000;
+const AUTOSAVE_MS = 30 * 1000;
 const ASR_DRAFT_KEY = 'asrRecoverableDraft';
+const AI_MEDIA_INPUT_DRAFT_KEY = 'aiMediaInputDraft';
 
-function isDeviceConnected() {
-  const app = typeof getApp === 'function' ? getApp() : null;
-  const globalData = app && app.globalData ? app.globalData : {};
-  return Boolean(globalData.skipBluetoothForDev || globalData.deviceConnected);
+function selectActions(actions) {
+  return (actions || [])
+    .filter((action) => action)
+    .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
+    .slice(0, 6);
 }
 
 function formatDuration(ms) {
@@ -31,6 +37,16 @@ function formatDuration(ms) {
   return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
 }
 
+function inferAudioFormat(path) {
+  const match = String(path || '').toLowerCase().match(/\.([a-z0-9]+)(?:\?|$)/);
+  const ext = match ? match[1] : '';
+  if (ext === 'm4a' || ext === 'mp4') return 'm4a';
+  if (ext === 'wav') return 'wav';
+  if (ext === 'webm') return 'webm';
+  if (ext === 'aac') return 'aac';
+  return 'mp3';
+}
+
 function readRecoverableDraft() {
   const draft = wx.getStorageSync(ASR_DRAFT_KEY);
   return draft && typeof draft === 'object' ? draft : null;
@@ -43,6 +59,13 @@ function saveRecoverableDraft(payload) {
   }));
 }
 
+function joinTranscript(current, incoming) {
+  const left = String(current || '').trim();
+  const right = String(incoming || '').trim();
+  if (!right) return left;
+  return left ? left + '\n' + right : right;
+}
+
 Page({
   data: {
     recording: false,
@@ -53,61 +76,66 @@ Page({
     editableText: '',
     resultMeta: null,
     transcribing: false,
+    transcribingCount: 0,
+    segmentCount: 0,
+    savedAtText: '',
     errorMessage: '',
-    statusText: '录一段语音，结束后会自动转成可编辑文字。',
-    hasRecoverableAudio: false
+    statusText: '点击录音后会边录边转写，每 8 秒自动保存一次草稿。',
+    hasRecoverableAudio: false,
+    returnToAi: false
   },
 
-  onLoad() {
-    if (!featureEntitlements.guardAiFeature('asr', '语音转写')) {
+  _shouldContinueRecording: false,
+  _manualStop: false,
+  _activeTranscribes: 0,
+
+  onLoad(options) {
+    if (!featureEntitlements.guardAiFeature('asr', '语音转文字')) {
       wx.navigateBack({
         delta: 1,
         fail: () => wx.reLaunch({ url: '/pages/home/home' })
       });
       return;
     }
-    if (!isDeviceConnected()) {
-      wx.showModal({
-        title: '需要连接设备',
-        content: '语音转写需要先连接设备，连接后可使用全部功能。',
-        confirmText: '去连接',
-        cancelText: '返回',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({ url: '/pages/bluetooth/index' });
-          } else {
-            wx.navigateBack({
-              delta: 1,
-              fail: () => wx.reLaunch({ url: '/pages/home/home' })
-            });
-          }
-        }
-      });
-      return;
-    }
 
+    this.setData({ returnToAi: Boolean(options && options.returnTo === 'ai') });
     this.restoreRecoverableDraft();
     this.setupRecorder();
+    this.enableLeaveGuard();
+    if (options && options.auto === '1') {
+      setTimeout(() => {
+        if (!this.data.recording && !this.data.transcribing) this.toggleRecord();
+      }, 300);
+    }
   },
 
   onUnload() {
-    this.clearRecordTimer();
-    if (this.data.recording && recorderManager) {
-      recorderManager.stop();
-    }
+    this.persistDraft('unload');
+    this.clearTimers();
+    this._shouldContinueRecording = false;
+    this._manualStop = true;
+    if (this.data.recording && recorderManager) recorderManager.stop();
+  },
+
+  onHide() {
+    this.persistDraft('hide');
   },
 
   setupRecorder() {
     recorderManager = wx.getRecorderManager();
     recorderManager.onStop((res) => {
-      this.clearRecordTimer();
       const audioPath = res && res.tempFilePath ? res.tempFilePath : '';
+      const audioFormat = inferAudioFormat(audioPath);
       const durationMs = Math.min(Date.now() - this.data.recordStartedAt, MAX_RECORD_MS);
-      this.setData({
-        recording: false,
-        audioPath,
-        recordDurationText: formatDuration(durationMs)
-      });
+
+      if (!this._shouldContinueRecording) {
+        this.clearRecordTimer();
+        this.setData({
+          recording: false,
+          recordDurationText: formatDuration(durationMs)
+        });
+      }
+
       if (!audioPath) {
         this.setData({
           errorMessage: '没有拿到录音文件，请重新录制。',
@@ -115,46 +143,54 @@ Page({
         });
         return;
       }
+
       saveRecoverableDraft({
         audioPath,
+        audioFormat,
         durationMs,
-        resultText: '',
-        resultMeta: null,
+        resultText: this.data.editableText || '',
+        resultMeta: this.data.resultMeta || null,
         status: 'recorded'
       });
-      this.setData({ hasRecoverableAudio: true });
-      this.transcribeAudio(audioPath);
+      this.setData({ audioPath, hasRecoverableAudio: true });
+
+      if (this._shouldContinueRecording && !this._manualStop) {
+        setTimeout(() => this.startSegment(), 120);
+      }
+      this.transcribeAudio(audioPath, audioFormat, true);
     });
+
     recorderManager.onError((error) => {
-      this.clearRecordTimer();
+      this.clearTimers();
+      this._shouldContinueRecording = false;
       this.setData({
         recording: false,
         transcribing: false,
-        statusText: '录音中断了，可以重新录制。',
+        statusText: '录音中断了，已保存当前草稿。',
         errorMessage: error && error.errMsg ? error.errMsg : '录音失败，请检查麦克风权限。'
       });
+      this.persistDraft('error');
     });
   },
 
   restoreRecoverableDraft() {
     const draft = readRecoverableDraft();
-    if (!draft || !draft.audioPath) return;
+    if (!draft || (!draft.audioPath && !draft.resultText)) return;
+    const updatedAt = draft.updatedAt ? new Date(draft.updatedAt) : null;
     this.setData({
-      audioPath: draft.audioPath,
+      audioPath: draft.audioPath || '',
+      audioFormat: draft.audioFormat || inferAudioFormat(draft.audioPath),
       resultText: draft.resultText || '',
       editableText: draft.resultText || '',
       resultMeta: draft.resultMeta || null,
       recordDurationText: formatDuration(draft.durationMs || 0),
-      hasRecoverableAudio: true,
-      statusText: draft.resultText ? '已恢复上次转写结果，可继续编辑。' : '检测到上次录音，可继续转写。'
+      hasRecoverableAudio: Boolean(draft.audioPath),
+      savedAtText: updatedAt ? this.formatSavedAt(updatedAt) : '',
+      statusText: draft.resultText ? '已恢复上次草稿，可以继续录音或编辑。' : '检测到上次录音，可以继续转写。'
     });
   },
 
   toggleRecord() {
-    if (this.data.transcribing) {
-      wx.showToast({ title: '正在转写，请稍等', icon: 'none' });
-      return;
-    }
     if (this.data.recording) {
       this.stopRecord();
       return;
@@ -177,7 +213,7 @@ Page({
             fail: () => {
               wx.showModal({
                 title: '需要麦克风权限',
-                content: '开启麦克风权限后才能录音。',
+                content: '开启麦克风权限后才能录音转写。',
                 confirmText: '去设置',
                 success(res) {
                   if (res.confirm) wx.openSetting();
@@ -197,25 +233,42 @@ Page({
       return;
     }
     const startedAt = Date.now();
+    this._shouldContinueRecording = true;
+    this._manualStop = false;
     this.setData({
       recording: true,
       recordStartedAt: startedAt,
       recordDurationText: '00:00',
       audioPath: '',
-      resultText: '',
-      editableText: '',
       resultMeta: null,
       errorMessage: '',
-      statusText: '正在录音，离开页面可能导致录音中断。'
+      statusText: '正在录音，文字会分段出现。请保持小程序在前台。'
     });
     this.startRecordTimer(startedAt);
-    recorderManager.start({
-      duration: MAX_RECORD_MS,
-      sampleRate: 16000,
-      numberOfChannels: 1,
-      encodeBitRate: 96000,
-      format: 'mp3'
-    });
+    this.startAutosaveTimer();
+    this.startSegment();
+  },
+
+  startSegment() {
+    if (!this._shouldContinueRecording || !recorderManager) return;
+    try {
+      recorderManager.start({
+        duration: CHUNK_RECORD_MS,
+        sampleRate: 16000,
+        numberOfChannels: 1,
+        encodeBitRate: 96000,
+        format: 'mp3'
+      });
+      this.clearChunkTimer();
+      chunkTimer = setTimeout(() => {
+        if (this.data.recording && recorderManager) recorderManager.stop();
+      }, CHUNK_RECORD_MS + 500);
+    } catch (error) {
+      this.setData({
+        errorMessage: '录音启动失败，请稍后重试。',
+        statusText: '录音启动失败。'
+      });
+    }
   },
 
   startRecordTimer(startedAt) {
@@ -224,11 +277,17 @@ Page({
       const elapsed = Date.now() - startedAt;
       this.setData({ recordDurationText: formatDuration(elapsed) });
       if (elapsed >= MAX_RECORD_MS) {
-        this.clearRecordTimer();
         wx.showToast({ title: '已到最长录音时长', icon: 'none' });
         this.stopRecord();
       }
     }, 1000);
+  },
+
+  startAutosaveTimer() {
+    this.clearAutosaveTimer();
+    autosaveTimer = setInterval(() => {
+      this.persistDraft('autosave');
+    }, AUTOSAVE_MS);
   },
 
   clearRecordTimer() {
@@ -238,11 +297,39 @@ Page({
     }
   },
 
-  stopRecord() {
-    if (recorderManager) recorderManager.stop();
+  clearChunkTimer() {
+    if (chunkTimer) {
+      clearTimeout(chunkTimer);
+      chunkTimer = null;
+    }
   },
 
-  transcribeAudio(audioPath) {
+  clearAutosaveTimer() {
+    if (autosaveTimer) {
+      clearInterval(autosaveTimer);
+      autosaveTimer = null;
+    }
+  },
+
+  clearTimers() {
+    this.clearRecordTimer();
+    this.clearChunkTimer();
+    this.clearAutosaveTimer();
+  },
+
+  stopRecord() {
+    this._manualStop = true;
+    this._shouldContinueRecording = false;
+    this.clearChunkTimer();
+    this.clearAutosaveTimer();
+    this.persistDraft('stop');
+    if (recorderManager) recorderManager.stop();
+    this.setData({
+      statusText: this._activeTranscribes > 0 ? '录音已停止，正在完成最后一段转写。' : '录音已停止，可以编辑文字。'
+    });
+  },
+
+  transcribeAudio(audioPath, audioFormat, appendMode) {
     if (!audioPath) {
       this.setData({
         errorMessage: '没有可转写的录音，请重新录制。',
@@ -251,16 +338,26 @@ Page({
       return;
     }
 
-    saveRecoverableDraft({ audioPath, status: 'transcribing' });
+    const nextFormat = audioFormat || inferAudioFormat(audioPath);
+    this._activeTranscribes += 1;
     this.setData({
       transcribing: true,
+      transcribingCount: this._activeTranscribes,
       errorMessage: '',
-      statusText: '正在上传并转写，录音较长时会多等一会儿。'
+      statusText: this.data.recording ? '正在录音，并分段转写文字。' : '正在转写录音。'
     });
 
-    asrTranscriber.transcribeAudio({ path: audioPath, format: 'mp3' })
+    saveRecoverableDraft({
+      audioPath,
+      audioFormat: nextFormat,
+      status: 'transcribing',
+      resultText: this.data.editableText || ''
+    });
+
+    asrTranscriber.transcribeAudio({ path: audioPath, format: nextFormat })
       .then((result) => {
         const text = result && result.text ? result.text : '';
+        const nextText = appendMode ? joinTranscript(this.data.editableText, text) : text;
         const resultMeta = result ? {
           provider: result.provider || result.engine || '',
           engine: result.engine || result.provider || '',
@@ -271,41 +368,39 @@ Page({
           audioBytes: result.audioBytes || 0
         } : null;
         this.setData({
-          resultText: text,
-          editableText: text,
+          resultText: nextText,
+          editableText: nextText,
           resultMeta,
-          transcribing: false,
-          errorMessage: text ? '' : '没有识别到文字，可以重试或重新录制。',
-          statusText: text ? '转写完成，可以先改一遍再使用。' : '这段录音没有识别出文字。'
+          segmentCount: this.data.segmentCount + 1,
+          errorMessage: text ? '' : this.data.errorMessage,
+          statusText: this.data.recording ? '正在录音，已追加最新转写。' : '转写完成，可以先修改再使用。'
         });
-        saveRecoverableDraft({
-          audioPath,
-          resultText: text,
-          resultMeta,
-          status: text ? 'done' : 'empty'
-        });
+        this.persistDraft('transcribed');
       })
       .catch((error) => {
         this.setData({
-          transcribing: false,
-          statusText: '转写失败，但录音已保留。',
-          errorMessage: error && error.message ? error.message : '语音转写暂时不可用，录音已保留，可稍后重试。'
+          statusText: this.data.recording ? '部分转写失败，录音仍在继续。' : '转写失败，但草稿已保留。',
+          errorMessage: error && error.message ? error.message : '语音转写暂时不可用，草稿已保留。'
         });
-        saveRecoverableDraft({
-          audioPath,
-          status: 'failed',
-          errorMessage: error && error.message ? error.message : ''
+        this.persistDraft('failed');
+      })
+      .finally(() => {
+        this._activeTranscribes = Math.max(0, this._activeTranscribes - 1);
+        this.setData({
+          transcribing: this._activeTranscribes > 0,
+          transcribingCount: this._activeTranscribes
         });
       });
   },
 
   retryTranscribe() {
-    const audioPath = this.data.audioPath || (readRecoverableDraft() || {}).audioPath || '';
+    const draft = readRecoverableDraft() || {};
+    const audioPath = this.data.audioPath || draft.audioPath || '';
     if (!audioPath) {
       wx.showToast({ title: '没有可重试的录音', icon: 'none' });
       return;
     }
-    this.transcribeAudio(audioPath);
+    this.transcribeAudio(audioPath, this.data.audioFormat || draft.audioFormat || inferAudioFormat(audioPath), false);
   },
 
   onTextInput(event) {
@@ -314,12 +409,41 @@ Page({
       editableText: value,
       resultText: value
     });
+    this.persistDraft('edited');
+  },
+
+  persistDraft(status) {
+    const now = new Date();
     saveRecoverableDraft({
       audioPath: this.data.audioPath,
-      resultText: value,
+      audioFormat: this.data.audioFormat || inferAudioFormat(this.data.audioPath),
+      durationMs: Date.now() - Number(this.data.recordStartedAt || Date.now()),
+      resultText: this.data.editableText || this.data.resultText || '',
       resultMeta: this.data.resultMeta || null,
-      status: 'edited'
+      status: status || 'draft'
     });
+    this.setData({
+      hasRecoverableAudio: Boolean(this.data.audioPath || this.data.editableText),
+      savedAtText: this.formatSavedAt(now)
+    });
+    this.enableLeaveGuard();
+  },
+
+  formatSavedAt(date) {
+    return '已保存 ' + String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+  },
+
+  enableLeaveGuard() {
+    if (typeof wx.enableAlertBeforeUnload !== 'function') return;
+    wx.enableAlertBeforeUnload({
+      message: '录音转写草稿已自动保存，离开后可再次进入恢复。'
+    });
+  },
+
+  disableLeaveGuard() {
+    if (typeof wx.disableAlertBeforeUnload === 'function') {
+      wx.disableAlertBeforeUnload();
+    }
   },
 
   confirmResult() {
@@ -329,52 +453,66 @@ Page({
       return;
     }
 
+    this.disableLeaveGuard();
+    if (this.data.returnToAi) {
+      wx.setStorageSync(AI_MEDIA_INPUT_DRAFT_KEY, {
+        text,
+        source: 'asr',
+        updatedAt: new Date().toISOString()
+      });
+      wx.removeStorageSync(ASR_DRAFT_KEY);
+      wx.navigateBack({ delta: 1 });
+      return;
+    }
+
     draftService.saveDraft(text, 'asr');
     wx.removeStorageSync(ASR_DRAFT_KEY);
     wx.navigateTo({ url: '/pages/transfer/editor?source=asr' });
   },
 
   goSmartEdit() {
+    if (this.data.returnToAi) return;
+
     const text = String(this.data.editableText || this.data.resultText || '').trim();
     if (!text) {
       wx.showToast({ title: '暂无可用内容', icon: 'none' });
       return;
     }
-    const that = this;
+
     quickActionsService.listQuickActions()
-      .then(function (result) {
-        var actions = result.quickActions || [];
+      .then((result) => {
+        const actions = selectActions(result.quickActions);
         if (!actions.length) {
-          wx.showToast({ title: '暂无可用的整理任务', icon: 'none' });
+          wx.showToast({ title: '暂无可用的专业整理', icon: 'none' });
           return;
         }
-        var titles = actions.map(function (a) { return a.title; });
         wx.showActionSheet({
-          itemList: titles,
-          success: function (res) {
-            var selected = actions[res.tapIndex];
+          itemList: actions.map((action) => action.title),
+          success: (res) => {
+            const selected = actions[res.tapIndex];
             if (!selected) return;
-            that.setData({ transcribing: true });
+            this.setData({ transcribing: true });
             aiAssistant.generateContent({
-              text: text,
+              text,
               type: 'content_polish',
               actionId: selected.id
-            }).then(function (aiResult) {
-              var newText = aiResult.bodyText || aiResult.resultText || text;
-              that.setData({
+            }).then((aiResult) => {
+              const newText = aiResult.bodyText || aiResult.resultText || text;
+              this.setData({
                 editableText: newText,
                 resultText: newText,
                 transcribing: false
               });
-            }).catch(function (error) {
-              that.setData({ transcribing: false });
-              wx.showToast({ title: error.message || 'AI整理暂时不可用', icon: 'none' });
+              this.persistDraft('edited');
+            }).catch((error) => {
+              this.setData({ transcribing: false });
+              wx.showToast({ title: error.message || '专业整理暂时不可用', icon: 'none' });
             });
           }
         });
       })
-      .catch(function () {
-        wx.showToast({ title: '加载任务列表失败', icon: 'none' });
+      .catch(() => {
+        wx.showToast({ title: '加载整理能力失败', icon: 'none' });
       });
   }
 });

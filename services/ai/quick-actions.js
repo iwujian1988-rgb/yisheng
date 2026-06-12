@@ -1,12 +1,11 @@
 var request = require('../api/client').request;
 var ENDPOINTS = require('../api/endpoints').ENDPOINTS;
-var isBluetoothConnected = require('../entitlements/features').isBluetoothConnected;
 
-function listQuickActions() {
+function listQuickActions(connected) {
+  var url = ENDPOINTS.ai.quickActions;
   return request({
-    url: ENDPOINTS.ai.quickActions,
-    method: 'GET',
-    data: { deviceConnected: isBluetoothConnected() }
+    url: url,
+    method: 'GET'
   }).then(function (data) {
     if (data && Array.isArray(data.quickActions)) return data;
     return { defaultPrompt: '', categories: [], quickActions: [] };

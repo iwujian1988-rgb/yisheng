@@ -1,38 +1,41 @@
 <view class="asr-container">
   <view class="record-panel">
     <text class="panel-title">语音转文字</text>
-    <text class="panel-desc">最长支持 60 分钟。结束后会自动转写，转写结果可以手动修改。</text>
+    <text class="panel-desc">录音时会分段转写，文字会持续追加到下方。最长支持 60 分钟，每 30 秒自动保存草稿。</text>
 
     <view
-      class="record-btn {{recording ? 'recording' : ''}} {{transcribing ? 'disabled' : ''}}"
+      class="record-btn {{recording ? 'recording' : ''}}"
       bindtap="toggleRecord"
     >
       <text class="record-icon">{{recording ? '停止' : '录音'}}</text>
     </view>
 
     <text class="record-status">{{recording ? '正在录音 ' + recordDurationText : statusText}}</text>
-    <text wx:if="{{recording}}" class="record-hint">请保持小程序在前台，并靠近手机麦克风。</text>
-    <text wx:elif="{{hasRecoverableAudio && !transcribing}}" class="record-hint">上次录音已保留，失败后可直接重试。</text>
+    <text wx:if="{{recording}}" class="record-hint">请保持小程序在前台，转写结果会分段出现。</text>
+    <text wx:elif="{{transcribing}}" class="record-hint">正在处理 {{transcribingCount}} 段录音，请稍等。</text>
+    <text wx:elif="{{savedAtText}}" class="record-hint">{{savedAtText}}，退出后可恢复草稿。</text>
+    <text wx:elif="{{hasRecoverableAudio}}" class="record-hint">检测到草稿或录音，可以继续编辑或重试。</text>
   </view>
 
   <view class="result-section">
     <view class="result-head">
       <text class="result-label">转写结果</text>
-      <text wx:if="{{resultMeta}}" class="result-meta">{{resultMeta.elapsedMs}}ms</text>
+      <text wx:if="{{segmentCount > 0}}" class="result-meta">已转写 {{segmentCount}} 段</text>
+      <text wx:elif="{{resultMeta}}" class="result-meta">{{resultMeta.elapsedMs}}ms</text>
     </view>
     <view class="result-box">
-      <text wx:if="{{transcribing}}" class="result-empty">正在上传并转写，请不要关闭小程序。</text>
       <textarea
-        wx:elif="{{editableText}}"
+        wx:if="{{editableText}}"
         class="result-textarea"
         value="{{editableText}}"
         maxlength="-1"
         auto-height="{{true}}"
         bindinput="onTextInput"
-        placeholder="转写结果会显示在这里"
+        placeholder="转写结果会显示在这里，可直接修改"
       />
+      <text wx:elif="{{recording || transcribing}}" class="result-empty">正在等待第一段转写结果...</text>
       <text wx:elif="{{errorMessage}}" class="result-empty">{{errorMessage}}</text>
-      <text wx:else class="result-empty">录音结束后，文字会显示在这里。</text>
+      <text wx:else class="result-empty">开始录音后，文字会每隔一段时间自动追加到这里。</text>
     </view>
   </view>
 
@@ -45,18 +48,19 @@
       重试转写
     </button>
     <button
+      wx:if="{{!returnToAi}}"
       class="secondary-btn"
       disabled="{{recording || transcribing || !editableText}}"
       bindtap="goSmartEdit"
     >
-      智能整理
+      专业整理
     </button>
     <button
       class="primary-btn"
       disabled="{{recording || transcribing || !editableText}}"
       bindtap="confirmResult"
     >
-      使用这段
+      {{returnToAi ? '填入 AI' : '使用这段'}}
     </button>
   </view>
 </view>

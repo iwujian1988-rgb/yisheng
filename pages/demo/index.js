@@ -1,3 +1,5 @@
+const featureEntitlements = require('../../services/entitlements/features');
+
 Page({
   data: {},
 
@@ -14,6 +16,7 @@ Page({
   },
 
   goAI() {
+    if (!featureEntitlements.guardAiFeature('aiWriting', '智能创作')) return;
     wx.navigateTo({ url: '/pages/ai/detail' });
   }
 });

@@ -13,6 +13,14 @@ Page({
   },
 
   onLoad(options) {
+    if (!featureEntitlements.guardAiFeature('templates', '场景模板')) {
+      wx.navigateBack({
+        delta: 1,
+        fail: function () { wx.reLaunch({ url: '/pages/home/home' }); }
+      });
+      return;
+    }
+
     if (options.template) {
       const template = this.parseTemplate(options.template);
       this.applyTemplate(template);
