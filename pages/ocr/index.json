@@ -1,6 +1,11 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "图片取字",
+  "usingComponents": {
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-checkbox": "tdesign-miniprogram/checkbox/checkbox",
+    "t-loading": "tdesign-miniprogram/loading/loading"
+  },
+  "navigationBarTitleText": "图片识别",
   "navigationBarTextStyle": "black",
   "navigationBarBackgroundColor": "#FFFFFF"
 }

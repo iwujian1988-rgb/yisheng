@@ -352,7 +352,6 @@ function createMemoryStore() {
     templates: templates,
     quickActions: quickActions,
     defaultPrompts: createDefaultPrompts(),
-    encryptedHistory: [],
     feedbacks: [],
     issues: [],
     auditLogs: [],

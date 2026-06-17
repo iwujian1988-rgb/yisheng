@@ -36,10 +36,6 @@
         <text class="entry-text">发送文本</text>
         <text class="entry-arrow">›</text>
       </view>
-      <view class="entry-item" bindtap="goHistory">
-        <text class="entry-text">历史记录</text>
-        <text class="entry-arrow">›</text>
-      </view>
       <view class="entry-item" bindtap="goHelp">
         <text class="entry-text">帮助中心</text>
         <text class="entry-arrow">›</text>

@@ -1,4 +1,4 @@
-const { request } = require('../api/client');
+const { request, getBaseUrl } = require('../api/client');
 const { ENDPOINTS } = require('../api/endpoints');
 const devAuth = require('./dev-auth');
 const {
@@ -37,6 +37,9 @@ function persistSession(profile) {
   if (profile.device) {
     wx.setStorageSync('boundDevice', profile.device);
   }
+  if (profile.token && profile.purchaseStatus === 'paid' && profile.deviceBindingStatus === 'bound') {
+    deviceSession.ensureActiveSession().catch(() => null);
+  }
 }
 
 function clearSession() {
@@ -51,7 +54,7 @@ function clearSession() {
 }
 
 function loginWithPassword(account, password) {
-  if (!getApiBaseUrl()) {
+  if (!getBaseUrl()) {
     return devAuth.loginWithPassword(account, password).then((payload) => {
       const profile = normalizeSessionPayload(payload);
       persistSession(profile);
@@ -70,8 +73,24 @@ function loginWithPassword(account, password) {
   });
 }
 
+function loginWithPhoneCode(phone, code, wechatCode, userInfo) {
+  const loginRequest = !getBaseUrl()
+    ? devAuth.loginWithPhoneCode(phone, code, wechatCode, userInfo)
+    : request({
+      url: ENDPOINTS.auth.login,
+      method: 'POST',
+      data: { phone, code, wechatCode, userInfo }
+    });
+
+  return loginRequest.then((payload) => {
+    const profile = normalizeSessionPayload(payload);
+    persistSession(profile);
+    return profile;
+  });
+}
+
 function loginWithWechat(code, userInfo) {
-  const loginRequest = !getApiBaseUrl()
+  const loginRequest = !getBaseUrl()
     ? devAuth.loginWithWechat(code, userInfo)
     : request({
       url: ENDPOINTS.auth.wechatLogin,
@@ -98,13 +117,8 @@ function getStoredSessionSummary() {
   };
 }
 
-function getApiBaseUrl() {
-  const app = typeof getApp === 'function' ? getApp() : null;
-  return (app && app.globalData && app.globalData.baseUrl) || '';
-}
-
 function refreshCurrentSession() {
-  if (!getApiBaseUrl()) {
+  if (!getBaseUrl()) {
     return Promise.resolve(getStoredSessionSummary());
   }
 
@@ -122,7 +136,7 @@ function refreshCurrentSession() {
 }
 
 function requestRegisterCode(phone) {
-  if (!getApiBaseUrl()) {
+  if (!getBaseUrl()) {
     return devAuth.requestRegisterCode(phone);
   }
 
@@ -134,7 +148,7 @@ function requestRegisterCode(phone) {
 }
 
 function registerWithPhone(phone, code, password) {
-  const registerRequest = !getApiBaseUrl()
+  const registerRequest = !getBaseUrl()
     ? devAuth.registerWithPhone(phone, code, password)
     : request({
       url: ENDPOINTS.auth.register,
@@ -150,7 +164,7 @@ function registerWithPhone(phone, code, password) {
 }
 
 function requestResetCode(phone) {
-  if (!getApiBaseUrl()) {
+  if (!getBaseUrl()) {
     return devAuth.requestResetCode(phone);
   }
 
@@ -162,7 +176,7 @@ function requestResetCode(phone) {
 }
 
 function resetPassword(phone, code, password) {
-  if (!getApiBaseUrl()) {
+  if (!getBaseUrl()) {
     return devAuth.resetPassword(phone, code, password);
   }
 
@@ -178,6 +192,7 @@ module.exports = {
   persistSession,
   clearSession,
   loginWithPassword,
+  loginWithPhoneCode,
   loginWithWechat,
   refreshCurrentSession,
   getStoredSessionSummary,

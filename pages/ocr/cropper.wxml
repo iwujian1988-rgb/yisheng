@@ -1,0 +1,17 @@
+<view class="container">
+  <image-cropper
+    id="imageCropper"
+    img-src="{{imageSrc}}"
+    toolbar-height="{{toolbarHeight}}"
+    bind:load="cropperLoad"
+    bind:imageload="imageLoad"
+    bind:tapcut="clickCut"
+  />
+
+  <view class="bottom-toolbar">
+    <button class="toolbar-btn rotate-btn" bindtap="onRotateTap">
+      <text class="rotate-icon">⟳</text>
+    </button>
+    <button class="toolbar-btn confirm-btn" bindtap="onConfirmTap">识别文字</button>
+  </view>
+</view>

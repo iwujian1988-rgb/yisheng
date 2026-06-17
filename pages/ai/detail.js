@@ -5,6 +5,7 @@ var conversationManager = require('../../services/ai/conversation');
 var featureEntitlements = require('../../services/entitlements/features');
 var draftService = require('../../services/content/draft');
 var deviceSession = require('../../services/device/session');
+var tabBarNav = require('../../services/navigation/tab-bar');
 
 var AI_MEDIA_INPUT_DRAFT_KEY = 'aiMediaInputDraft';
 
@@ -83,6 +84,7 @@ Page({
   },
 
   onShow: function () {
+    tabBarNav.syncTabBar(this, 'pages/ai/detail');
     this.consumeMediaInputDraft();
     this.prepareWorkspace();
   },
@@ -357,7 +359,7 @@ Page({
   },
 
   goImage: function () {
-    this.openMediaInput('/pages/ocr/index?returnTo=ai&auto=1', '图片识别');
+    wx.showToast({ title: '请从首页进入图片识别', icon: 'none' });
   },
 
   openMediaInput: function (url, name) {

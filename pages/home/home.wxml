@@ -1,82 +1,122 @@
-<view class="container">
-  <view class="device-strip">
-    <view class="status-dot {{connected ? 'connected' : ''}}"></view>
-    <text class="device-strip-text">设备：{{statusText}}</text>
-    <text class="device-strip-action" bindtap="onConnectTap">{{connected ? '查看' : '连接'}}</text>
+<view class="page-home">
+  <view class="connect-guide section-block" wx:if="{{!connected}}">
+    <view class="connect-guide__head">
+      <t-icon name="bluetooth" size="40rpx" color="#1677FF" />
+      <text class="connect-guide__title">尚未连接电脑端设备</text>
+    </view>
+    <text class="connect-guide__desc">连接蓝牙设备后，内容将自动输入到电脑</text>
+    <t-button theme="primary" block bind:tap="goConnect" t-class="connect-guide__btn">
+      立即连接设备
+    </t-button>
   </view>
 
-  <view class="card creation-card">
-    <view class="card-header">
-      <text class="card-title">准备要发送的内容</text>
-    </view>
+  <t-cell-group wx:else theme="card" t-class="section-block device-status-group">
+    <t-cell
+      title="{{statusTitle}}"
+      description="{{statusDesc}}"
+      arrow
+      hover
+      bind:click="onConnectTap"
+      t-class-left="device-status-left"
+    >
+      <view slot="left-icon" class="status-dot-wrap">
+        <view class="status-dot connected"></view>
+      </view>
+      <view slot="note">
+        <t-tag wx:if="{{connected}}" theme="success" variant="light" size="small">已连接</t-tag>
+        <t-tag wx:else theme="default" variant="light" size="small">未连接</t-tag>
+      </view>
+    </t-cell>
+  </t-cell-group>
 
-    <view class="template-feature" bindtap="goTemplates">
-      <view class="feature-copy">
-        <text class="feature-title">场景模板</text>
-        <text class="feature-desc">按场景快速生成可编辑文本</text>
-      </view>
-      <text class="feature-arrow">›</text>
+  <view class="composer-card section-block">
+    <view class="composer-head">
+      <text class="composer-title">发送内容</text>
+      <text class="char-count">{{inputText.length}}/5000</text>
     </view>
-
-    <view class="edit-entry" bindtap="goManualInput">
-      <text class="edit-icon">TXT</text>
-      <view class="edit-copy">
-        <text class="edit-title">直接编辑</text>
-        <text class="edit-desc">手动输入或粘贴文本，然后发送到电脑</text>
-      </view>
-      <text class="feature-arrow">›</text>
+    <t-textarea
+      placeholder="输入或粘贴要发送到电脑的内容"
+      value="{{inputText}}"
+      maxlength="5000"
+      autosize="{{textareaAutosize}}"
+      disable-default-padding
+      bind:change="onTextInput"
+      t-class="composer-textarea"
+    />
+    <view class="composer-actions" wx:if="{{inputText}}">
+      <t-button variant="text" size="small" bind:tap="onClearTap">清空</t-button>
     </view>
-
-    <view class="source-title-row">
-      <text class="source-title">AI 辅助输入</text>
-    </view>
-    <view class="source-grid">
-      <view class="source-item" bindtap="goAi">
-        <text class="quick-icon">AI</text>
-        <text class="quick-title">智能创作</text>
+    <view class="composer-send">
+      <view class="speed-mode-hint" wx:if="{{speedModeText}}" bindtap="goTransferSettings">
+        <text class="speed-mode-hint__text">{{speedModeText}}</text>
+        <text class="speed-mode-hint__link">调整</text>
       </view>
-      <view class="source-item" bindtap="goOcr">
-        <text class="quick-icon">OCR</text>
-        <text class="quick-title">图片识别</text>
-      </view>
-      <view class="source-item" bindtap="goAsr">
-        <text class="quick-icon">ASR</text>
-        <text class="quick-title">语音转写</text>
+      <view class="composer-send-actions">
+      <t-button
+        wx:if="{{sending}}"
+        variant="outline"
+        size="medium"
+        bind:tap="onCancelSendTap"
+        t-class="cancel-send-btn"
+      >
+        取消
+      </t-button>
+      <t-button
+        wx:if="{{!connected && !sending}}"
+        theme="light"
+        block
+        bind:tap="goConnect"
+        t-class="send-action-btn"
+      >
+        请先连接设备
+      </t-button>
+      <t-button
+        wx:else
+        theme="primary"
+        block
+        loading="{{sending}}"
+        disabled="{{!canSend || sending || !connected}}"
+        bind:tap="onSendTap"
+        t-class="send-action-btn"
+      >
+        {{sending ? '发送中 ' + sendProgress + '%' : '发送到电脑'}}
+      </t-button>
       </view>
     </view>
   </view>
 
-  <view class="banner" wx:if="{{banner}}" bindtap="openBanner">
+  <view class="section-label">更多输入方式</view>
+
+  <t-cell-group theme="card" t-class="section-block tool-group">
+    <t-cell
+      title="图片识别"
+      description="图片转文字"
+      leftIcon="scan"
+      arrow
+      hover
+      bind:click="goOcr"
+    />
+    <t-cell
+      title="语音转写"
+      description="语音转文字"
+      leftIcon="sound"
+      arrow
+      hover
+      bind:click="goAsr"
+    />
+  </t-cell-group>
+
+  <view class="help-entry" bindtap="openHelp">
+    <t-icon name="help-circle" size="28rpx" color="rgba(0,0,0,0.26)" />
+    <text class="help-entry__text">使用帮助</text>
+  </view>
+
+  <view class="banner section-block" wx:if="{{banner}}" bindtap="openBanner">
+    <t-icon name="info-circle" size="36rpx" color="#1677FF" t-class="banner-icon" />
     <view class="banner-copy">
       <text class="banner-title">{{banner.title}}</text>
       <text class="banner-subtitle">{{banner.subtitle}}</text>
     </view>
-    <text class="banner-arrow">›</text>
-  </view>
-
-  <view class="section-head">
-    <text class="section-title">最近发送</text>
-    <text class="quick-more" bindtap="goHistory">全部</text>
-  </view>
-
-  <view class="recent-list" wx:if="{{recentRecords.length > 0}}">
-    <view
-      class="recent-item"
-      wx:for="{{recentRecords}}"
-      wx:key="id"
-      bindtap="openHistoryRecord"
-      data-id="{{item.id}}"
-    >
-      <view class="recent-main">
-        <text class="recent-type">{{item.type}}</text>
-        <text class="recent-time">{{item.time}}</text>
-      </view>
-      <text class="recent-meta">{{item.length}}</text>
-    </view>
-  </view>
-
-  <view class="empty-recent" wx:elif="{{!loadingRecords}}">
-    <text class="empty-title">还没有发送记录</text>
-    <text class="empty-desc">完成一次发送后，会在这里快速查看。</text>
+    <t-icon name="chevron-right" size="32rpx" color="rgba(0,0,0,0.26)" />
   </view>
 </view>

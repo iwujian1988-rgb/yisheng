@@ -1,6 +1,8 @@
 .templates-container {
   min-height: 100vh;
   background-color: #F5F7FA;
+  padding-bottom: var(--app-tab-bar-height, 100rpx);
+  box-sizing: border-box;
 }
 
 .tab-bar {

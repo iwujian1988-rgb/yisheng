@@ -2,7 +2,7 @@
   <view class="device-strip">
     <view class="status-dot {{connected ? 'connected' : ''}}"></view>
     <text class="device-strip-text">设备：{{statusText}}</text>
-    <text class="device-strip-action" bindtap="onConnectTap">{{bluetoothBypass ? '本地测试' : (connected ? '断开' : '连接')}}</text>
+    <text class="device-strip-action" bindtap="onConnectTap">{{connected ? '断开' : '连接'}}</text>
   </view>
 
   <view class="editor-card">
@@ -32,7 +32,7 @@
       bindtap="onSendTap"
       disabled="{{!connected || !inputText || sending}}"
     >
-      {{sending ? '发送中 ' + sendProgress + '%' : (bluetoothBypass ? '模拟发送' : '发送到电脑')}}
+      {{sending ? '发送中 ' + sendProgress + '%' : '发送到电脑'}}
     </button>
   </view>
 </view>

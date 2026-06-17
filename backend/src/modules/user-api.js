@@ -4,29 +4,14 @@ const { config } = require('../config');
 const { verifyPassword } = require('../security/password');
 const { publicDevice } = require('./auth');
 const deviceSession = require('../security/device-session');
+const contentAccess = require('../security/content-access');
 
 function createUserApiModule(deps) {
   var store = deps.store;
   var auth = deps.auth;
 
-  function isDevOnlyEnvelope(envelope) {
-    var version = String(envelope && envelope.version || '');
-    var algorithm = String(envelope && envelope.algorithm || '');
-    return version === 'local-v1' ||
-      version === 'dev-local-v1' ||
-      algorithm === 'local-base64-placeholder' ||
-      algorithm === 'dev-local-base64-placeholder';
-  }
-
-  function canAccessTemplate(template, isMember, hasProfessionalAccess) {
-    if (!template || template.status !== 'published') return false;
-    if (template.audience === 'professional') return isMember && hasProfessionalAccess;
-    return true;
-  }
-
   function isMemberActive(userId) {
-    var user = store.users.find((item) => item.id === userId);
-    return Boolean(user && user.memberStatus === 'active');
+    return contentAccess.isMemberActive(store, userId);
   }
 
   function publicQuickAction(item) {
@@ -41,12 +26,6 @@ function createUserApiModule(deps) {
       outputHint: item.outputHint || '',
       sortOrder: Number(item.sortOrder || 0)
     };
-  }
-
-  function canAccessQuickAction(item, isMember, hasProfessionalAccess) {
-    if (!item || item.status !== 'published') return false;
-    if (item.audience === 'professional') return isMember && hasProfessionalAccess;
-    return true;
   }
 
   function publicTemplate(item) {
@@ -329,20 +308,27 @@ function createUserApiModule(deps) {
     ok(res, publicDevice(device));
   }
 
+  function syncDeviceBleIdentity(device, bleName, bleId, now) {
+    if (bleId) device.mac = bleId;
+    if (bleName) device.serialNo = bleName;
+    device.updatedAt = now || nowIso();
+    return device;
+  }
+
   async function autoBindDevice(req, res) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
-    var existing = store.devices.find(
-      (item) => item.boundUserId === actor.id && item.bindStatus === 'bound'
-    );
-    if (existing) {
-      ok(res, publicDevice(existing));
-      return;
-    }
     var body = await parseBody(req);
     var bleName = String(body.bleDeviceName || '').trim();
     var bleId = String(body.bleDeviceId || '').trim();
     var now = nowIso();
+    var existing = store.devices.find(
+      (item) => item.boundUserId === actor.id && item.bindStatus === 'bound'
+    );
+    if (existing) {
+      ok(res, publicDevice(syncDeviceBleIdentity(existing, bleName, bleId, now)));
+      return;
+    }
     var device = store.devices.find((item) => {
       return (bleName && item.serialNo === bleName) || (bleId && item.mac === bleId);
     });
@@ -376,12 +362,11 @@ function createUserApiModule(deps) {
       fail(res, 409, 'DEVICE_ALREADY_BOUND', 'device already bound');
       return;
     }
-    if (bleId && !device.mac) device.mac = bleId;
+    syncDeviceBleIdentity(device, bleName, bleId, now);
     device.bindStatus = 'bound';
     device.boundUserId = actor.id;
     device.reservedUserId = '';
-    device.boundAt = now;
-    device.updatedAt = now;
+    device.boundAt = device.boundAt || now;
     ok(res, publicDevice(device));
   }
 
@@ -445,64 +430,6 @@ function createUserApiModule(deps) {
     device.boundAt = '';
     device.updatedAt = nowIso();
     ok(res, publicDevice(device));
-  }
-
-  async function saveHistory(req, res) {
-    var actor = auth.requireUser(req, res);
-    if (!actor) return;
-    var body = await parseBody(req);
-    if (!body.ciphertext || !body.envelope) {
-      fail(res, 400, 'ENCRYPTED_CONTENT_REQUIRED', 'ciphertext and envelope required');
-      return;
-    }
-    if (config.env === 'production' && isDevOnlyEnvelope(body.envelope)) {
-      fail(res, 400, 'PRODUCTION_ENCRYPTION_REQUIRED', 'production history requires a non-placeholder envelope');
-      return;
-    }
-    var item = {
-      id: body.id || createId('hist'),
-      userId: actor.id,
-      ciphertext: body.ciphertext,
-      envelope: body.envelope,
-      source: body.source || 'manual',
-      textLength: Number(body.textLength || 0),
-      status: body.status || 'success',
-      success: body.success !== false,
-      createdAt: body.createdAt || nowIso()
-    };
-    store.encryptedHistory.unshift(item);
-    ok(res, {
-      id: item.id,
-      source: item.source,
-      textLength: item.textLength,
-      status: item.status,
-      success: item.success,
-      createdAt: item.createdAt
-    });
-  }
-
-  function listHistory(req, res) {
-    var actor = auth.requireUser(req, res);
-    if (!actor) return;
-    ok(res, store.encryptedHistory.filter((item) => item.userId === actor.id).map((item) => ({
-      id: item.id,
-      source: item.source,
-      textLength: item.textLength,
-      status: item.status,
-      success: item.success !== false,
-      createdAt: item.createdAt
-    })));
-  }
-
-  function historyDetail(req, res, ctx) {
-    var actor = auth.requireUser(req, res);
-    if (!actor) return;
-    var item = store.encryptedHistory.find((record) => record.id === ctx.params.id && record.userId === actor.id);
-    if (!item) {
-      fail(res, 404, 'HISTORY_NOT_FOUND', 'history not found');
-      return;
-    }
-    ok(res, item);
   }
 
   function purchaseEntitlement(req, res) {
@@ -645,10 +572,16 @@ function createUserApiModule(deps) {
   function listTemplates(req, res, ctx) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
-    var isMember = isMemberActive(actor.id);
-    var hasProfessionalAccess = deviceSession.hasDeviceSession(store, req, actor.id, 'professional_templates');
-    var accessible = store.templates
-      .filter((item) => canAccessTemplate(item, isMember, hasProfessionalAccess));
+    var accessContext = contentAccess.getAccessContext({
+      store,
+      req,
+      actor,
+      businessKey: 'templates'
+    });
+    var accessible = contentAccess.filterVisibleItems(store.templates, {
+      businessKey: 'templates',
+      context: accessContext
+    });
     var categories = [];
     accessible.forEach((item) => {
       if (item.category && categories.indexOf(item.category) === -1) {
@@ -664,11 +597,16 @@ function createUserApiModule(deps) {
   function listQuickActions(req, res, ctx) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
-    var isMember = isMemberActive(actor.id);
-    var hasProfessionalAccess = deviceSession.hasDeviceSession(store, req, actor.id, 'professional_quick_actions');
-    var accessible = (store.quickActions || [])
-      .filter((item) => canAccessQuickAction(item, isMember, hasProfessionalAccess))
-      .filter((item) => hasProfessionalAccess ? item.audience === 'professional' : item.audience !== 'professional')
+    var accessContext = contentAccess.getAccessContext({
+      store,
+      req,
+      actor,
+      businessKey: 'quickActions'
+    });
+    var accessible = contentAccess.filterVisibleItems(store.quickActions || [], {
+      businessKey: 'quickActions',
+      context: accessContext
+    })
       .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
     var categories = [];
     accessible.forEach((item) => {
@@ -688,21 +626,23 @@ function createUserApiModule(deps) {
   function templateDetail(req, res, ctx) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
-    var isMember = isMemberActive(actor.id);
     var item = findTemplate(ctx.params.id);
-    if (!item || item.status !== 'published') {
+    if (!item) {
       fail(res, 404, 'TEMPLATE_NOT_FOUND', 'template not found');
       return;
     }
-    if (item.audience === 'professional') {
-      var detailAccess = deviceSession.resolveDeviceSession(store, req, actor.id, 'professional_templates');
-      if (!detailAccess.ok) {
-        fail(res, 403, detailAccess.code, detailAccess.message);
-        return;
-      }
-    }
-    if (!canAccessTemplate(item, isMember, item.audience === 'professional')) {
-      fail(res, 403, 'TEMPLATE_ACCESS_DENIED', 'template access denied');
+    var access = contentAccess.requireItemAccess(item, {
+      store,
+      req,
+      actor,
+      businessKey: 'templates',
+      notFoundCode: 'TEMPLATE_NOT_FOUND',
+      notFoundMessage: 'template not found',
+      deniedCode: 'TEMPLATE_ACCESS_DENIED',
+      deniedMessage: 'template access denied'
+    });
+    if (!access.ok) {
+      fail(res, access.statusCode, access.code, access.message);
       return;
     }
     ok(res, publicTemplate(item));
@@ -722,17 +662,18 @@ function createUserApiModule(deps) {
       fail(res, 404, 'TEMPLATE_NOT_FOUND', 'template not found');
       return;
     }
-    var hasProfessionalAccess = false;
-    if (item.audience === 'professional') {
-      var access = deviceSession.resolveDeviceSession(store, req, actor.id, 'professional_templates');
-      if (!access.ok) {
-        fail(res, 403, access.code, access.message);
-        return;
-      }
-      hasProfessionalAccess = true;
-    }
-    if (!canAccessTemplate(item, isMember, hasProfessionalAccess)) {
-      fail(res, 403, 'TEMPLATE_ACCESS_DENIED', 'template access denied');
+    var access = contentAccess.requireItemAccess(item, {
+      store,
+      req,
+      actor,
+      businessKey: 'templates',
+      notFoundCode: 'TEMPLATE_NOT_FOUND',
+      notFoundMessage: 'template not found',
+      deniedCode: 'TEMPLATE_ACCESS_DENIED',
+      deniedMessage: 'template access denied'
+    });
+    if (!access.ok) {
+      fail(res, access.statusCode, access.code, access.message);
       return;
     }
     var values = normalizeFieldValues(body.values || body.fields || {});
@@ -796,15 +737,12 @@ function createUserApiModule(deps) {
     bindDevice,
     firmware,
     generateTemplate,
-    historyDetail,
-    listHistory,
     listLongTextTests,
     listQuickActions,
     listTemplates,
     mineDevice,
     purchaseEntitlement,
     purchaseRecords,
-    saveHistory,
     saveLongTextTest,
     startDeviceSession,
     submitBugReport,

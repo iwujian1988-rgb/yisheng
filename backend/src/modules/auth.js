@@ -1,9 +1,11 @@
 const { fail, getBearerToken, getIp, ok, parseBody } = require('../http');
 const { maskPhone } = require('../security/masking');
-const { verifyPassword } = require('../security/password');
+const { hashPassword, verifyPassword } = require('../security/password');
 const { writeAudit } = require('../security/audit');
 const { createId, nowIso } = require('../security/ids');
 const { config } = require('../config');
+
+const TEST_VERIFICATION_CODE = '123456';
 
 function publicUser(user) {
   return {
@@ -44,6 +46,84 @@ function createAuthModule(deps) {
       device: publicDevice(device),
       features: user.features || {}
     };
+  }
+
+  function normalizePhone(phone) {
+    return String(phone || '').trim();
+  }
+
+  function isValidPhone(phone) {
+    return /^1[3-9]\d{9}$/.test(phone);
+  }
+
+  function validatePhoneCode(phone, code, res) {
+    if (!isValidPhone(phone)) {
+      fail(res, 400, 'INVALID_PHONE', '请输入正确的手机号码');
+      return false;
+    }
+    if (String(code || '').trim() !== TEST_VERIFICATION_CODE) {
+      fail(res, 400, 'INVALID_VERIFICATION_CODE', '验证码错误，请重新输入');
+      return false;
+    }
+    return true;
+  }
+
+  function findUserByWechat(identity) {
+    if (!identity) return null;
+    return store.users.find((item) => {
+      return item.openid === identity.openid || (identity.unionid && item.unionid === identity.unionid);
+    }) || null;
+  }
+
+  function createPhoneUser(phone, identity, body, now) {
+    return {
+      id: createId('user'),
+      openid: identity ? identity.openid : '',
+      unionid: identity ? identity.unionid || '' : '',
+      phone: phone,
+      nickname: (body.userInfo && body.userInfo.nickName) || '',
+      passwordHash: body.password ? hashPassword(String(body.password)) : '',
+      status: 'active',
+      memberStatus: 'none',
+      memberStart: '',
+      memberEnd: '',
+      disabledAt: '',
+      disabledReason: '',
+      lastLogin: '',
+      registerSource: 'phone',
+      features: {},
+      createdAt: now,
+      updatedAt: now
+    };
+  }
+
+  function issueUserSession(user) {
+    var actor = {
+      kind: 'user',
+      id: user.id,
+      openid: user.openid
+    };
+    var token = sessions.issueSession(actor);
+    return buildUserSession(user, token);
+  }
+
+  function bindWechatIdentity(user, identity, body, res) {
+    if (!identity) return true;
+    var boundUser = findUserByWechat(identity);
+    if (boundUser && boundUser.id !== user.id) {
+      fail(res, 409, 'WECHAT_ALREADY_BOUND', '当前微信已绑定其他手机号，请使用原手机号登录或联系客服处理');
+      return false;
+    }
+    if (user.openid && user.openid !== identity.openid) {
+      fail(res, 409, 'PHONE_BOUND_TO_OTHER_WECHAT', '该手机号已绑定其他微信账号，请使用原微信登录或联系客服解绑');
+      return false;
+    }
+    if (!user.openid) user.openid = identity.openid;
+    if (!user.unionid && identity.unionid) user.unionid = identity.unionid;
+    if (body.userInfo && body.userInfo.nickName && !user.nickname) {
+      user.nickname = body.userInfo.nickName;
+    }
+    return true;
   }
 
   function requireAdmin(req, res, roles) {
@@ -162,30 +242,11 @@ function createAuthModule(deps) {
       fail(res, 502, 'WECHAT_LOGIN_FAILED', error.message || '微信登录失败');
       return;
     }
-    var user = store.users.find((item) => {
-      return item.openid === wxIdentity.openid || (wxIdentity.unionid && item.unionid === wxIdentity.unionid);
-    });
+    var user = findUserByWechat(wxIdentity);
     var now = nowIso();
     if (!user) {
-      user = {
-        id: createId('user'),
-        openid: wxIdentity.openid,
-        unionid: wxIdentity.unionid || '',
-        phone: '',
-        nickname: (body.userInfo && body.userInfo.nickName) || '',
-        status: 'active',
-        memberStatus: 'none',
-        memberStart: '',
-        memberEnd: '',
-        disabledAt: '',
-        disabledReason: '',
-        lastLogin: '',
-        registerSource: 'wechat',
-        features: {},
-        createdAt: now,
-        updatedAt: now
-      };
-      store.users.push(user);
+      fail(res, 404, 'WECHAT_NOT_BOUND', '微信未绑定账号，请用手机号验证码登录');
+      return;
     }
     if (body.userInfo && body.userInfo.nickName && !user.nickname) {
       user.nickname = body.userInfo.nickName;
@@ -193,13 +254,109 @@ function createAuthModule(deps) {
     user.lastLogin = now;
     user.updatedAt = now;
 
-    var actor = {
-      kind: 'user',
-      id: user.id,
-      openid: user.openid
-    };
-    var token = sessions.issueSession(actor);
-    ok(res, buildUserSession(user, token));
+    ok(res, issueUserSession(user));
+  }
+
+  async function requestRegisterCode(req, res) {
+    var body = await parseBody(req);
+    var phone = normalizePhone(body.phone);
+    if (!isValidPhone(phone)) {
+      fail(res, 400, 'INVALID_PHONE', '请输入正确的手机号码');
+      return;
+    }
+    ok(res, {
+      phone: maskPhone(phone),
+      verificationCode: TEST_VERIFICATION_CODE,
+      expiresIn: 300
+    });
+  }
+
+  async function phoneCodeLogin(req, res) {
+    var body = await parseBody(req);
+    var phone = normalizePhone(body.phone || body.account);
+    var code = String(body.code || body.verificationCode || '').trim();
+    if (!validatePhoneCode(phone, code, res)) return;
+
+    var wxIdentity = null;
+    var wechatCode = String(body.wechatCode || '').trim();
+    if (wechatCode) {
+      try {
+        wxIdentity = await exchangeWechatCode(wechatCode);
+      } catch (error) {
+        console.error('[auth] wechat code exchange failed:', error.message);
+        fail(res, 502, 'WECHAT_LOGIN_FAILED', error.message || '微信登录失败');
+        return;
+      }
+    }
+
+    var now = nowIso();
+    var user = store.users.find((item) => item.phone === phone);
+    if (!user) {
+      user = createPhoneUser(phone, wxIdentity, body, now);
+      store.users.push(user);
+    } else {
+      if (!bindWechatIdentity(user, wxIdentity, body, res)) return;
+      if (body.password && !user.passwordHash) {
+        user.passwordHash = hashPassword(String(body.password));
+      }
+    }
+
+    user.lastLogin = now;
+    user.updatedAt = now;
+    ok(res, issueUserSession(user));
+  }
+
+  async function login(req, res) {
+    var body = await parseBody(req);
+    if (body.phone || body.code || body.verificationCode) {
+      req.__body = body;
+      return phoneCodeLoginWithBody(body, res);
+    }
+
+    var account = String(body.account || '').trim();
+    var password = String(body.password || '');
+    var user = store.users.find((item) => item.phone === account);
+    if (!user || !user.passwordHash || !verifyPassword(password, user.passwordHash)) {
+      fail(res, 401, 'INVALID_CREDENTIALS', '账号或密码错误');
+      return;
+    }
+    user.lastLogin = nowIso();
+    user.updatedAt = user.lastLogin;
+    ok(res, issueUserSession(user));
+  }
+
+  async function phoneCodeLoginWithBody(body, res) {
+    var phone = normalizePhone(body.phone || body.account);
+    var code = String(body.code || body.verificationCode || '').trim();
+    if (!validatePhoneCode(phone, code, res)) return;
+
+    var wxIdentity = null;
+    var wechatCode = String(body.wechatCode || '').trim();
+    if (wechatCode) {
+      try {
+        wxIdentity = await exchangeWechatCode(wechatCode);
+      } catch (error) {
+        console.error('[auth] wechat code exchange failed:', error.message);
+        fail(res, 502, 'WECHAT_LOGIN_FAILED', error.message || '微信登录失败');
+        return;
+      }
+    }
+
+    var now = nowIso();
+    var user = store.users.find((item) => item.phone === phone);
+    if (!user) {
+      user = createPhoneUser(phone, wxIdentity, body, now);
+      store.users.push(user);
+    } else {
+      if (!bindWechatIdentity(user, wxIdentity, body, res)) return;
+      if (body.password && !user.passwordHash) {
+        user.passwordHash = hashPassword(String(body.password));
+      }
+    }
+
+    user.lastLogin = now;
+    user.updatedAt = now;
+    ok(res, issueUserSession(user));
   }
 
   function me(req, res) {
@@ -222,9 +379,12 @@ function createAuthModule(deps) {
 
   return {
     adminLogin,
+    login,
     me,
+    phoneCodeLogin,
     requireAdmin,
     requireUser,
+    requestRegisterCode,
     wechatLogin
   };
 }

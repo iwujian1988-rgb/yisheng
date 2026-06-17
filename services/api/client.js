@@ -1,4 +1,5 @@
 const deviceSession = require('../device/session');
+const apiBase = require('../config/api-base');
 
 function getAppInstance() {
   return typeof getApp === 'function' ? getApp() : null;
@@ -6,7 +7,10 @@ function getAppInstance() {
 
 function getBaseUrl() {
   const app = getAppInstance();
-  return (app && app.globalData && app.globalData.baseUrl) || '';
+  if (app && app.globalData && app.globalData.resolvedBaseUrl) {
+    return app.globalData.resolvedBaseUrl;
+  }
+  return apiBase.resolveApiBaseUrl();
 }
 
 function normalizeResponse(data) {
@@ -47,13 +51,16 @@ function friendlyMessage(code, fallback) {
     NETWORK_ERROR: '网络请求失败，请检查后端地址和网络连接',
     UPLOAD_NETWORK_ERROR: '上传请求失败，请检查网络连接',
     REQUEST_BODY_TOO_LARGE: '上传内容过大，请压缩后重试',
-    AUTH_REQUIRED: '请先登录',
+    AUTH_REQUIRED: '登录已过期，请重新登录（后端重启后需重新登录）',
     ADMIN_AUTH_REQUIRED: '请先登录管理后台',
     INVALID_ACTIVATION_CODE: '激活码无效或已被使用',
     ACTIVATION_CODE_REQUIRED: '请输入激活码',
     ENTITLEMENT_REQUIRED: '请先完成服务开通',
     MEMBER_REQUIRED: '当前账号暂未开通会员能力',
     DEVICE_CONNECTION_REQUIRED: '请先连接设备后再使用',
+    DEVICE_NOT_BOUND: '设备绑定信息不一致，请重新连接蓝牙设备',
+    DEVICE_SESSION_REQUIRED: '设备会话已失效，请重新连接蓝牙设备',
+    DEVICE_SESSION_EXPIRED: '设备会话已过期，请重新连接蓝牙设备',
     DEVICE_NOT_REGISTERED: '设备未登记，请联系管理员预置设备',
     DEVICE_RESERVED_FOR_OTHER_USER: '设备已预留给其他用户',
     DEVICE_ALREADY_BOUND: '设备已被其他账号绑定',
@@ -76,6 +83,23 @@ function notConfiguredError() {
   });
 }
 
+const DEVICE_SETUP_PATHS = [
+  '/api/devices/auto-bind',
+  '/api/devices/bind',
+  '/api/devices/session/start',
+  '/api/devices/session/verify',
+  '/api/devices/unbind'
+];
+
+function shouldRefreshDeviceSession(url, token) {
+  return Boolean(
+    token &&
+    url !== '/api/auth/wechat-login' &&
+    url !== '/api/auth/login' &&
+    DEVICE_SETUP_PATHS.indexOf(url) === -1
+  );
+}
+
 function request(options) {
   const config = options || {};
   const url = config.url;
@@ -89,12 +113,8 @@ function request(options) {
     return notConfiguredError();
   }
 
-  const shouldRefreshDeviceSession = Boolean(
-    token &&
-    url !== '/api/auth/wechat-login' &&
-    url !== '/api/auth/login'
-  );
-  const beforeRequest = shouldRefreshDeviceSession
+  const shouldRefresh = shouldRefreshDeviceSession(url, token);
+  const beforeRequest = shouldRefresh
     ? deviceSession.refreshIfNeeded().catch(() => null)
     : Promise.resolve(null);
 
@@ -126,9 +146,10 @@ function request(options) {
         });
       },
       fail(err) {
+        console.error('[api] request failed:', baseUrl + url, err);
         reject({
           code: 'NETWORK_ERROR',
-          message: friendlyMessage('NETWORK_ERROR'),
+          message: apiBase.getNetworkHint(baseUrl),
           raw: err
         });
       }

@@ -62,7 +62,7 @@ Page({
     wx.navigateBack({
       delta: 1,
       fail: () => {
-        wx.navigateTo({ url: '/pages/templates/index' });
+        wx.switchTab({ url: '/pages/templates/index' });
       }
     });
   }

@@ -53,9 +53,9 @@ async function run() {
   });
   assert(importResult.importedCount === 1, 'activation import failed');
 
-  const userLogin = await request('/api/auth/wechat-login', {
+  const userLogin = await request('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ code: 'trial-user' })
+    body: JSON.stringify({ phone: '13900003001', code: '123456', wechatCode: 'trial-user' })
   });
   assert(userLogin.purchaseStatus === 'none', 'new trial user should start unpaid');
   const userHeaders = {

@@ -1,5 +1,6 @@
 var templateCatalog = require('../../services/templates/catalog');
 var featureEntitlements = require('../../services/entitlements/features');
+var tabBarNav = require('../../services/navigation/tab-bar');
 
 Page({
   data: {
@@ -14,11 +15,13 @@ Page({
   },
 
   onLoad() {
+    this.loadTemplates();
+  },
+
+  onShow() {
+    tabBarNav.syncTabBar(this, 'pages/templates/index');
     if (!featureEntitlements.guardAiFeature('templates', '场景模板')) {
-      wx.navigateBack({
-        delta: 1,
-        fail: function () { wx.reLaunch({ url: '/pages/home/home' }); }
-      });
+      wx.switchTab({ url: '/pages/home/home' });
       return;
     }
     this.loadTemplates();
@@ -27,7 +30,7 @@ Page({
   loadTemplates() {
     this.setData({ isLoading: true, loadError: '' });
     var app = getApp();
-    var connected = Boolean(app && app.globalData && (app.globalData.deviceConnected || app.globalData.skipBluetoothForDev));
+    var connected = Boolean(app && app.globalData && (app.globalData.bleLinkReady || app.globalData.deviceConnected));
     templateCatalog.listTemplates(connected)
       .then((result) => {
         var templates = result.templates || [];

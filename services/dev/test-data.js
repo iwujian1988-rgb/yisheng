@@ -11,6 +11,8 @@ const TEST_USERS = {
     purchaseStatus: 'paid',
     deviceBindingStatus: 'bound',
     serviceStatus: 'active',
+    memberStatus: 'active',
+    memberEnd: '2027-06-04T00:00:00.000Z',
     device: {
       id: 'dev_test_001',
       serialNo: 'BL-TEST-0001',
@@ -24,7 +26,7 @@ const TEST_USERS = {
     nickname: '测试用户-未开通',
     purchaseStatus: 'none',
     deviceBindingStatus: 'not_bound',
-    serviceStatus: 'active',
+    serviceStatus: 'none',
     device: null
   },
   unboundUser: {
@@ -35,6 +37,8 @@ const TEST_USERS = {
     purchaseStatus: 'paid',
     deviceBindingStatus: 'not_bound',
     serviceStatus: 'active',
+    memberStatus: 'active',
+    memberEnd: '2027-06-04T00:00:00.000Z',
     device: null
   }
 };
@@ -47,7 +51,7 @@ function createTestUserFromPhone(phone) {
     nickname: '测试用户-' + phone.slice(-4),
     purchaseStatus: 'none',
     deviceBindingStatus: 'not_bound',
-    serviceStatus: 'active',
+    serviceStatus: 'none',
     device: null
   };
   dynamicUsers[phone] = user;

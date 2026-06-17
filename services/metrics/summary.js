@@ -1,6 +1,5 @@
 const qaState = require('../qa/check-state');
 const transferQueue = require('../transfer/queue');
-const historyRecords = require('../history/records');
 
 const LONG_TEXT_TARGET = '3000 chars / 120 seconds';
 
@@ -26,12 +25,13 @@ function getLongTextSummary() {
 
 function getTransferPerformance() {
   const queueItems = transferQueue.getQueueItems();
-  return historyRecords.getHistoryRecords().then((records) => ({
+  const longText = getLongTextSummary();
+  return Promise.resolve({
     avgTime: 0,
     failCount: queueItems.filter((item) => item.status === 'error').length,
     cancelCount: queueItems.filter((item) => item.status === 'cancelled').length,
-    maxChars: records.reduce((max, record) => Math.max(max, record.textLength || 0), 0)
-  }));
+    maxChars: longText.maxChars || 0
+  });
 }
 
 function getAiUsage() {

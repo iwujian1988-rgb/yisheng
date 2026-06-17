@@ -14,9 +14,5 @@ Page({
 
   goHome() {
     wx.reLaunch({ url: '/pages/home/home' });
-  },
-
-  goHistory() {
-    wx.navigateTo({ url: '/pages/history/history' });
   }
 });

@@ -44,9 +44,18 @@ function findBoundDevice(store, userId, payload) {
   var serialNo = String(body.serialNo || '').trim();
   var deviceId = String(body.deviceId || '').trim();
   var bleDeviceId = String(body.bleDeviceId || '').trim();
+
+  if (deviceId) {
+    var matchedById = (store.devices || []).find((device) => {
+      return device.id === deviceId &&
+        device.boundUserId === userId &&
+        device.bindStatus === 'bound';
+    });
+    if (matchedById) return matchedById;
+  }
+
   return (store.devices || []).find((device) => {
     if (device.boundUserId !== userId || device.bindStatus !== 'bound') return false;
-    if (deviceId && device.id !== deviceId) return false;
     if (serialNo && device.serialNo !== serialNo) return false;
     if (bleDeviceId && device.mac && device.mac !== bleDeviceId) return false;
     return true;

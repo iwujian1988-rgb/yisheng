@@ -23,10 +23,6 @@ Page({
     wx.reLaunch({ url: '/pages/home/home' });
   },
 
-  goHistory() {
-    wx.navigateTo({ url: '/pages/history/history' });
-  },
-
   goHelp() {
     wx.navigateTo({ url: '/pages/help/help' });
   }

@@ -21,6 +21,5 @@
   <!-- 操作按钮 -->
   <view class="action-section">
     <button class="btn btn-primary action-btn" bindtap="goHome">返回首页</button>
-    <button class="btn btn-outline action-btn" bindtap="goHistory">查看历史</button>
   </view>
 </view>

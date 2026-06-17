@@ -1,6 +1,6 @@
-<view class="ocr-container">
+<view class="ocr-page">
   <view class="image-section">
-    <view class="image-area" bindtap="chooseImage">
+    <view class="image-card" bindtap="chooseImage">
       <image
         wx:if="{{imageUrl}}"
         class="preview-image"
@@ -8,52 +8,74 @@
         mode="aspectFit"
       />
       <view wx:else class="image-placeholder">
-        <text class="placeholder-icon">OCR</text>
-        <text class="placeholder-text">拍照或选择图片</text>
+        <t-icon name="scan" size="64rpx" color="#1677FF" />
+        <text class="placeholder-title">拍照或选择图片</text>
+        <text class="placeholder-desc">选图后进入裁剪页，可旋转并调整范围</text>
       </view>
+    </view>
+    <view class="image-tip" wx:if="{{!imageUrl}}">
+      <text>横版单据请在裁剪页先旋转至文字正向，再点「识别文字」。</text>
+    </view>
+    <view class="image-repick" wx:if="{{imageUrl && !recognizing}}">
+      <t-button variant="text" size="small" bind:tap="chooseImage">更换图片</t-button>
     </view>
   </view>
 
   <view class="result-section">
     <view class="result-head">
-      <text class="result-label">识别结果</text>
+      <text class="result-title">识别结果</text>
       <text wx:if="{{resultMeta}}" class="result-meta">{{resultMeta.elapsedMs}}ms</text>
     </view>
-    <view class="result-box">
-      <text wx:if="{{recognizing}}" class="result-empty">正在提取文字...</text>
-      <textarea
-        wx:elif="{{resultText}}"
-        class="result-textarea"
-        value="{{resultText}}"
-        maxlength="5000"
-        bindinput="updateResultText"
-        placeholder="识别出的文字会显示在这里，可以直接修改"
-        placeholder-class="input-placeholder"
-      />
-      <text wx:elif="{{errorMessage}}" class="result-empty">{{errorMessage}}</text>
-      <text wx:else class="result-empty">选择图片后自动识别文字</text>
+
+    <view wx:if="{{recognizing}}" class="result-card result-card--center">
+      <t-loading theme="circular" size="40rpx" />
+      <text class="result-hint">正在提取文字...</text>
+    </view>
+
+    <view wx:elif="{{errorMessage && !hasResult}}" class="result-card">
+      <text class="result-error">{{errorMessage}}</text>
+    </view>
+
+    <view wx:elif="{{hasResult}}" class="result-card result-card--list">
+      <view class="line-toolbar">
+        <t-button variant="text" size="small" bind:tap="onToggleSelectAll">
+          {{allSelected ? '全不选' : '全选'}}
+        </t-button>
+        <text class="tool-summary">共 {{lines.length}} 行，已选 {{selectedCount}} 行</text>
+      </view>
+      <view class="line-list">
+        <view
+          class="line-item {{item.checked ? 'line-item--checked' : ''}}"
+          wx:for="{{lines}}"
+          wx:for-index="idx"
+          wx:key="index"
+        >
+          <t-checkbox
+            checked="{{item.checked}}"
+            data-index="{{idx}}"
+            bind:change="onLineCheckChange"
+            t-class="line-checkbox"
+          >
+            <text class="line-text">{{item.text}}</text>
+          </t-checkbox>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="result-card result-card--center">
+      <text class="result-hint">选择图片后将自动识别文字</text>
     </view>
   </view>
 
-  <view class="action-section">
-    <button class="secondary-btn" bindtap="chooseImage">
-      {{resultText ? '重新选择' : '选择图片'}}
-    </button>
-    <button
-      wx:if="{{!returnToAi}}"
-      class="secondary-btn"
-      disabled="{{!resultText || formatting}}"
-      loading="{{formatting}}"
-      bindtap="goSmartEdit"
+  <view class="action-bar">
+    <t-button
+      theme="primary"
+      block
+      size="large"
+      disabled="{{!canConfirm}}"
+      bind:tap="confirmResult"
     >
-      专业整理
-    </button>
-    <button
-      class="primary-btn"
-      disabled="{{!resultText}}"
-      bindtap="confirmResult"
-    >
-      {{returnToAi ? '填入 AI' : '使用这段'}}
-    </button>
+      确认使用
+    </t-button>
   </view>
 </view>

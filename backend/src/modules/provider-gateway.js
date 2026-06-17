@@ -1,6 +1,8 @@
 const { config } = require('../config');
 const { fail, ok, parseBody } = require('../http');
 const deviceSession = require('../security/device-session');
+const contentAccess = require('../security/content-access');
+const { buildOcrPayload } = require('../ocr/split-lines');
 
 var MODE_CONFIG = {
   organize: {
@@ -49,6 +51,47 @@ function createProviderGatewayModule(deps) {
     return String(value || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   }
 
+  function resolveDashscopeApiKey() {
+    return config.dashscopeApiKey || config.asrCloudApiKey || '';
+  }
+
+  function isOcrCloudConfigured() {
+    return Boolean(config.ocrCloudEnabled && resolveDashscopeApiKey());
+  }
+
+  function stripCodeFence(text) {
+    var value = String(text || '').trim();
+    var match = value.match(/^```(?:json|text)?\s*([\s\S]*?)```$/);
+    if (match) return match[1].trim();
+    return value;
+  }
+
+  function extractCloudOcrText(payload) {
+    var choices = payload.output && payload.output.choices;
+    if (!choices || !choices[0]) return '';
+    var message = choices[0].message || {};
+    var content = message.content;
+    if (!Array.isArray(content) || !content[0]) return '';
+    var first = content[0];
+    if (first.text) return normalizeWorkerText(stripCodeFence(first.text));
+    if (first.ocr_result && Array.isArray(first.ocr_result.words_info)) {
+      return normalizeWorkerText(first.ocr_result.words_info.map(function (item) {
+        return item.text || '';
+      }).filter(Boolean).join('\n'));
+    }
+    return '';
+  }
+
+  function resolveImageMimeType(hint, fileType) {
+    if (hint) return hint;
+    var ext = String(fileType || '').toLowerCase();
+    if (ext === 'png') return 'image/png';
+    if (ext === 'webp') return 'image/webp';
+    if (ext === 'gif') return 'image/gif';
+    if (ext === 'bmp') return 'image/bmp';
+    return 'image/jpeg';
+  }
+
   async function callJsonWorker(url, payload, timeoutMs) {
     var controller = new AbortController();
     var timer = setTimeout(() => controller.abort(), timeoutMs || 30000);
@@ -68,8 +111,7 @@ function createProviderGatewayModule(deps) {
   }
 
   function isMemberActive(userId) {
-    var user = store && store.users ? store.users.find((item) => item.id === userId) : null;
-    return Boolean(user && user.memberStatus === 'active');
+    return contentAccess.isMemberActive(store, userId);
   }
 
   function requireMember(actor, res, featureName) {
@@ -96,12 +138,19 @@ function createProviderGatewayModule(deps) {
       fail(res, 403, 'MEMBER_REQUIRED', 'quick action requires active membership');
       return null;
     }
-    if (action.audience === 'professional') {
-      var access = deviceSession.resolveDeviceSession(store, req, actor.id, 'professional_quick_actions');
-      if (!access.ok) {
-        fail(res, 403, access.code, access.message);
-        return null;
-      }
+    var access = contentAccess.requireItemAccess(action, {
+      store,
+      req,
+      actor,
+      businessKey: 'aiAssistant',
+      notFoundCode: 'ACTION_NOT_FOUND',
+      notFoundMessage: 'quick action not found',
+      deniedCode: 'ACTION_ACCESS_DENIED',
+      deniedMessage: 'quick action access denied'
+    });
+    if (!access.ok) {
+      fail(res, access.statusCode, access.code, access.message);
+      return null;
     }
     return action;
   }
@@ -313,7 +362,12 @@ function createProviderGatewayModule(deps) {
     } else if (!requireMember(actor, res, 'AI assistant')) {
       return;
     }
-    var connected = deviceSession.hasDeviceSession(store, req, actor.id, 'professional_ai');
+    var connected = contentAccess.getAccessContext({
+      store,
+      req,
+      actor,
+      businessKey: 'aiMode'
+    }).hasProfessionalAccess;
     if (config.aiApiKey) {
       try {
         ok(res, await callConfiguredAi(body, action, actor.id, connected));
@@ -323,12 +377,19 @@ function createProviderGatewayModule(deps) {
         return;
       }
     }
+    var fallbackSections = splitSectionedOutput(buildFallbackAiResult(body.redactedText));
     ok(res, {
       provider: config.aiProvider,
       status: 'not_configured',
-      resultText: buildFallbackAiResult(body.redactedText),
+      resultText: fallbackSections.resultText,
+      bodyText: fallbackSections.bodyText,
+      confirmText: fallbackSections.confirmText,
       message: 'AI provider gateway is ready; provider credential is not configured.'
     });
+  }
+
+  function buildOcrResponse(text, extra) {
+    return buildOcrPayload(normalizeWorkerText(text), extra || {});
   }
 
   async function ocrRecognize(req, res) {
@@ -354,6 +415,27 @@ function createProviderGatewayModule(deps) {
       fail(res, 413, 'OCR_IMAGE_TOO_LARGE', 'image is too large');
       return;
     }
+    if (isOcrCloudConfigured()) {
+      try {
+        var cloudOcr = await callCloudOcr(
+          image.base64,
+          body.mimeType || image.mimeType || '',
+          body.fileType || ''
+        );
+        ok(res, buildOcrResponse(cloudOcr.text, {
+          engine: config.ocrCloudModel,
+          status: cloudOcr.status,
+          provider: cloudOcr.provider,
+          confidence: 0,
+          regions: [],
+          imageBytes: imageBytes
+        }));
+        return;
+      } catch (error) {
+        fail(res, error.name === 'AbortError' ? 504 : 502, 'OCR_CLOUD_FAILED', error.name === 'AbortError' ? 'cloud OCR timed out' : error.message);
+        return;
+      }
+    }
     if (config.ocrWorkerUrl) {
       try {
         var ocrData = await callJsonWorker(config.ocrWorkerUrl, {
@@ -362,15 +444,14 @@ function createProviderGatewayModule(deps) {
           fileType: body.fileType || '',
           source: body.source || 'mini_program'
         }, config.ocrTimeoutMs);
-        ok(res, {
+        ok(res, buildOcrResponse(ocrData.text || ocrData.resultText || '', {
           engine: config.ocrEngine,
           status: ocrData.status || 'ok',
           provider: ocrData.provider || config.ocrEngine,
-          text: normalizeWorkerText(ocrData.text || ocrData.resultText || ''),
           confidence: Number(ocrData.confidence || 0),
           regions: Array.isArray(ocrData.regions) ? ocrData.regions : [],
           imageBytes: imageBytes
-        });
+        }));
         return;
       } catch (error) {
         fail(res, error.name === 'AbortError' ? 504 : 502, 'OCR_WORKER_FAILED', error.name === 'AbortError' ? 'OCR worker timed out' : error.message);
@@ -395,6 +476,53 @@ function createProviderGatewayModule(deps) {
     return 'audio/mpeg';
   }
 
+  async function callCloudOcr(imageBase64, mimeType, fileType) {
+    var endpoint = config.ocrCloudBaseUrl.replace(/\/$/, '')
+      + '/api/v1/services/aigc/multimodal-generation/generation';
+    var dataUrl = 'data:' + resolveImageMimeType(mimeType, fileType) + ';base64,' + imageBase64;
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, config.ocrTimeoutMs);
+    try {
+      var response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + resolveDashscopeApiKey()
+        },
+        body: JSON.stringify({
+          model: config.ocrCloudModel,
+          input: {
+            messages: [{
+              role: 'user',
+              content: [{
+                image: dataUrl,
+                min_pixels: 3072,
+                max_pixels: 8388608,
+                enable_rotate: false
+              }]
+            }]
+          },
+          parameters: {
+            ocr_options: { task: config.ocrCloudTask }
+          }
+        }),
+        signal: controller.signal
+      });
+      var payload = await response.json();
+      if (!response.ok) {
+        var ocrMsg = payload.message || (payload.error && payload.error.message) || 'cloud OCR request failed';
+        throw new Error(ocrMsg);
+      }
+      return {
+        text: extractCloudOcrText(payload),
+        provider: config.ocrCloudModel,
+        status: 'ok'
+      };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function callCloudAsr(audioBase64, mimeType, format) {
     var endpoint = config.asrCloudBaseUrl.replace(/\/$/, '')
       + '/api/v1/services/aigc/multimodal-generation/generation';
@@ -406,7 +534,7 @@ function createProviderGatewayModule(deps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + config.asrCloudApiKey
+          Authorization: 'Bearer ' + resolveDashscopeApiKey()
         },
         body: JSON.stringify({
           model: config.asrCloudModel,
@@ -465,7 +593,7 @@ function createProviderGatewayModule(deps) {
       fail(res, 413, 'ASR_AUDIO_TOO_LARGE', 'audio is too large');
       return;
     }
-    if (config.asrCloudApiKey) {
+    if (resolveDashscopeApiKey()) {
       try {
         var cloudResult = await callCloudAsr(audio.base64, audio.mimeType || body.mimeType || '', body.format || '');
         ok(res, {

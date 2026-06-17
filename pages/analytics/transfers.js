@@ -1,4 +1,3 @@
-const historyRecords = require('../../services/history/records');
 const metrics = require('../../services/metrics/summary');
 
 Page({
@@ -19,15 +18,12 @@ Page({
 
   refreshMetrics() {
     Promise.all([
-      historyRecords.getHistoryRecords(),
-      metrics.getTransferPerformance()
-    ]).then(([records, performance]) => {
-      const successCount = records.filter((record) => record.status !== 'failed').length;
-      const successRate = records.length ? Math.round((successCount / records.length) * 100) : 0;
-      const longText = metrics.getLongTextSummary();
+      metrics.getTransferPerformance(),
+      Promise.resolve(metrics.getLongTextSummary())
+    ]).then(([performance, longText]) => {
       this.setData({
-        totalCount: records.length,
-        successRate: successRate + '%',
+        totalCount: longText.totalCount || 0,
+        successRate: (longText.passRate || 0) + '%',
         avgTime: (performance.avgTime || 0) + 's',
         longTextPassRate: (longText.passRate || 0) + '%'
       });

@@ -36,8 +36,6 @@ const ENDPOINTS = {
     entitlement: '/api/purchase/entitlement'
   },
   content: {
-    history: '/api/content/history',
-    historyDetail: '/api/content/history/{id}',
     drafts: '/api/content/drafts'
   },
   ai: {

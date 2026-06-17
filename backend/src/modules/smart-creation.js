@@ -3,7 +3,7 @@ var ok = require('../http').ok;
 var parseBody = require('../http').parseBody;
 var createId = require('../security/ids').createId;
 var nowIso = require('../security/ids').nowIso;
-var deviceSession = require('../security/device-session');
+var contentAccess = require('../security/content-access');
 
 var MODE_DEFINITIONS = [
   {
@@ -55,36 +55,35 @@ function createSmartCreationModule(deps) {
   var auth = deps.auth;
 
   function isMemberActive(userId) {
-    return store.users.some(function (user) {
-      return user.id === userId && user.memberStatus === 'active';
-    });
+    return contentAccess.isMemberActive(store, userId);
   }
 
   function listModes(req, res) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
 
-    var hasProfessionalAccess = deviceSession.hasDeviceSession(store, req, actor.id, 'professional_ai');
+    var accessContext = contentAccess.getAccessContext({
+      store: store,
+      req: req,
+      actor: actor,
+      businessKey: 'aiMode'
+    });
     var modes = MODE_DEFINITIONS.map(function (mode) {
       return {
         key: mode.key,
         label: mode.label,
         description: mode.description,
         placeholder: mode.placeholder,
-        showTemplateSelector: hasProfessionalAccess
+        showTemplateSelector: accessContext.hasProfessionalAccess
           ? mode.showTemplateSelectorConnected
           : mode.showTemplateSelectorDisconnected
       };
     });
 
-    var systemTemplates = (store.templates || [])
-      .filter(function (template) {
-        if (template.status !== 'published') return false;
-        if (template.audience === 'professional') {
-          return hasProfessionalAccess && isMemberActive(actor.id);
-        }
-        return !hasProfessionalAccess;
-      })
+    var systemTemplates = contentAccess.filterVisibleItems(store.templates || [], {
+      businessKey: 'smartCreationTemplates',
+      context: accessContext
+    })
       .map(function (template) {
         return {
           id: template.id,

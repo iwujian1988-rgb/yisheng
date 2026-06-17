@@ -154,9 +154,7 @@ Page({
         const app = typeof getApp === 'function' ? getApp() : null;
         if (app && app.syncSession) app.syncSession(profile);
         this.setData({ isLoading: false });
-        wx.redirectTo({
-          url: '/pages/account-status/account-status?accountStatus=' + profile.accountStatus
-        });
+        wx.reLaunch({ url: '/pages/home/home' });
       })
       .catch((err) => {
         this.setData({ isLoading: false });

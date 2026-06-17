@@ -9,6 +9,9 @@ config.wechatAppId = '';
 config.wechatAppSecret = '';
 config.ocrWorkerUrl = '';
 config.asrWorkerUrl = '';
+config.dashscopeApiKey = '';
+config.asrCloudApiKey = '';
+config.ocrCloudEnabled = false;
 
 const BASE_URL = 'http://127.0.0.1:' + PORT;
 
@@ -27,6 +30,17 @@ async function request(path, options) {
     throw new Error(path + ' failed: ' + (body.message || body.code));
   }
   return body.data;
+}
+
+async function requestExpectError(path, options, expectedCode) {
+  const response = await fetch(BASE_URL + path, Object.assign({
+    headers: { 'Content-Type': 'application/json' }
+  }, options || {}));
+  const body = await response.json();
+  if (response.ok || body.code !== expectedCode) {
+    throw new Error(path + ' expected ' + expectedCode + ', got ' + (body.code || response.status));
+  }
+  return body;
 }
 
 async function run() {
@@ -53,11 +67,23 @@ async function run() {
   });
   assert(Array.isArray(templates.list), 'admin template list missing');
 
-  const userLogin = await request('/api/auth/wechat-login', {
+  await requestExpectError('/api/auth/wechat-login', {
+    method: 'POST',
+    body: JSON.stringify({ code: 'smoke-unbound-wechat' })
+  }, 'WECHAT_NOT_BOUND');
+
+  const userLogin = await request('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ phone: '13900001001', code: '123456', wechatCode: 'smoke-test' })
+  });
+  assert(userLogin.token, 'user token missing');
+  assert(userLogin.user && userLogin.user.id, 'phone login should create stable user id');
+
+  const boundWechatLogin = await request('/api/auth/wechat-login', {
     method: 'POST',
     body: JSON.stringify({ code: 'smoke-test' })
   });
-  assert(userLogin.token, 'user token missing');
+  assert(boundWechatLogin.user.id === userLogin.user.id, 'wechat login should reuse bound phone user id');
 
   const userTemplates = await request('/api/ai/templates', {
     headers: {
@@ -79,9 +105,9 @@ async function run() {
     })
   });
 
-  const activatedUser = await request('/api/auth/wechat-login', {
+  const activatedUser = await request('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ code: 'smoke-activation-user' })
+    body: JSON.stringify({ phone: '13900001002', code: '123456', wechatCode: 'smoke-activation-user' })
   });
   await request('/api/purchase/activate', {
     method: 'POST',
@@ -106,6 +132,26 @@ async function run() {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + activatedUser.token
     }
+  });
+  const deviceSessionChallenge = await request('/api/devices/session/start', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + activatedUser.token
+    },
+    body: JSON.stringify({ deviceId: session.device && session.device.id })
+  });
+  const deviceSession = await request('/api/devices/session/verify', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + activatedUser.token
+    },
+    body: JSON.stringify({
+      challengeId: deviceSessionChallenge.challengeId,
+      deviceId: session.device && session.device.id,
+      response: '0000'
+    })
   });
 
   const createdTemplate = await request('/api/admin/templates', {
@@ -179,7 +225,8 @@ async function run() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + activatedUser.token
+      Authorization: 'Bearer ' + activatedUser.token,
+      'X-Device-Session': deviceSession.deviceSessionToken
     },
     body: JSON.stringify({ imageBase64: 'data:image/png;base64,AA==' })
   });
@@ -189,46 +236,12 @@ async function run() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + activatedUser.token
+      Authorization: 'Bearer ' + activatedUser.token,
+      'X-Device-Session': deviceSession.deviceSessionToken
     },
     body: JSON.stringify({ audioBase64: 'data:audio/mp3;base64,AA==', format: 'mp3' })
   });
   assert(asrResult.status === 'not_configured', 'ASR should be in not_configured state without worker');
-
-  const savedHistory = await request('/api/content/history', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + activatedUser.token
-    },
-    body: JSON.stringify({
-      id: 'hist_smoke_001',
-      ciphertext: 'protected-text',
-      envelope: { version: 'smoke', meta: { source: 'manual' } },
-      source: 'manual',
-      status: 'success',
-      success: true,
-      textLength: 12,
-      createdAt: '2026-06-05T00:00:00.000Z'
-    })
-  });
-  assert(savedHistory.id === 'hist_smoke_001', 'history save should keep client id');
-
-  const histories = await request('/api/content/history', {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + activatedUser.token
-    }
-  });
-  assert(histories.some((item) => item.id === 'hist_smoke_001'), 'history list missing saved item');
-
-  const historyDetail = await request('/api/content/history/hist_smoke_001', {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + activatedUser.token
-    }
-  });
-  assert(historyDetail.ciphertext === 'protected-text', 'history detail missing protected payload');
 
   const feedback = await request('/api/support/feedbacks', {
     method: 'POST',

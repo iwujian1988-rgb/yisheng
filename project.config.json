@@ -3,28 +3,28 @@
   "packOptions": {
     "ignore": [
       {
-        "type": "folder",
-        "value": "backend"
+        "value": "backend",
+        "type": "folder"
       },
       {
-        "type": "folder",
-        "value": "docs"
+        "value": "docs",
+        "type": "folder"
       },
       {
-        "type": "folder",
-        "value": "ble-demo"
+        "value": "ble-demo",
+        "type": "folder"
       },
       {
-        "type": "folder",
-        "value": "prototypes"
+        "value": "prototypes",
+        "type": "folder"
       },
       {
-        "type": "folder",
-        "value": ".git"
+        "value": ".git",
+        "type": "folder"
       },
       {
-        "type": "file",
-        "value": "package.json"
+        "value": "package.json",
+        "type": "file"
       }
     ],
     "include": []
@@ -33,6 +33,7 @@
     "bundle": false,
     "userConfirmedBundleSwitch": false,
     "urlCheck": false,
+    "useLanDebug": true,
     "scopeDataCheck": false,
     "coverView": true,
     "es6": true,
@@ -46,15 +47,20 @@
     "uglifyFileName": false,
     "uploadWithSourceMap": true,
     "useIsolateContext": true,
-    "nodeModules": false,
+    "nodeModules": true,
     "enhance": true,
     "useMultiFrameRuntime": true,
     "useApiHook": true,
     "useApiHostProcess": true,
     "showShadowRootInWxmlPanel": true,
-    "packNpmManually": false,
+    "packNpmManually": true,
     "enableEngineNative": false,
-    "packNpmRelationList": [],
+    "packNpmRelationList": [
+      {
+        "packageJsonPath": "./package.json",
+        "miniprogramNpmDistDir": "./"
+      }
+    ],
     "minifyWXSS": true,
     "showES6CompileOption": false,
     "minifyWXML": true,
@@ -74,7 +80,7 @@
   "compileType": "miniprogram",
   "miniprogramRoot": "./",
   "libVersion": "3.16.0",
-  "appid": "wx2c6d9d808c080a13",
+  "appid": "wx581470435d42d4a8",
   "projectname": "bingli",
   "condition": {},
   "editorSetting": {

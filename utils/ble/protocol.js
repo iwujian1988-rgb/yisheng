@@ -1,12 +1,20 @@
+const transferSettings = require('../../services/settings/transfer-settings');
+
 const SERVICE_ID = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E';
 const WRITE_CHARACTERISTIC_FRAGMENT = '6E400002';
 const NOTIFY_CHARACTERISTIC_FRAGMENT = '6E400003';
 const DEFAULT_MTU = 20;
 const CHUNK_DELAY_MS = 20;
-const PROTOCOL_PREFIX = 'SPD2|WIN11|';
+const MODE_TAG = 'WIN11';
+
+function getProtocolPrefix() {
+  const { speedMode } = transferSettings.getTransferSettings();
+  const spdTag = transferSettings.getSpdTag(speedMode);
+  return spdTag + '|' + MODE_TAG + '|';
+}
 
 function createPacket(payload) {
-  return PROTOCOL_PREFIX + payload;
+  return getProtocolPrefix() + payload;
 }
 
 function createVucPacket(value) {
@@ -51,6 +59,15 @@ function ab2hex(buffer) {
   return hexArr.join(' ');
 }
 
+function ab2str(buffer) {
+  const arr = new Uint8Array(buffer);
+  let output = '';
+  for (let i = 0; i < arr.length; i++) {
+    output += String.fromCharCode(arr[i]);
+  }
+  return output;
+}
+
 module.exports = {
   SERVICE_ID,
   WRITE_CHARACTERISTIC_FRAGMENT,
@@ -63,6 +80,7 @@ module.exports = {
   createSpacePacket,
   str2ab,
   splitBuffer,
-  ab2hex
+  ab2hex,
+  ab2str
 };
 

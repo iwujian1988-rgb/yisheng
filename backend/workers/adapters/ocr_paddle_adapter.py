@@ -53,9 +53,15 @@ def main():
     from paddleocr import PaddleOCR
 
     lang = os.getenv("PADDLEOCR_LANG", "ch")
-    use_angle_cls = os.getenv("PADDLEOCR_USE_ANGLE_CLS", "true").lower() in ("1", "true", "yes")
-    ocr = PaddleOCR(use_angle_cls=use_angle_cls, lang=lang, show_log=False)
-    result = ocr.ocr(image_path, cls=use_angle_cls)
+    use_textline_orientation = os.getenv("PADDLEOCR_USE_ANGLE_CLS", "true").lower() in ("1", "true", "yes")
+    ocr_kwargs = {
+        "lang": lang,
+        "use_doc_orientation_classify": False,
+        "use_doc_unwarping": False,
+        "use_textline_orientation": use_textline_orientation,
+    }
+    ocr = PaddleOCR(**ocr_kwargs)
+    result = ocr.predict(image_path)
 
     lines = []
     collect_lines(result, lines)

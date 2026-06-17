@@ -54,20 +54,31 @@ Important:
 Provider worker configuration:
 
 ```bash
+DASHSCOPE_API_KEY=your-dashscope-key
+DASHSCOPE_BASE_URL=https://dashscope.aliyuncs.com
+OCR_CLOUD_MODEL=qwen-vl-ocr-2025-11-20
+OCR_CLOUD_TASK=text_recognition
 AI_PROVIDER=openai-compatible
 AI_BASE_URL=https://your-ai-gateway.example.com
 AI_API_KEY=your-provider-key
 AI_MODEL=your-chat-model
 OCR_ENGINE=paddleocr
-OCR_WORKER_URL=http://127.0.0.1:9001/recognize
+OCR_WORKER_URL=
 OCR_TIMEOUT_MS=30000
 OCR_MAX_IMAGE_BYTES=5242880
 ASR_ENGINE=faster-whisper
-ASR_WORKER_URL=http://127.0.0.1:9002/transcribe
+ASR_CLOUD_MODEL=qwen3-asr-flash
+ASR_WORKER_URL=
 ASR_TIMEOUT_MS=60000
 ASR_MAX_AUDIO_BYTES=20971520
 ALLOW_UNKNOWN_DEVICE_BINDING=false
 ```
+
+OCR cloud behavior:
+
+- When `DASHSCOPE_API_KEY` is configured, `/api/ocr/recognize` calls DashScope QwenVL-OCR (`qwen-vl-ocr-2025-11-20` by default).
+- When the key is empty, the gateway falls back to `OCR_WORKER_URL` if set, otherwise returns `status: not_configured`.
+- The same `DASHSCOPE_API_KEY` is also used for cloud ASR when `ASR_WORKER_URL` is empty.
 
 Device pilot flow:
 

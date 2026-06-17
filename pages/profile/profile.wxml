@@ -1,59 +1,64 @@
-<view class="profile-container">
-  <view class="user-card">
-    <view class="avatar">
-      <text class="avatar-text">{{nickNameInitial || '?'}}</text>
-    </view>
-    <view class="user-info">
-      <text class="nick-name">{{nickName || '用户'}}</text>
-      <text class="phone-number">{{phone || '未绑定手机号'}}</text>
-    </view>
-  </view>
-
-  <view class="plan-card">
-    <view class="plan-main">
-      <text class="plan-title">{{planTitle}}</text>
-      <text class="plan-desc">{{planDesc}}</text>
-    </view>
-    <button class="plan-btn" bindtap="contactCustomerService">{{planActionText}}</button>
-  </view>
-
-  <view class="menu-section">
-    <view class="menu-item" bindtap="goToAccountStatus">
-      <text class="menu-label">服务状态</text>
-      <text class="menu-arrow">›</text>
-    </view>
-    <view class="menu-item" bindtap="goToPurchaseRecords">
-      <text class="menu-label">套餐记录</text>
-      <text class="menu-arrow">›</text>
-    </view>
-    <view class="menu-item" bindtap="goToDevice">
-      <text class="menu-label">设备管理</text>
-      <text class="menu-arrow">›</text>
-    </view>
-    <view class="menu-item" bindtap="goToSettings">
-      <text class="menu-label">传输设置</text>
-      <text class="menu-arrow">›</text>
-    </view>
-    <view class="menu-item" bindtap="goToHistory">
-      <text class="menu-label">发送记录</text>
-      <text class="menu-arrow">›</text>
-    </view>
-    <view class="menu-item" bindtap="goToDebug">
-      <text class="menu-label">调试中心</text>
-      <text class="menu-arrow">›</text>
+<view class="profile-page">
+  <view class="profile-hero" style="padding-top: {{statusBarHeight + 24}}px;">
+    <view class="profile-hero__body" bindtap="goEditProfile">
+      <view class="profile-hero__info">
+        <text class="profile-hero__name">{{nickName || '用户'}}</text>
+        <text class="profile-hero__phone">{{phone || '未绑定手机号'}}</text>
+      </view>
+      <t-avatar size="large" shape="circle" t-class="profile-hero__avatar">
+        {{nickNameInitial || '?'}}
+      </t-avatar>
     </view>
   </view>
 
-  <view class="menu-section">
-    <view class="menu-item" bindtap="goToAgreement">
-      <text class="menu-label">用户协议与隐私</text>
-      <text class="menu-arrow">›</text>
+  <view class="vip-card {{isMember ? 'vip-card--active' : ''}}" bindtap="onPlanTap">
+    <view class="vip-card__badge">
+      <t-icon name="user-vip" size="48rpx" color="#D4A017" />
     </view>
-    <view class="menu-item" bindtap="contactCustomerService">
-      <text class="menu-label">联系客服</text>
-      <text class="menu-arrow">›</text>
+    <view class="vip-card__content">
+      <view class="vip-card__row vip-card__row--head">
+        <text class="vip-card__title">{{planTitle}}</text>
+        <view class="vip-card__head-right">
+          <t-tag
+            wx:if="{{(isMember || isExpired) && memberRemainingLabel}}"
+            theme="{{remainingTagTheme}}"
+            variant="light"
+            size="small"
+          >{{memberRemainingLabel}}</t-tag>
+          <text wx:elif="{{!isMember && !isExpired}}" class="vip-card__cta">{{planActionText}}</text>
+          <t-icon name="chevron-right" size="32rpx" color="rgba(0,0,0,0.4)" />
+        </view>
+      </view>
+      <text wx:if="{{!isMember && !isExpired && planDesc}}" class="vip-card__desc">{{planDesc}}</text>
+      <text wx:elif="{{(isMember || isExpired) && memberExpireText}}" class="vip-card__desc">{{memberExpireText}}</text>
     </view>
   </view>
 
-  <button class="logout-btn" bindtap="logout">退出登录</button>
+  <view class="profile-body">
+    <t-cell-group
+      wx:for="{{menuGroups}}"
+      wx:for-item="group"
+      wx:key="id"
+      theme="card"
+      t-class="menu-group"
+    >
+      <t-cell
+        wx:for="{{group.items}}"
+        wx:for-item="item"
+        wx:key="id"
+        title="{{item.title}}"
+        note="{{item.desc}}"
+        leftIcon="{{item.icon}}"
+        arrow
+        hover
+        t-class-note="menu-cell-note"
+        data-action="{{item.action}}"
+        bind:click="onMenuTap"
+      />
+    </t-cell-group>
+
+    <view class="logout-wrap">
+      <t-button theme="danger" variant="outline" block bind:tap="logout">退出登录</t-button>
+    </view>
+  </view>
 </view>

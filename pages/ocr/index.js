@@ -1,80 +1,133 @@
+const authGuard = require('../../services/auth/guard');
+const authSession = require('../../services/auth/session');
+const deviceSession = require('../../services/device/session');
 const ocrRecognizer = require('../../services/ocr/recognizer');
-const aiAssistant = require('../../services/ai/assistant');
 const draftService = require('../../services/content/draft');
 const featureEntitlements = require('../../services/entitlements/features');
-const quickActionsService = require('../../services/ai/quick-actions');
+const imagePipeline = require('../../services/ocr/image-pipeline');
 
-const AI_MEDIA_INPUT_DRAFT_KEY = 'aiMediaInputDraft';
+function buildLinesFromResult(result) {
+  var rawLines = result && Array.isArray(result.lines) ? result.lines : [];
+  if (rawLines.length) {
+    return rawLines.map(function (item, index) {
+      return {
+        index: item.index != null ? item.index : index,
+        text: item.text || '',
+        field: item.field || '',
+        checked: true
+      };
+    }).filter(function (item) { return item.text; });
+  }
 
-function selectActions(actions) {
-  return (actions || [])
-    .filter((action) => action)
-    .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
-    .slice(0, 6);
+  var text = result && result.text ? String(result.text).trim() : '';
+  if (!text) return [];
+
+  return text.split('\n')
+    .map(function (line) { return line.trim(); })
+    .filter(Boolean)
+    .map(function (line, index) {
+      return { index: index, text: line, field: '', checked: true };
+    });
+}
+
+function countSelected(lines) {
+  return (lines || []).filter(function (line) { return line.checked; }).length;
+}
+
+function syncSelectionState(lines) {
+  var selectedCount = countSelected(lines);
+  return {
+    lines: lines,
+    selectedCount: selectedCount,
+    allSelected: selectedCount === lines.length && lines.length > 0,
+    canConfirm: selectedCount > 0
+  };
 }
 
 Page({
   data: {
     imageUrl: '',
-    resultText: '',
+    lines: [],
+    selectedCount: 0,
+    allSelected: false,
+    canConfirm: false,
     resultMeta: null,
     recognizing: false,
-    formatting: false,
     errorMessage: '',
-    returnToAi: false
+    hasResult: false
   },
 
-  onLoad(options) {
+  onLoad() {
+    if (!authGuard.requireActiveAccount()) return;
     if (!featureEntitlements.guardAiFeature('ocr', '图片识别')) {
       wx.navigateBack({
         delta: 1,
         fail: () => wx.reLaunch({ url: '/pages/home/home' })
       });
-      return;
-    }
-
-    this.setData({ returnToAi: Boolean(options && options.returnTo === 'ai') });
-    if (options && options.auto === '1') {
-      setTimeout(() => this.chooseImage(), 300);
     }
   },
 
-  chooseImage() {
-    wx.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        const imageUrl = res.tempFilePaths && res.tempFilePaths[0] ? res.tempFilePaths[0] : '';
-        this.setData({
-          imageUrl,
-          resultText: '',
-          resultMeta: null,
-          errorMessage: ''
-        });
-        this.recognizeSelectedImage(imageUrl);
-      },
-      fail: (err) => {
-        this.setData({
-          errorMessage: err && err.errMsg ? err.errMsg : '没有选择图片'
-        });
-        wx.showToast({ title: '没有选择图片', icon: 'none' });
-      }
+  onShow() {
+    authSession.refreshCurrentSession().catch(() => null);
+    deviceSession.ensureActiveSession().catch(() => null);
+  },
+
+  resetResultState() {
+    this.setData({
+      lines: [],
+      selectedCount: 0,
+      allSelected: false,
+      canConfirm: false,
+      resultMeta: null,
+      errorMessage: '',
+      hasResult: false
     });
+  },
+
+  chooseImage() {
+    if (this.data.recognizing) return;
+
+    imagePipeline.pickCropAndPrepare()
+      .then((imageUrl) => {
+        this.setData({ imageUrl: imageUrl });
+        this.resetResultState();
+        return this.recognizeSelectedImage(imageUrl);
+      })
+      .catch((error) => {
+        if (!error || error.code === 'PICK_CANCELLED' || error.code === 'CROP_CANCELLED') {
+          return;
+        }
+        var message = error && error.message ? error.message : '图片处理失败，请重试';
+        this.setData({ errorMessage: message });
+        wx.showToast({ title: message, icon: 'none' });
+      });
   },
 
   recognizeSelectedImage(imageUrl) {
     if (!imageUrl) {
       wx.showToast({ title: '请先选择图片', icon: 'none' });
-      return;
+      return Promise.resolve();
     }
 
     this.setData({ recognizing: true, errorMessage: '' });
+    wx.showLoading({ title: '正在识别...', mask: true });
 
-    ocrRecognizer.recognizeImage({ path: imageUrl })
+    return deviceSession.ensureActiveSession()
+      .catch(() => null)
+      .then(() => ocrRecognizer.recognizeImage({ path: imageUrl }))
       .then((result) => {
-        this.setData({
-          resultText: result && result.text ? result.text : '',
+        var lines = buildLinesFromResult(result);
+        if (!lines.length) {
+          this.setData({
+            recognizing: false,
+            errorMessage: '未识别到文字，请重新拍摄或调整裁剪范围',
+            canConfirm: false
+          });
+          wx.showToast({ title: '未识别到文字', icon: 'none' });
+          return;
+        }
+
+        this.setData(Object.assign({
           resultMeta: result ? {
             provider: result.provider || result.engine || '',
             engine: result.engine || result.provider || '',
@@ -82,84 +135,65 @@ Page({
             confidence: result.confidence || 0,
             elapsedMs: result.elapsedMs || 0,
             imageBytes: result.imageBytes || 0,
-            regionCount: result.regions && result.regions.length ? result.regions.length : 0
+            charCount: result.charCount || (result.text ? result.text.length : 0)
           } : null,
           recognizing: false,
-          errorMessage: ''
-        });
+          errorMessage: '',
+          hasResult: true
+        }, syncSelectionState(lines)));
       })
       .catch((error) => {
         this.setData({
           recognizing: false,
-          errorMessage: error && error.message ? error.message : '图片识别暂时不可用，请稍后重试'
+          errorMessage: error && error.message ? error.message : '图片识别暂时不可用，请稍后重试',
+          canConfirm: false
         });
+        wx.showToast({
+          title: error && error.message ? error.message : '识别失败',
+          icon: 'none'
+        });
+      })
+      .finally(() => {
+        wx.hideLoading();
       });
   },
 
-  updateResultText(e) {
-    this.setData({ resultText: e.detail.value || '' });
+  onLineCheckChange(e) {
+    var index = Number(e.currentTarget.dataset.index);
+    var lines = (this.data.lines || []).slice();
+    if (!lines[index]) return;
+    lines[index] = Object.assign({}, lines[index], { checked: Boolean(e.detail.checked) });
+    this.setData(syncSelectionState(lines));
+  },
+
+  onToggleSelectAll() {
+    if (!this.data.lines.length) return;
+    var allSelected = this.data.allSelected;
+    var lines = this.data.lines.map(function (line) {
+      return Object.assign({}, line, { checked: !allSelected });
+    });
+    this.setData(syncSelectionState(lines));
+  },
+
+  getSelectedTexts() {
+    return (this.data.lines || [])
+      .filter(function (line) { return line.checked; })
+      .map(function (line) { return line.text; });
   },
 
   confirmResult() {
-    const text = String(this.data.resultText || '').trim();
+    var text = this.getSelectedTexts().join('\n').trim();
     if (!text) {
-      wx.showToast({ title: '暂无可用内容', icon: 'none' });
-      return;
-    }
-
-    if (this.data.returnToAi) {
-      wx.setStorageSync(AI_MEDIA_INPUT_DRAFT_KEY, {
-        text,
-        source: 'ocr',
-        updatedAt: new Date().toISOString()
-      });
-      wx.navigateBack({ delta: 1 });
+      wx.showToast({ title: '请至少选择一行', icon: 'none' });
       return;
     }
 
     draftService.saveDraft(text, 'ocr');
-    wx.navigateTo({ url: '/pages/transfer/editor?source=ocr' });
-  },
-
-  goSmartEdit() {
-    if (this.data.returnToAi) return;
-
-    const text = String(this.data.resultText || '').trim();
-    if (!text || this.data.formatting) return;
-
-    quickActionsService.listQuickActions()
-      .then((result) => {
-        const actions = selectActions(result.quickActions);
-        if (!actions.length) {
-          wx.showToast({ title: '暂无可用的专业整理', icon: 'none' });
-          return;
-        }
-
-        wx.showActionSheet({
-          itemList: actions.map((action) => action.title),
-          success: (res) => {
-            const selected = actions[res.tapIndex];
-            if (!selected) return;
-
-            this.setData({ formatting: true });
-            aiAssistant.generateContent({
-              text,
-              type: 'content_polish',
-              actionId: selected.id
-            }).then((aiResult) => {
-              this.setData({
-                resultText: aiResult.bodyText || aiResult.resultText || text,
-                formatting: false
-              });
-            }).catch((error) => {
-              this.setData({ formatting: false });
-              wx.showToast({ title: error.message || '专业整理暂时不可用', icon: 'none' });
-            });
-          }
-        });
-      })
-      .catch(() => {
-        wx.showToast({ title: '加载整理能力失败', icon: 'none' });
-      });
+    wx.navigateBack({
+      delta: 1,
+      fail: function () {
+        wx.switchTab({ url: '/pages/home/home' });
+      }
+    });
   }
 });

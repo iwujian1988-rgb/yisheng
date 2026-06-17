@@ -12,7 +12,6 @@ function ensureCollections(store) {
     'tokenUsageRecords',
     'templates',
     'quickActions',
-    'encryptedHistory',
     'feedbacks',
     'issues',
     'auditLogs',

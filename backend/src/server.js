@@ -46,15 +46,17 @@ function serveAdminAsset(req, res) {
 }
 
 router.get('/api/health', (req, res) => {
+  var dashscopeReady = Boolean(config.dashscopeApiKey);
+  var ocrCloudReady = Boolean(config.ocrCloudEnabled && dashscopeReady);
   ok(res, {
     service: 'yisheng-backend',
     env: config.env,
     storeMode: config.storeMode,
     allowUnknownDeviceBinding: config.allowUnknownDeviceBinding,
-    ocrEngine: config.ocrEngine,
-    ocrConfigured: Boolean(config.ocrWorkerUrl),
+    ocrEngine: ocrCloudReady ? config.ocrCloudModel : config.ocrEngine,
+    ocrConfigured: ocrCloudReady || Boolean(config.ocrWorkerUrl),
     asrEngine: config.asrEngine,
-    asrConfigured: Boolean(config.asrWorkerUrl),
+    asrConfigured: dashscopeReady || Boolean(config.asrWorkerUrl),
     aiProvider: config.aiProvider,
     aiConfigured: Boolean(config.aiApiKey && (config.aiChatCompletionsUrl || config.aiBaseUrl)),
     wechatConfigured: Boolean(config.wechatAppId && config.wechatAppSecret)
@@ -62,6 +64,9 @@ router.get('/api/health', (req, res) => {
 });
 
 router.post('/api/admin/auth/login', auth.adminLogin);
+router.post('/api/auth/login', auth.login);
+router.post('/api/auth/register-code', auth.requestRegisterCode);
+router.post('/api/auth/register', auth.phoneCodeLogin);
 router.post('/api/auth/wechat-login', auth.wechatLogin);
 router.get('/api/auth/me', auth.me);
 
@@ -110,9 +115,6 @@ router.get('/api/devices/firmware', userApi.firmware);
 router.get('/api/purchase/entitlement', userApi.purchaseEntitlement);
 router.post('/api/purchase/activate', userApi.activatePurchase);
 router.get('/api/purchase/records', userApi.purchaseRecords);
-router.post('/api/content/history', userApi.saveHistory);
-router.get('/api/content/history', userApi.listHistory);
-router.get('/api/content/history/:id', userApi.historyDetail);
 router.get('/api/ai/templates', userApi.listTemplates);
 router.get('/api/ai/quick-actions', userApi.listQuickActions);
 router.get('/api/ai/templates/:id', userApi.templateDetail);
@@ -155,8 +157,10 @@ const server = http.createServer(async (req, res) => {
 });
 
 if (require.main === module) {
-  server.listen(config.port, () => {
-    console.log('Yisheng backend listening on :' + config.port);
+  server.listen(config.port, '0.0.0.0', () => {
+    console.log('Yisheng backend listening on 0.0.0.0:' + config.port);
+    console.log('Local:   http://127.0.0.1:' + config.port);
+    console.log('Network: http://<your-lan-ip>:' + config.port + '  (set app.js lanBaseHost)');
   });
 }
 

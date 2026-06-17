@@ -1,4 +1,5 @@
 const { ENDPOINTS } = require('../api/endpoints');
+const apiBase = require('../config/api-base');
 
 const SESSION_KEY = 'deviceSession';
 const REFRESH_BEFORE_MS = 2 * 60 * 1000;
@@ -11,7 +12,10 @@ function getAppInstance() {
 
 function getBaseUrl() {
   const app = getAppInstance();
-  return (app && app.globalData && app.globalData.baseUrl) || '';
+  if (app && app.globalData && app.globalData.resolvedBaseUrl) {
+    return app.globalData.resolvedBaseUrl;
+  }
+  return apiBase.resolveApiBaseUrl();
 }
 
 function getAuthToken() {
@@ -142,36 +146,47 @@ function refreshDeviceSession() {
   }).then((result) => persistDeviceSession(result));
 }
 
-function tryOpenDevBypassSession() {
+function getBoundDeviceContext() {
+  const boundDevice = wx.getStorageSync('boundDevice');
+  if (!boundDevice || !boundDevice.id) return null;
   const app = getAppInstance();
   const gd = app && app.globalData ? app.globalData : {};
-  const bypass = Boolean(gd.skipBluetoothForDev || wx.getStorageSync('skipBluetoothForDev'));
-  if (!bypass) return Promise.resolve(null);
-  const device = wx.getStorageSync('boundDevice');
-  if (device && device.id) {
-    return openDeviceSession({ device }).catch(() => {
-      wx.removeStorageSync('boundDevice');
-      wx.setStorageSync('deviceBindingStatus', 'not_bound');
-      return tryOpenDevBypassSession();
+  const bleDeviceId = gd.bleDeviceId || boundDevice.bleDeviceId || boundDevice.mac || '';
+  return {
+    device: boundDevice,
+    bleDeviceId: bleDeviceId
+  };
+}
+
+function ensureActiveSession(options) {
+  const session = getDeviceSession();
+  if (session && session.token && !isExpired(session, 0)) {
+    return Promise.resolve(session);
+  }
+
+  const context = getBoundDeviceContext();
+  const payload = options || {};
+  const device = payload.device || (context && context.device) || null;
+  const bleDeviceId = payload.bleDeviceId || (context && context.bleDeviceId) || '';
+
+  if (!device || !device.id) {
+    return Promise.reject({
+      code: 'DEVICE_NOT_BOUND',
+      message: '请先连接蓝牙设备'
     });
   }
-  const user = wx.getStorageSync('userInfo') || {};
-  const userKey = String(user.id || user.openid || 'local').replace(/[^a-zA-Z0-9_-]/g, '').slice(-12) || 'local';
-  const serialNo = 'DEV-AUTO-' + userKey;
-  return rawRequest(ENDPOINTS.devices.autoBind, 'POST', {
-    bleDeviceName: serialNo,
-    bleDeviceId: serialNo
-  }).then((boundDevice) => {
-    const nextDevice = boundDevice && boundDevice.device ? boundDevice.device : boundDevice;
-    persistBoundDevice(nextDevice);
-    return openDeviceSession({ device: nextDevice });
-  }).catch(() => null);
+
+  return openDeviceSession({
+    device: device,
+    bleDeviceId: bleDeviceId,
+    proofCode: payload.proofCode || device.proofCode || ''
+  });
 }
 
 function refreshIfNeeded() {
   const session = getDeviceSession();
   if (!session || !session.token) {
-    return tryOpenDevBypassSession();
+    return ensureActiveSession().catch(() => null);
   }
   if (!isExpired(session, REFRESH_BEFORE_MS)) {
     return Promise.resolve(session);
@@ -182,15 +197,23 @@ function refreshIfNeeded() {
         clearDeviceSession();
         throw error;
       })
-      .finally(() => {
-        refreshPromise = null;
-      });
+      .then(
+        (result) => {
+          refreshPromise = null;
+          return result;
+        },
+        (error) => {
+          refreshPromise = null;
+          throw error;
+        }
+      );
   }
   return refreshPromise;
 }
 
 module.exports = {
   clearDeviceSession,
+  ensureActiveSession,
   getDeviceSession,
   getDeviceSessionToken,
   openDeviceSession,

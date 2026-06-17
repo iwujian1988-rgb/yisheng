@@ -1,6 +1,6 @@
 Page({
   goHistory() {
-    wx.navigateTo({ url: '/pages/history/history' });
+    wx.reLaunch({ url: '/pages/home/home' });
   },
 
   goContinue() {

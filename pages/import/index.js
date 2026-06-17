@@ -3,7 +3,7 @@ const featureEntitlements = require('../../services/entitlements/features');
 function isDeviceConnected() {
   const app = typeof getApp === 'function' ? getApp() : null;
   const globalData = app && app.globalData ? app.globalData : {};
-  return Boolean(globalData.skipBluetoothForDev || globalData.deviceConnected);
+  return Boolean(globalData.deviceConnected || globalData.bleLinkReady);
 }
 
 Page({
@@ -15,19 +15,18 @@ Page({
       confirmText: '去连接',
       cancelText: '稍后',
       success(res) {
-        if (res.confirm) wx.navigateTo({ url: '/pages/transfer/editor?source=manual' });
+        if (res.confirm) wx.switchTab({ url: '/pages/home/home' });
       }
     });
     return false;
   },
 
   goManualInput() {
-    wx.navigateTo({ url: '/pages/transfer/editor?source=manual' });
+    wx.switchTab({ url: '/pages/home/home' });
   },
 
   goOcr() {
-    if (!featureEntitlements.guardAiFeature('ocr', '图片取字')) return;
-    wx.navigateTo({ url: '/pages/ocr/index' });
+    wx.showToast({ title: '请从首页进入图片识别', icon: 'none' });
   },
 
   goAsr() {
@@ -42,6 +41,6 @@ Page({
 
   goTemplate() {
     if (!featureEntitlements.guardAiFeature('templates', '场景模板')) return;
-    wx.navigateTo({ url: '/pages/templates/index' });
+    wx.switchTab({ url: '/pages/templates/index' });
   }
 });

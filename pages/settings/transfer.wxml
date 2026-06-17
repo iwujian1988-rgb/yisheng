@@ -1,61 +1,24 @@
 <view class="settings-container">
   <view class="section">
     <text class="section-title">传输速度</text>
+    <text class="section-hint">全部档位均采用 ACK 闭环：等设备敲完再发下一包，速度由七键间隔决定。点击即保存。</text>
     <view class="option-group">
+      <view class="option-card {{speedMode === 'slow' ? 'option-active' : ''}}" bindtap="selectSpeed" data-speed="slow">
+        <text class="option-name">慢速</text>
+        <text class="option-desc">ACK 闭环，七键 100ms/键，空格前 30ms，最稳。</text>
+      </view>
       <view class="option-card {{speedMode === 'safe' ? 'option-active' : ''}}" bindtap="selectSpeed" data-speed="safe">
         <text class="option-name">稳定</text>
-        <text class="option-desc">速度较慢，兼容性最好。</text>
+        <text class="option-desc">ACK 闭环，七键 50ms/键，空格前 20ms，推荐日常使用。</text>
       </view>
       <view class="option-card {{speedMode === 'balanced' ? 'option-active' : ''}}" bindtap="selectSpeed" data-speed="balanced">
         <text class="option-name">均衡</text>
-        <text class="option-desc">速度和稳定性折中。</text>
+        <text class="option-desc">ACK 闭环，七键 12ms/键，空格前 10ms，速度与稳定性折中。</text>
       </view>
       <view class="option-card {{speedMode === 'turbo' ? 'option-active' : ''}}" bindtap="selectSpeed" data-speed="turbo">
         <text class="option-name">快速</text>
-        <text class="option-desc">速度更快，部分电脑可能不稳定。</text>
+        <text class="option-desc">ACK 闭环，七键连打，空格前 5ms，仅性能好的电脑可用。</text>
       </view>
     </view>
   </view>
-
-  <view class="section">
-    <text class="section-title">电脑系统</text>
-    <view class="option-group">
-      <view class="option-card {{systemMode === 'WIN10' ? 'option-active' : ''}}" bindtap="selectSystem" data-system="WIN10">
-        <text class="option-name">Windows 10</text>
-        <text class="option-desc">适合 Windows 10 或更早版本。</text>
-      </view>
-      <view class="option-card {{systemMode === 'WIN11' ? 'option-active' : ''}}" bindtap="selectSystem" data-system="WIN11">
-        <text class="option-name">Windows 11</text>
-        <text class="option-desc">适合 Windows 11。</text>
-      </view>
-      <view class="option-card {{systemMode === 'RAW' ? 'option-active' : ''}}" bindtap="selectSystem" data-system="RAW">
-        <text class="option-name">原始模式</text>
-        <text class="option-desc">用于特殊输入环境排查。</text>
-      </view>
-    </view>
-  </view>
-
-  <view class="section">
-    <text class="section-title">编码模式</text>
-    <view class="option-group">
-      <view class="option-card {{encodingMode === 'AUTO' ? 'option-active' : ''}}" bindtap="selectEncoding" data-encoding="AUTO">
-        <text class="option-name">自动</text>
-        <text class="option-desc">默认推荐，根据设备协议自动处理。</text>
-      </view>
-      <view class="option-card {{encodingMode === 'UTF8' ? 'option-active' : ''}}" bindtap="selectEncoding" data-encoding="UTF8">
-        <text class="option-name">UTF-8</text>
-        <text class="option-desc">适合大多数现代输入环境。</text>
-      </view>
-      <view class="option-card {{encodingMode === 'GBK' ? 'option-active' : ''}}" bindtap="selectEncoding" data-encoding="GBK">
-        <text class="option-name">GBK</text>
-        <text class="option-desc">用于旧系统或中文兼容排查。</text>
-      </view>
-      <view class="option-card {{encodingMode === 'ASCII' ? 'option-active' : ''}}" bindtap="selectEncoding" data-encoding="ASCII">
-        <text class="option-name">ASCII</text>
-        <text class="option-desc">仅用于英文和符号测试。</text>
-      </view>
-    </view>
-  </view>
-
-  <button class="btn btn-primary save-btn" bindtap="saveSettings">保存设置</button>
 </view>

@@ -13,16 +13,16 @@ const PROFESSIONAL_FEATURES = {
 function isBluetoothConnected() {
   var app = typeof getApp === 'function' ? getApp() : null;
   var gd = app && app.globalData;
-  return Boolean(gd && (gd.skipBluetoothForDev || gd.deviceConnected));
+  return Boolean(gd && gd.bleLinkReady);
 }
 
 function hasDeviceSession() {
-  if (deviceSession.getDeviceSessionToken()) return true;
-  var app = typeof getApp === 'function' ? getApp() : null;
-  var gd = app && app.globalData;
-  var devBypass = Boolean(gd && gd.skipBluetoothForDev);
-  if (devBypass || wx.getStorageSync('skipBluetoothForDev')) return true;
-  return Boolean(wx.getStorageSync('boundDevice'));
+  return Boolean(deviceSession.getDeviceSessionToken());
+}
+
+function hasBoundDevice() {
+  const boundDevice = wx.getStorageSync('boundDevice');
+  return Boolean(boundDevice && boundDevice.id);
 }
 
 function guardAiFeature(featureKey, featureName) {
@@ -39,10 +39,10 @@ function guardAiFeature(featureKey, featureName) {
     return false;
   }
 
-  if (PROFESSIONAL_FEATURES[featureKey] && !hasDeviceSession()) {
+  if (PROFESSIONAL_FEATURES[featureKey] && !hasBoundDevice()) {
     wx.showModal({
       title: '请先连接设备',
-      content: (featureName || '该功能') + '需要完成设备连接校验后使用。',
+      content: (featureName || '该功能') + '需要先连接蓝牙设备。',
       confirmText: '去连接',
       cancelText: '稍后',
       success: function (res) {
@@ -74,6 +74,7 @@ function guardTransferFeature(featureName) {
 module.exports = {
   guardAiFeature: guardAiFeature,
   guardTransferFeature: guardTransferFeature,
+  hasBoundDevice: hasBoundDevice,
   hasDeviceSession: hasDeviceSession,
   isBluetoothConnected: isBluetoothConnected
 };

@@ -70,9 +70,9 @@ async function run() {
   });
 
   console.log('[4/9] user login + activate');
-  const user = await request('/api/auth/wechat-login', {
+  const user = await request('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ code: USER_CODE })
+    body: JSON.stringify({ phone: '13900002001', code: '123456', wechatCode: USER_CODE })
   });
   assert(user.token, 'user token missing');
   await request('/api/purchase/activate', {

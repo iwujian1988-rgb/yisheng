@@ -233,7 +233,7 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: var(--app-tab-bar-height, 100rpx);
   padding: 16rpx 20rpx 34rpx;
   background-color: #FFFFFF;
   border-top: 1rpx solid #EAECF0;
