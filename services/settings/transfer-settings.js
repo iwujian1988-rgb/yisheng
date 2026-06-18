@@ -115,7 +115,7 @@ function getSpeedModeSummary(speedMode) {
     keyDelayMs,
     preSpaceMs: getVucPreSpaceDelayMs(mode),
     spdTag: getSpdTag(mode),
-    text: '当前：' + label + '（ACK闭环 / 七键' + keyDelayMs + 'ms / 空格' + getVucPreSpaceDelayMs(mode) + 'ms）'
+    text: '传输速度：' + label
   };
 }
 
