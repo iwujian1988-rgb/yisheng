@@ -318,7 +318,7 @@ function createProviderGatewayModule(deps) {
           Authorization: 'Bearer ' + config.aiApiKey
         },
         body: JSON.stringify({
-          model: config.aiModel,
+          model: config.aiResolvedModel,
           messages: buildAiMessages(body, action, userId, connected),
           temperature: 0.3,
           max_tokens: 4096
@@ -396,11 +396,6 @@ function createProviderGatewayModule(deps) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
     var body = await parseBody(req, { maxBytes: config.ocrMaxImageBytes * 2 });
-    var access = deviceSession.resolveDeviceSession(store, req, actor.id, 'ocr');
-    if (!access.ok) {
-      fail(res, 403, access.code, access.message);
-      return;
-    }
     if (!body.imageBase64) {
       fail(res, 400, 'OCR_IMAGE_REQUIRED', 'imageBase64 required');
       return;
@@ -413,6 +408,39 @@ function createProviderGatewayModule(deps) {
     }
     if (imageBytes > config.ocrMaxImageBytes) {
       fail(res, 413, 'OCR_IMAGE_TOO_LARGE', 'image is too large');
+      return;
+    }
+    if (config.agentServiceEnabled) {
+      if (!requireMember(actor, res, 'OCR')) return;
+      try {
+        var callAgentService = require('./agent-proxy').callAgentService;
+        var agentResponse = await callAgentService('ocr', {
+          userContext: { userId: actor.id, memberStatus: 'active' },
+          data: {
+            imageBase64: body.imageBase64,
+            mimeType: body.mimeType || image.mimeType || '',
+            fileType: body.fileType || '',
+            source: body.source || 'mini_program'
+          }
+        }, { userId: actor.id });
+        var agentResult = agentResponse.result || {};
+        ok(res, buildOcrResponse(agentResult.text || '', {
+          engine: agentResult.engine || config.ocrCloudModel,
+          status: agentResult.status || 'ok',
+          provider: agentResult.provider || 'agent-service',
+          confidence: 0,
+          regions: Array.isArray(agentResult.lines) ? agentResult.lines : [],
+          imageBytes: imageBytes
+        }));
+        return;
+      } catch (error) {
+        fail(res, error.name === 'AbortError' ? 504 : 502, 'AGENT_SERVICE_FAILED', error.message);
+        return;
+      }
+    }
+    var access = deviceSession.resolveDeviceSession(store, req, actor.id, 'ocr');
+    if (!access.ok) {
+      fail(res, 403, access.code, access.message);
       return;
     }
     if (isOcrCloudConfigured()) {
@@ -574,11 +602,6 @@ function createProviderGatewayModule(deps) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
     var body = await parseBody(req, { maxBytes: config.asrMaxAudioBytes * 2 });
-    var access = deviceSession.resolveDeviceSession(store, req, actor.id, 'asr');
-    if (!access.ok) {
-      fail(res, 403, access.code, access.message);
-      return;
-    }
     if (!body.audioBase64) {
       fail(res, 400, 'ASR_AUDIO_REQUIRED', 'audioBase64 required');
       return;
@@ -591,6 +614,40 @@ function createProviderGatewayModule(deps) {
     }
     if (audioBytes > config.asrMaxAudioBytes) {
       fail(res, 413, 'ASR_AUDIO_TOO_LARGE', 'audio is too large');
+      return;
+    }
+    if (config.agentServiceEnabled) {
+      if (!requireMember(actor, res, 'ASR')) return;
+      try {
+        var callAgentService = require('./agent-proxy').callAgentService;
+        var agentResponse = await callAgentService('asr', {
+          userContext: { userId: actor.id, memberStatus: 'active' },
+          data: {
+            audioBase64: body.audioBase64,
+            mimeType: body.mimeType || audio.mimeType || '',
+            format: body.format || '',
+            source: body.source || 'mini_program'
+          }
+        }, { userId: actor.id });
+        var agentResult = agentResponse.result || {};
+        ok(res, {
+          engine: agentResult.engine || config.asrCloudModel,
+          status: agentResult.status || 'ok',
+          provider: agentResult.provider || 'agent-service',
+          text: normalizeWorkerText(agentResult.text || ''),
+          durationMs: 0,
+          confidence: 0,
+          audioBytes: audioBytes
+        });
+        return;
+      } catch (error) {
+        fail(res, error.name === 'AbortError' ? 504 : 502, 'AGENT_SERVICE_FAILED', error.message);
+        return;
+      }
+    }
+    var access = deviceSession.resolveDeviceSession(store, req, actor.id, 'asr');
+    if (!access.ok) {
+      fail(res, 403, access.code, access.message);
       return;
     }
     if (resolveDashscopeApiKey()) {

@@ -71,7 +71,9 @@ function friendlyMessage(code, fallback) {
     ASR_AUDIO_INVALID: '录音内容无效，请重新录制',
     ASR_AUDIO_TOO_LARGE: '录音文件过大，请缩短录音时长',
     ASR_WORKER_FAILED: '语音转写暂时不可用，请稍后重试',
-    OCR_WORKER_FAILED: '图片识别暂时不可用，请稍后重试'
+    OCR_WORKER_FAILED: '图片识别暂时不可用，请稍后重试',
+    AGENT_SERVICE_FAILED: 'AI 服务暂时不可用，请稍后重试',
+    MEMBER_REQUIRED: '当前账号暂未开通会员，请先开通服务'
   };
   return map[code] || fallback || '请求失败';
 }
@@ -123,6 +125,7 @@ function request(options) {
       url: baseUrl + url,
       method,
       data,
+      timeout: config.timeout || 60000,
       header: Object.assign({
         'Content-Type': 'application/json',
         Authorization: token ? 'Bearer ' + token : ''

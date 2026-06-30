@@ -214,7 +214,7 @@ function createUserApiModule(deps) {
           Authorization: 'Bearer ' + config.aiApiKey
         },
         body: JSON.stringify({
-          model: config.aiModel,
+          model: config.aiResolvedModel,
           messages: buildTemplateAiMessages(template, values),
           temperature: 0.3,
           max_tokens: 3000

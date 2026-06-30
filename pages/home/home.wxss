@@ -159,20 +159,6 @@
   margin-bottom: var(--td-spacer, 16rpx);
 }
 
-.help-entry {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8rpx;
-  margin-bottom: var(--td-spacer-2, 32rpx);
-  padding: var(--td-spacer, 16rpx) 0;
-}
-
-.help-entry__text {
-  font: var(--td-font-body-small, 24rpx / 40rpx PingFang SC, Microsoft YaHei, Arial Regular);
-  color: var(--td-text-color-placeholder, rgba(0, 0, 0, 0.4));
-}
-
 .banner {
   margin-left: var(--td-spacer-2, 32rpx);
   margin-right: var(--td-spacer-2, 32rpx);

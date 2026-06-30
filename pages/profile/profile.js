@@ -14,15 +14,9 @@ const SERVICE_MENU = [
 
     items: [
 
-      { id: 'activate', title: '开通服务', desc: '开通会员', icon: 'coupon', action: 'activate' },
-
-      { id: 'records', title: '套餐记录', desc: '查看购买记录', icon: 'file-paste', action: 'records' },
-
       { id: 'device', title: '设备管理', desc: '管理蓝牙设备', icon: 'mobile', action: 'device' },
 
       { id: 'settings', title: '传输设置', desc: '调整打字速度', icon: 'setting', action: 'settings' },
-
-      { id: 'connect', title: '连接与配置', desc: '乱码、蓝牙连接问题必看', icon: 'bluetooth', action: 'connect' },
 
       { id: 'tutorials', title: '功能说明', desc: '教程与 FAQ', icon: 'help-circle', action: 'tutorials' }
 
@@ -38,9 +32,7 @@ const SERVICE_MENU = [
 
       { id: 'agreement', title: '用户协议与隐私',  icon: 'secured', action: 'agreement' },
 
-      { id: 'service', title: '联系客服', icon: 'service', action: 'customerService' },
-
-      { id: 'debug', title: '调试中心',  icon: 'tools', action: 'debug' }
+      { id: 'service', title: '联系客服', icon: 'service', action: 'customerService' }
 
     ]
 
@@ -144,7 +136,7 @@ function buildMemberCardState(session) {
 
       planTitle: '会员已过期',
 
-      planDesc: '',
+      planDesc: '续费请联系管理员或客服',
 
       memberExpireText: formatMemberExpired(memberEnd),
 
@@ -154,7 +146,7 @@ function buildMemberCardState(session) {
 
       remainingTagTheme: 'danger',
 
-      planActionText: '续费开通'
+      planActionText: ''
 
     };
 
@@ -174,7 +166,7 @@ function buildMemberCardState(session) {
 
       planTitle: '未开通会员',
 
-      planDesc: '开通后可使用 AI、OCR、语音与场景模板',
+      planDesc: '请联系设备商家开通会员',
 
       memberExpireText: '',
 
@@ -184,7 +176,7 @@ function buildMemberCardState(session) {
 
       remainingTagTheme: 'default',
 
-      planActionText: '立即开通'
+      planActionText: ''
 
     };
 
@@ -206,7 +198,7 @@ function buildMemberCardState(session) {
 
     planDesc: '',
 
-    memberExpireText: formatMemberEnd(memberEnd) || '查看套餐记录了解有效期',
+    memberExpireText: formatMemberEnd(memberEnd) || '',
 
     memberRemainingDays: remainingDays,
 
@@ -214,7 +206,7 @@ function buildMemberCardState(session) {
 
     remainingTagTheme: resolveRemainingTagTheme(remainingDays, memberStatus),
 
-    planActionText: '查看套餐'
+    planActionText: ''
 
   };
 
@@ -242,7 +234,7 @@ Page({
 
     planTitle: '未开通会员',
 
-    planDesc: '开通后可使用 AI、OCR、语音与场景模板',
+    planDesc: '请联系设备商家开通会员',
 
     memberExpireText: '',
 
@@ -252,7 +244,7 @@ Page({
 
     remainingTagTheme: 'default',
 
-    planActionText: '立即开通',
+    planActionText: '',
 
     menuGroups: SERVICE_MENU
 
@@ -328,43 +320,19 @@ Page({
 
 
 
-  onPlanTap() {
-
-    if (this.data.isMember && !this.data.isExpired) {
-
-      wx.navigateTo({ url: '/pages/purchase/records' });
-
-      return;
-
-    }
-
-    wx.navigateTo({ url: '/pages/purchase/activate' });
-
-  },
-
-
-
   onMenuTap(e) {
 
     const action = e.currentTarget.dataset.action;
 
     const routes = {
 
-      activate: '/pages/purchase/activate',
-
-      records: '/pages/purchase/records',
-
       device: '/pages/device/device',
 
       settings: '/pages/settings/transfer',
 
-      connect: '/pages/tutorials/connect-guide',
-
       tutorials: '/pages/tutorials/index',
 
-      agreement: '/pages/common/agreement',
-
-      debug: '/pages/dev/index'
+      agreement: '/pages/common/agreement'
 
     };
 

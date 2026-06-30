@@ -1,69 +1,53 @@
 const { request, getBaseUrl } = require('../api/client');
 const { ENDPOINTS, fillPath } = require('../api/endpoints');
 
-function listTemplates(connected) {
+function listTemplates() {
   if (!getBaseUrl()) {
-    return Promise.resolve({ templates: [], categories: [] });
+    return Promise.resolve({ templates: [] });
   }
-  var url = ENDPOINTS.ai.templates;
   return request({
-    url: url,
+    url: ENDPOINTS.templates.list,
     method: 'GET'
-  }).then((data) => {
-    if (data && Array.isArray(data.templates)) {
-      return data;
-    }
-    if (Array.isArray(data)) {
-      var cats = [];
-      data.forEach(function (template) {
-        if (template.category && cats.indexOf(template.category) === -1) {
-          cats.push(template.category);
-        }
-      });
-      return { templates: data, categories: cats };
-    }
-    return { templates: [], categories: [] };
+  }).then(function (data) {
+    return {
+      templates: (data && data.templates) || []
+    };
   }).catch(function () {
-    return { templates: [], categories: [] };
+    return { templates: [] };
   });
 }
 
-function listLocalTemplates() {
-  return Promise.resolve([]);
-}
-
-function valuesFromFields(fields) {
-  var values = {};
-  (fields || []).forEach(function (field) {
-    values[field.key] = String(field.value || '').trim();
-  });
-  return values;
-}
-
-function generateTemplate(template, fields) {
-  var currentTemplate = template || {};
-  if (!getBaseUrl()) {
-    return Promise.reject({
-      code: 'TEMPLATE_BACKEND_REQUIRED',
-      message: '模板服务暂时不可用'
-    });
-  }
-
-  var url = fillPath(ENDPOINTS.ai.templateGenerate, {
-    id: currentTemplate.id || currentTemplate.templateCode
-  });
-
+function getTemplate(id) {
   return request({
-    url: url,
+    url: fillPath(ENDPOINTS.templates.detail, { id: id }),
+    method: 'GET'
+  });
+}
+
+function saveTemplate(draft) {
+  return request({
+    url: ENDPOINTS.templates.save,
+    method: 'POST',
+    data: { templateDraft: draft }
+  });
+}
+
+function runTemplateAgent(options) {
+  return request({
+    url: ENDPOINTS.agent.template,
     method: 'POST',
     data: {
-      values: valuesFromFields(fields)
+      templateType: options.templateType,
+      templateName: options.templateName || '',
+      content: options.content || '',
+      options: options.options || {}
     }
   });
 }
 
 module.exports = {
-  generateTemplate,
   listTemplates,
-  listLocalTemplates
+  getTemplate,
+  saveTemplate,
+  runTemplateAgent
 };

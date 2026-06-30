@@ -1,0 +1,87 @@
+<view class="ai-composer">
+  <view wx:if="{{chips.length > 0}}" class="ai-composer__mode-bar">
+    <scroll-view
+      class="ai-composer__chips-scroll"
+      type="list"
+      scroll-x
+      enhanced="{{true}}"
+      show-scrollbar="{{false}}"
+      enable-flex
+    >
+      <view class="ai-composer__chips">
+        <view
+          wx:for="{{chips}}"
+          wx:key="id"
+          class="ai-composer__chip {{item.active ? 'ai-composer__chip--active' : ''}}"
+          data-id="{{item.id}}"
+          catchtap="onChipTap"
+        >
+          {{item.title}}
+        </view>
+      </view>
+    </scroll-view>
+    <view wx:if="{{showHint}}" class="ai-composer__hint-btn" catchtap="onHintTap">
+      <t-icon name="help-circle" size="36rpx" color="rgba(0,0,0,0.45)" />
+    </view>
+  </view>
+
+  <view wx:if="{{showTemplateSelector}}" class="ai-composer__template-row">
+    <picker
+      wx:if="{{templateNames.length > 0}}"
+      bindchange="onTemplateChange"
+      range="{{templateNames}}"
+    >
+      <view class="ai-composer__template-picker">
+        <text>{{templateLabel}}</text>
+        <t-icon name="chevron-down" size="28rpx" color="rgba(0,0,0,0.45)" />
+      </view>
+    </picker>
+    <text class="ai-composer__template-link" catchtap="onTemplateImport">导入模板</text>
+  </view>
+
+  <view class="ai-composer__input-box">
+    <textarea
+      class="ai-composer__textarea"
+      placeholder="{{placeholder}}"
+      placeholder-class="ai-composer__placeholder"
+      value="{{value}}"
+      disabled="{{disabled}}"
+      bindinput="onInput"
+      maxlength="5000"
+      show-confirm-bar="{{false}}"
+      adjust-position="{{true}}"
+    />
+    <view class="ai-composer__toolbar">
+      <view class="ai-composer__toolbar-left">
+        <view class="ai-composer__tool" catchtap="onVoiceTap">
+          <t-icon name="microphone" size="44rpx" color="rgba(0,0,0,0.55)" />
+        </view>
+        <view class="ai-composer__tool" catchtap="onImageTap">
+          <t-icon name="camera" size="44rpx" color="rgba(0,0,0,0.55)" />
+        </view>
+        <view
+          class="ai-composer__tool {{templateSelected ? 'ai-composer__tool--active' : ''}}"
+          catchtap="onTemplateTap"
+        >
+          <t-icon
+            name="template"
+            size="44rpx"
+            color="{{templateSelected ? '#1677ff' : 'rgba(0,0,0,0.55)'}}"
+          />
+        </view>
+      </view>
+      <view
+        class="ai-composer__send {{canSend && !sending ? 'ai-composer__send--active' : ''}}"
+        catchtap="onSendTap"
+      >
+        <t-loading wx:if="{{sending}}" theme="circular" size="36rpx" />
+        <t-icon
+          wx:else
+          name="send-filled"
+          size="32rpx"
+          color="{{canSend ? '#FFFFFF' : 'rgba(0,0,0,0.35)'}}"
+        />
+      </view>
+    </view>
+  </view>
+</view>

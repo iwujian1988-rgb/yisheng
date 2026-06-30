@@ -1,133 +1,163 @@
-<view class="detail-container">
-  <scroll-view class="message-list" scroll-y scroll-into-view="{{scrollTarget}}">
-    <view wx:if="{{messages.length === 0}}" class="welcome-message">
-      <view class="bot-avatar">AI</view>
-      <view class="welcome-bubble">
-        <text class="welcome-title">{{isProfessionalWorkspace ? '选择一个常用场景，把原始内容交给 AI 整理' : '选择处理方式，输入内容后交给 AI'}}</text>
-        <text class="welcome-desc">{{isProfessionalWorkspace ? '可以直接输入，也可以用语音或图片先把内容带进来。' : '适合整理、润色、提取、检查和格式转换。'}}</text>
-      </view>
-    </view>
-
-    <view wx:if="{{collapsedHistory.length > 0}}" class="history-section">
-      <view wx:for="{{collapsedHistory}}" wx:key="index" class="history-round">
-        <view class="history-summary" bindtap="toggleHistory" data-index="{{index}}">
-          <text class="history-tag">第 {{index + 1}} 轮</text>
-          <text class="history-preview">{{item.userSummary}}...</text>
-          <text class="history-expand">{{item.expanded ? '收起' : '展开'}}</text>
-        </view>
-        <view wx:if="{{item.expanded}}" class="history-detail">
-          <view class="history-msg history-user-msg">
-            <text class="history-label">你</text>
-            <text class="history-text">{{item.userFull}}</text>
-          </view>
-          <view class="history-msg history-ai-msg">
-            <text class="history-label">AI</text>
-            <text class="history-text">{{item.assistantFull}}</text>
-          </view>
+<view class="detail-page">
+  <view class="detail-chat-wrap {{pendingPreviewItems.length ? 'detail-chat-wrap--tall-composer' : ''}}">
+    <t-chat-list
+      id="chatList"
+      class="detail-chat-list"
+      reverse="{{false}}"
+      layout="both"
+    >
+      <view wx:if="{{messages.length === 0 && !sending}}" class="welcome-message">
+        <view class="bot-avatar">AI</view>
+        <view class="welcome-bubble">
+          <text class="welcome-title">描述你的需求，可附带图片或语音转写内容</text>
+          <text class="welcome-desc">例如：识别这张报告并整理成病程记录。系统会自动识别、整理并直接给出结果。</text>
         </view>
       </view>
-    </view>
 
-    <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
-      <view class="message {{item.role === 'user' ? 'message-user' : 'message-ai'}}">
-        <view class="message-bubble">
-          <view wx:if="{{item.role === 'assistant'}}" class="ai-label">AI 生成</view>
-          <text class="message-text" user-select="{{true}}">{{item.content}}</text>
-          <view wx:if="{{item.confirmText}}" class="confirm-section">
-            <text class="confirm-label">发送前请确认</text>
-            <text class="confirm-text" user-select="{{true}}">{{item.confirmText}}</text>
-          </view>
-          <view class="message-actions" wx:if="{{item.role === 'assistant' && item.bodyText}}">
-            <text class="use-result" bindtap="useResult" data-id="{{item.id}}">使用这段</text>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <view wx:if="{{round > 0}}" class="session-footer">
-      <text class="round-info">第 {{round}} 轮 / 最多 {{maxRounds}} 轮</text>
-      <text class="new-session" bindtap="resetSession">新建</text>
-    </view>
-
-    <view class="disclaimer">
-      <text class="disclaimer-text">AI 生成内容仅供参考，请核实后使用。</text>
-    </view>
-  </scroll-view>
-
-  <view class="composer">
-    <scroll-view wx:if="{{isProfessionalWorkspace}}" class="action-scroll" scroll-x>
-      <view class="action-row">
-        <view
-          wx:for="{{quickActions}}"
-          wx:key="id"
-          class="action-chip {{item.actionCode === 'pro_free_text' ? 'free' : ''}} {{activeAction && activeAction.id === item.id ? 'active' : ''}}"
-          data-id="{{item.id}}"
-          bindtap="selectAction"
+      <block wx:for="{{messages}}" wx:key="id">
+        <t-chat-message
+          chatId="{{item.id}}"
+          role="{{item.role}}"
+          placement="{{item.role === 'user' ? 'right' : 'left'}}"
+          variant="outline"
+          content="{{item.chatContent}}"
+          status="{{item.status || ''}}"
+          animation="{{item.status === 'streaming' ? 'moving' : (item.status === 'pending' ? 'moving' : 'skeleton')}}"
         >
-          {{item.title}}
-        </view>
-      </view>
-    </scroll-view>
+          <view slot="avatar" wx:if="{{item.role === 'assistant'}}" class="ai-msg-avatar">AI</view>
+          <view
+            slot="actionbar"
+            wx:if="{{item.role === 'assistant' && (item.bodyText || item.templateDraft)}}"
+            class="msg-actionbar"
+          >
+            <text class="msg-ai-tag">AI 生成</text>
+            <text
+              wx:if="{{item.bodyText}}"
+              class="msg-actionbar__btn"
+              bindtap="useResult"
+              data-id="{{item.id}}"
+            >使用这段</text>
+            <text
+              wx:if="{{item.templateDraft}}"
+              class="msg-actionbar__btn"
+              bindtap="saveTemplateDraft"
+              data-id="{{item.id}}"
+            >保存为模板</text>
+          </view>
+        </t-chat-message>
+      </block>
 
-    <scroll-view wx:else class="action-scroll" scroll-x>
-      <view class="action-row">
-        <view
-          wx:for="{{modes}}"
-          wx:key="key"
-          class="action-chip {{activeMode && activeMode.key === item.key ? 'active' : ''}}"
-          data-key="{{item.key}}"
-          bindtap="selectMode"
-        >
-          {{item.label}}
-        </view>
+      <view wx:if="{{sending && sendingStageLabel}}" class="sending-status">
+        <text class="sending-status__text">{{sendingStageLabel}}</text>
       </view>
-    </scroll-view>
 
-    <view wx:if="{{isProfessionalWorkspace && activeAction}}" class="active-hint {{activeAction.actionCode === 'pro_free_text' ? 'free-hint' : ''}}">
-      <text class="hint-title">{{activeAction.category ? activeAction.category + ' - ' + activeAction.title : activeAction.title}}</text>
-      <text class="hint-line">{{activeAction.inputHint || activeAction.placeholder || '输入原始内容，AI 会按当前场景整理。'}}</text>
-      <text class="hint-line">{{activeAction.outputHint || activeAction.description || '输出整理后的正文和待确认项。'}}</text>
-      <text class="hint-line">信息越完整，结果越接近可直接使用；缺失、不确定或明显不匹配的内容会放到待确认，不会替你编。</text>
+      <view wx:if="{{messages.length > 0}}" class="session-footer">
+        <text class="new-session" bindtap="resetSession">新建对话</text>
+      </view>
+
+      <view class="disclaimer">
+        <text class="disclaimer-text">AI 生成内容仅供参考，请核实后使用。</text>
+      </view>
+    </t-chat-list>
+  </view>
+
+  <view class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}">
+    <view wx:if="{{selectedTemplateName}}" class="composer-meta">
+      <view class="composer-meta__main">
+        <t-icon name="template" size="28rpx" color="#1677ff" />
+        <text class="composer-meta__text">{{selectedTemplateName}}</text>
+      </view>
+      <text class="composer-meta__action" catchtap="clearTemplateSelection">清除</text>
     </view>
 
-    <view wx:if="{{!isProfessionalWorkspace && activeMode}}" class="active-hint">
-      <text>{{activeMode.description}}</text>
-    </view>
-
-    <view wx:if="{{!isProfessionalWorkspace && showTemplateSelector}}" class="template-selector">
-      <picker wx:if="{{templates.system.length > 0 || templates.custom.length > 0}}" bindchange="onTemplateChange" range="{{templates.system.concat(templates.custom)}}" range-key="name">
-        <view class="template-picker">
-          <text class="template-picker-text">{{selectedTemplateId ? '已选择模板' : '选择模板，可选'}}</text>
-          <text class="template-picker-arrow">›</text>
+    <view class="composer-box">
+      <scroll-view
+        wx:if="{{pendingPreviewItems.length}}"
+        class="composer-thumbs"
+        scroll-x
+        enhanced="{{true}}"
+        show-scrollbar="{{false}}"
+      >
+        <view class="composer-thumbs__row">
+          <view
+            wx:for="{{pendingPreviewItems}}"
+            wx:key="id"
+            class="composer-thumb"
+          >
+            <image
+              class="composer-thumb__image"
+              src="{{item.url}}"
+              mode="aspectFill"
+              catchtap="previewPendingImage"
+              data-url="{{item.url}}"
+            />
+            <view wx:if="{{item.ocrStatus === 'recognizing'}}" class="composer-thumb__mask">
+              <t-loading theme="circular" size="36rpx" />
+              <text class="composer-thumb__mask-text">识别中</text>
+            </view>
+            <view
+              class="composer-thumb__remove"
+              wx:if="{{item.ocrStatus !== 'recognizing'}}"
+              catchtap="onRemovePendingImage"
+              data-id="{{item.id}}"
+            >
+              <t-icon name="close" size="24rpx" color="#ffffff" />
+            </view>
+          </view>
+          <view
+            wx:if="{{pendingPreviewItems.length < maxPendingImages}}"
+            class="composer-thumb composer-thumb--add"
+            catchtap="goImage"
+          >
+            <t-icon name="add" size="40rpx" color="rgba(0,0,0,0.45)" />
+          </view>
         </view>
-      </picker>
-      <view class="template-import-link" bindtap="goTemplateImport">
-        <text class="template-import-text">导入模板</text>
-      </view>
-    </view>
+      </scroll-view>
 
-    <view class="input-shell">
       <textarea
-        class="input-field"
-        placeholder="{{isProfessionalWorkspace ? (activeAction.placeholder || '输入或粘贴原始内容') : (activeMode ? activeMode.placeholder : '请选择处理方式')}}"
-        placeholder-class="input-placeholder"
+        class="composer-textarea {{pendingPreviewItems.length ? 'composer-textarea--with-thumbs' : ''}}"
+        placeholder="描述需求，可粘贴原始内容；图片将作为附件上传"
+        placeholder-class="composer-placeholder"
         value="{{inputText}}"
+        disabled="{{sending}}"
         bindinput="onInput"
         maxlength="5000"
         show-confirm-bar="{{false}}"
-        disabled="{{isProfessionalWorkspace ? !activeAction : !activeMode}}"
+        adjust-position="{{true}}"
+        cursor-spacing="24"
+        hold-keyboard="{{true}}"
       />
-      <view class="input-tools">
-        <button class="tool-btn" bindtap="goVoice">语音</button>
-        <button class="tool-btn" bindtap="goImage">图片</button>
-        <button
-          class="send-btn {{canSend ? 'active' : ''}}"
-          disabled="{{sendDisabled}}"
-          loading="{{sending}}"
-          bindtap="sendMessage"
+      <view class="composer-toolbar">
+        <view class="composer-toolbar__left">
+          <view class="composer-tool" catchtap="goVoice">
+            <t-icon name="microphone" size="44rpx" color="rgba(0,0,0,0.55)" />
+          </view>
+          <view class="composer-tool" catchtap="goImage">
+            <t-icon name="camera" size="44rpx" color="rgba(0,0,0,0.55)" />
+          </view>
+          <view
+            class="composer-tool {{selectedTemplateId ? 'composer-tool--active' : ''}}"
+            catchtap="openTemplatePicker"
+          >
+            <t-icon
+              name="template"
+              size="44rpx"
+              color="{{selectedTemplateId ? '#1677ff' : 'rgba(0,0,0,0.55)'}}"
+            />
+          </view>
+        </view>
+        <view
+          class="composer-send {{canSend ? 'composer-send--active' : ''}}"
+          catchtap="sendMessage"
         >
-          {{sending ? '生成中' : '发送'}}
-        </button>
+          <t-loading wx:if="{{sending}}" theme="circular" size="36rpx" />
+          <t-icon
+            wx:else
+            name="send-filled"
+            size="32rpx"
+            color="{{canSend ? '#ffffff' : 'rgba(0,0,0,0.35)'}}"
+          />
+        </view>
       </view>
     </view>
   </view>

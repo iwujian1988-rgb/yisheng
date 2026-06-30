@@ -32,6 +32,28 @@ function sendText(res, statusCode, text, headers) {
   res.end(text);
 }
 
+function startSse(res, statusCode) {
+  res.writeHead(statusCode || 200, {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization,Content-Type,X-Device-Session,X-Device-Session-Token'
+  });
+}
+
+function writeSse(res, event, data) {
+  var payload = typeof data === 'string' ? data : JSON.stringify(data);
+  res.write('event: ' + event + '\n');
+  res.write('data: ' + payload + '\n\n');
+}
+
+function endSse(res) {
+  res.end();
+}
+
 function parseBody(req, options) {
   var maxBytes = options && options.maxBytes ? Number(options.maxBytes) : 0;
   return new Promise((resolve, reject) => {
@@ -84,5 +106,8 @@ module.exports = {
   ok,
   parseBody,
   sendText,
-  sendJson
+  sendJson,
+  startSse,
+  writeSse,
+  endSse
 };

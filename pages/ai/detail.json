@@ -1,6 +1,12 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "t-chat-list": "tdesign-miniprogram/chat-list/chat-list",
+    "t-chat-message": "tdesign-miniprogram/chat-message/chat-message",
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-loading": "tdesign-miniprogram/loading/loading"
+  },
   "navigationBarTitleText": "AI 对话",
   "navigationBarTextStyle": "black",
-  "navigationBarBackgroundColor": "#FFFFFF"
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "disableScroll": true
 }

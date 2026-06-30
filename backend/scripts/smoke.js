@@ -12,6 +12,7 @@ config.asrWorkerUrl = '';
 config.dashscopeApiKey = '';
 config.asrCloudApiKey = '';
 config.ocrCloudEnabled = false;
+config.agentServiceEnabled = false;
 
 const BASE_URL = 'http://127.0.0.1:' + PORT;
 
@@ -85,7 +86,7 @@ async function run() {
   });
   assert(boundWechatLogin.user.id === userLogin.user.id, 'wechat login should reuse bound phone user id');
 
-  const userTemplates = await request('/api/ai/templates', {
+  const userTemplates = await request('/api/templates', {
     headers: {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + userLogin.token
@@ -183,43 +184,21 @@ async function run() {
     body: JSON.stringify({ status: 'published' })
   });
 
-  const professionalTemplates = await request('/api/ai/templates?connected=true', {
+  const professionalTemplates = await request('/api/templates', {
     headers: {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + activatedUser.token
     }
   });
-  assert(professionalTemplates.templates.some((item) => item.templateCode === 'pro_smoke_summary'), 'professional template missing');
+  assert(professionalTemplates.templates.some((item) => item.id === 'tpl_official_first_course' || item.tag === 'official'), 'professional template missing');
 
-  const generated = await request('/api/ai/templates/' + createdTemplate.id + '/generate?connected=true', {
-    method: 'POST',
+  const textTasks = await request('/api/agent/text/tasks', {
     headers: {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + activatedUser.token
-    },
-    body: JSON.stringify({
-      values: {
-        topic: '工作记录',
-        detail: '整理关键事项'
-      }
-    })
+    }
   });
-  assert(generated.bodyText && generated.rawText.indexOf('【正文】') !== -1, 'template generation missing body');
-  assert(generated.rawText.indexOf('【待确认】') !== -1, 'template generation missing confirmation section');
-
-  const aiResult = await request('/api/ai/assistant', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + activatedUser.token
-    },
-    body: JSON.stringify({
-      taskType: 'content_polish',
-      redactedText: '请整理这段工作记录'
-    })
-  });
-  assert(aiResult.resultText.indexOf('【正文】') !== -1, 'AI fallback missing body section');
-  assert(aiResult.resultText.indexOf('【待确认】') !== -1, 'AI fallback missing confirmation section');
+  assert(Array.isArray(textTasks.tasks) && textTasks.tasks.length >= 5, 'agent text tasks missing');
 
   const ocrResult = await request('/api/ocr/recognize', {
     method: 'POST',

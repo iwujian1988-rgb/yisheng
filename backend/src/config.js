@@ -1,29 +1,47 @@
 const fs = require('fs');
 const path = require('path');
 
-// Load .env from backend root (does not override existing env vars)
-(function loadEnv() {
-  var envPath = path.resolve(__dirname, '..', '.env');
-  if (!fs.existsSync(envPath)) return;
-  var lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
-  lines.forEach(function (line) {
-    var trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) return;
-    var index = trimmed.indexOf('=');
-    if (index <= 0) return;
-    var key = trimmed.slice(0, index).trim();
-    var value = trimmed.slice(index + 1).trim();
-    if (!process.env[key]) {
-      process.env[key] = value;
-    }
+// Load .env then .env.local from backend root (does not override existing env vars)
+(function loadEnvFiles() {
+  ['.env', '.env.local'].forEach(function (name) {
+    var envPath = path.resolve(__dirname, '..', name);
+    if (!fs.existsSync(envPath)) return;
+    var lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+    lines.forEach(function (line) {
+      var trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) return;
+      var index = trimmed.indexOf('=');
+      if (index <= 0) return;
+      var key = trimmed.slice(0, index).trim();
+      var value = trimmed.slice(index + 1).trim();
+      if (!process.env[key]) {
+        process.env[key] = value;
+      }
+    });
   });
 })();
 
 const DEFAULT_PORT = 8080;
+const AI_MODEL_ALIASES = {
+  'default-chat-model': 'deepseek-v3'
+};
 
 function readBoolean(value, fallback) {
   if (value === undefined || value === '') return fallback;
   return value === 'true' || value === '1';
+}
+
+function resolveAiModel(model) {
+  var name = model || 'default-chat-model';
+  return AI_MODEL_ALIASES[name] || name;
+}
+
+function defaultAiBaseUrl() {
+  if (process.env.AI_BASE_URL || process.env.AI_CHAT_COMPLETIONS_URL) return '';
+  if (process.env.DASHSCOPE_API_KEY || process.env.AI_API_KEY) {
+    return 'https://dashscope.aliyuncs.com/compatible-mode';
+  }
+  return '';
 }
 
 const config = {
@@ -48,24 +66,33 @@ const config = {
   ocrCloudTask: process.env.OCR_CLOUD_TASK || 'text_recognition',
   ocrCloudBaseUrl: process.env.OCR_CLOUD_BASE_URL || process.env.DASHSCOPE_BASE_URL || process.env.ASR_CLOUD_BASE_URL || 'https://dashscope.aliyuncs.com',
   ocrCloudEnabled: readBoolean(process.env.OCR_CLOUD_ENABLED, true),
-  dashscopeApiKey: process.env.DASHSCOPE_API_KEY || process.env.ASR_CLOUD_API_KEY || '',
+  dashscopeApiKey: process.env.AI_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ASR_CLOUD_API_KEY || '',
   asrEngine: process.env.ASR_ENGINE || 'faster-whisper',
   asrWorkerUrl: process.env.ASR_WORKER_URL || '',
   asrTimeoutMs: Number(process.env.ASR_TIMEOUT_MS || 10 * 60 * 1000),
   asrMaxAudioBytes: Number(process.env.ASR_MAX_AUDIO_BYTES || 60 * 1024 * 1024),
-  asrCloudApiKey: process.env.ASR_CLOUD_API_KEY || process.env.DASHSCOPE_API_KEY || '',
+  asrCloudApiKey: process.env.ASR_CLOUD_API_KEY || process.env.AI_API_KEY || process.env.DASHSCOPE_API_KEY || '',
   asrCloudBaseUrl: process.env.ASR_CLOUD_BASE_URL || process.env.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com',
   asrCloudModel: process.env.ASR_CLOUD_MODEL || 'qwen3-asr-flash',
   aiProvider: process.env.AI_PROVIDER || 'openai-compatible',
-  aiBaseUrl: process.env.AI_BASE_URL || '',
+  aiBaseUrl: process.env.AI_BASE_URL || defaultAiBaseUrl(),
   aiChatCompletionsUrl: process.env.AI_CHAT_COMPLETIONS_URL || '',
-  aiApiKey: process.env.AI_API_KEY || '',
+  aiApiKey: process.env.AI_API_KEY || process.env.DASHSCOPE_API_KEY || '',
   aiModel: process.env.AI_MODEL || 'default-chat-model',
+  aiResolvedModel: resolveAiModel(process.env.AI_MODEL || 'default-chat-model'),
   aiTimeoutMs: Number(process.env.AI_TIMEOUT_MS || 30000),
   wechatAppId: process.env.WECHAT_APP_ID || '',
-  wechatAppSecret: process.env.WECHAT_APP_SECRET || ''
+  wechatAppSecret: process.env.WECHAT_APP_SECRET || '',
+  agentServiceEnabled: readBoolean(
+    process.env.AGENT_SERVICE_ENABLED,
+    (process.env.NODE_ENV || 'development') !== 'production'
+  ),
+  agentServiceUrl: process.env.AGENT_SERVICE_URL || 'http://127.0.0.1:8000',
+  agentServiceApiKey: process.env.AGENT_SERVICE_API_KEY || 'dev-agent-key',
+  agentServiceTimeout: Number(process.env.AGENT_SERVICE_TIMEOUT || 120000)
 };
 
 module.exports = {
-  config
+  config,
+  resolveAiModel
 };

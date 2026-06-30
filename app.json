@@ -9,6 +9,7 @@
     "pages/common/agreement",
     "pages/ai/detail",
     "pages/templates/index",
+    "pages/templates/create",
     "pages/templates/detail",
     "pages/templates/result",
     "pages/ocr/index",

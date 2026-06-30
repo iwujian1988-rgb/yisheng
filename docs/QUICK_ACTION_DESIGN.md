@@ -1,6 +1,10 @@
 # 快捷任务模块设计方案
 
-> 状态：设计稿
+> **已废弃（2026-06-24）**  
+> 由 `docs/Multi-Agent系统设计方案.md` 替代：废弃 `quickActions` 表与 Admin 快捷任务；能力并入 Text Agent `task` + `template`；AI 对话页改为入口 B（Orchestrator）。  
+> 下文仅作历史参考，请勿按此文档实现。
+
+> 状态：~~设计稿~~ 已废弃
 > 模块：智能润色 / AI 快捷任务
 > 前置：模板模块已完成（audience 过滤、6 维字段、动态分类）
 

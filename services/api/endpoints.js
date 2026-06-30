@@ -55,6 +55,20 @@ const ENDPOINTS = {
   asr: {
     transcribe: '/api/asr/transcribe'
   },
+  agent: {
+    text: '/api/agent/text',
+    textTasks: '/api/agent/text/tasks',
+    template: '/api/agent/template',
+    ocr: '/api/agent/ocr',
+    asr: '/api/agent/asr',
+    chat: '/api/agent/chat',
+    chatStream: '/api/agent/chat/stream'
+  },
+  templates: {
+    list: '/api/templates',
+    detail: '/api/templates/{id}',
+    save: '/api/templates'
+  },
   support: {
     feedbacks: '/api/support/feedbacks',
     issues: '/api/support/issues',

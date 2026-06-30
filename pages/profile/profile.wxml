@@ -11,7 +11,7 @@
     </view>
   </view>
 
-  <view class="vip-card {{isMember ? 'vip-card--active' : ''}}" bindtap="onPlanTap">
+  <view class="vip-card {{isMember ? 'vip-card--active' : ''}}">
     <view class="vip-card__badge">
       <t-icon name="user-vip" size="48rpx" color="#D4A017" />
     </view>
@@ -25,12 +25,12 @@
             variant="light"
             size="small"
           >{{memberRemainingLabel}}</t-tag>
-          <text wx:elif="{{!isMember && !isExpired}}" class="vip-card__cta">{{planActionText}}</text>
-          <t-icon name="chevron-right" size="32rpx" color="rgba(0,0,0,0.4)" />
         </view>
       </view>
       <text wx:if="{{!isMember && !isExpired && planDesc}}" class="vip-card__desc">{{planDesc}}</text>
-      <text wx:elif="{{(isMember || isExpired) && memberExpireText}}" class="vip-card__desc">{{memberExpireText}}</text>
+      <text wx:if="{{isExpired && memberExpireText}}" class="vip-card__desc">{{memberExpireText}}</text>
+      <text wx:if="{{isExpired && planDesc}}" class="vip-card__desc vip-card__desc--sub">{{planDesc}}</text>
+      <text wx:elif="{{isMember && memberExpireText}}" class="vip-card__desc">{{memberExpireText}}</text>
     </view>
   </view>
 

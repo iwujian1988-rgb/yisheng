@@ -1,4 +1,5 @@
 const draftService = require('../../services/content/draft');
+const smartOrganize = require('../../services/agent/organize');
 
 Page({
   data: {
@@ -50,5 +51,26 @@ Page({
 
   reRecognize() {
     wx.navigateBack();
+  },
+
+  goSmartOrganize() {
+    const text = String(this.data.resultText || '').trim();
+    if (!text) {
+      wx.showToast({ title: '暂无可用内容', icon: 'none' });
+      return;
+    }
+
+    smartOrganize.runSmartOrganize(text)
+      .then((result) => {
+        const newText = result.bodyText || result.resultText || text;
+        draftService.saveDraft(newText, 'ocr');
+        if (this.data.resultKey) {
+          wx.removeStorageSync(this.data.resultKey);
+        }
+        wx.navigateTo({ url: '/pages/transfer/editor?source=ocr' });
+      })
+      .catch((error) => {
+        wx.showToast({ title: error.message || '智能整理失败', icon: 'none' });
+      });
   }
 });

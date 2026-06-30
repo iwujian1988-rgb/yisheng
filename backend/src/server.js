@@ -10,7 +10,8 @@ const { createAuthModule } = require('./modules/auth');
 const { createAdminModule } = require('./modules/admin');
 const { createUserApiModule } = require('./modules/user-api');
 const { createProviderGatewayModule } = require('./modules/provider-gateway');
-const { createSmartCreationModule } = require('./modules/smart-creation');
+const { createTemplatesModule } = require('./modules/templates');
+const { createAgentApiModule } = require('./modules/agent-api');
 
 const store = createStore();
 const sessions = createSessionManager(config.sessionTtlSeconds);
@@ -18,7 +19,8 @@ const auth = createAuthModule({ store, sessions });
 const admin = createAdminModule({ store, auth });
 const userApi = createUserApiModule({ store, auth });
 const providers = createProviderGatewayModule({ auth, store });
-const smartCreation = createSmartCreationModule({ store, auth });
+const templatesModule = createTemplatesModule({ store, auth, contentAccess: require('./security/content-access') });
+const agentApi = createAgentApiModule({ store, auth, templates: templatesModule });
 const router = createRouter();
 
 function serveAdminAsset(req, res) {
@@ -59,6 +61,8 @@ router.get('/api/health', (req, res) => {
     asrConfigured: dashscopeReady || Boolean(config.asrWorkerUrl),
     aiProvider: config.aiProvider,
     aiConfigured: Boolean(config.aiApiKey && (config.aiChatCompletionsUrl || config.aiBaseUrl)),
+    agentServiceEnabled: config.agentServiceEnabled,
+    agentServiceUrl: config.agentServiceUrl,
     wechatConfigured: Boolean(config.wechatAppId && config.wechatAppSecret)
   });
 });
@@ -115,22 +119,24 @@ router.get('/api/devices/firmware', userApi.firmware);
 router.get('/api/purchase/entitlement', userApi.purchaseEntitlement);
 router.post('/api/purchase/activate', userApi.activatePurchase);
 router.get('/api/purchase/records', userApi.purchaseRecords);
-router.get('/api/ai/templates', userApi.listTemplates);
-router.get('/api/ai/quick-actions', userApi.listQuickActions);
-router.get('/api/ai/templates/:id', userApi.templateDetail);
-router.post('/api/ai/templates/:id/generate', userApi.generateTemplate);
+
 router.post('/api/support/feedbacks', userApi.submitFeedback);
 router.post('/api/support/issues', userApi.submitIssue);
 router.get('/api/qa/long-text-tests', userApi.listLongTextTests);
 router.post('/api/qa/long-text-tests', userApi.saveLongTextTest);
 router.post('/api/qa/bug-reports', userApi.submitBugReport);
 
-router.post('/api/ai/assistant', providers.aiAssistant);
+router.get('/api/agent/text/tasks', templatesModule.listTextTasks);
+router.post('/api/agent/text', agentApi.agentText);
+router.post('/api/agent/template', agentApi.agentTemplate);
+router.post('/api/agent/ocr', agentApi.agentOcr);
+router.post('/api/agent/asr', agentApi.agentAsr);
+router.post('/api/agent/chat', agentApi.agentChat);
+router.post('/api/agent/chat/stream', agentApi.agentChatStream);
+router.get('/api/templates', templatesModule.listTemplates);
+router.get('/api/templates/:id', templatesModule.getTemplate);
+router.post('/api/templates', templatesModule.saveTemplate);
 
-router.get('/api/ai/modes', smartCreation.listModes);
-router.post('/api/ai/user-templates', smartCreation.createUserTemplate);
-router.get('/api/ai/user-templates', smartCreation.listUserTemplates);
-router.delete('/api/ai/user-templates/:id', smartCreation.deleteUserTemplate);
 router.post('/api/ocr/recognize', providers.ocrRecognize);
 router.post('/api/asr/transcribe', providers.asrTranscribe);
 

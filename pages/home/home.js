@@ -149,15 +149,6 @@ Page({
     wx.navigateTo({ url: '/pages/asr/index' });
   },
 
-  openHelp() {
-    const banner = this.data.banner;
-    if (banner && banner.url) {
-      this.openBanner();
-      return;
-    }
-    wx.navigateTo({ url: '/pages/tutorials/index' });
-  },
-
   openBanner() {
     const banner = this.data.banner;
     if (!banner || !banner.url) return;

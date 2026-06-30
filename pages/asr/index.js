@@ -1,8 +1,7 @@
 const asrTranscriber = require('../../services/asr/transcriber');
 const featureEntitlements = require('../../services/entitlements/features');
 const draftService = require('../../services/content/draft');
-const aiAssistant = require('../../services/ai/assistant');
-const quickActionsService = require('../../services/ai/quick-actions');
+const smartOrganize = require('../../services/agent/organize');
 
 let recorderManager = null;
 let recordTimer = null;
@@ -14,13 +13,6 @@ const CHUNK_RECORD_MS = 8 * 1000;
 const AUTOSAVE_MS = 30 * 1000;
 const ASR_DRAFT_KEY = 'asrRecoverableDraft';
 const AI_MEDIA_INPUT_DRAFT_KEY = 'aiMediaInputDraft';
-
-function selectActions(actions) {
-  return (actions || [])
-    .filter((action) => action)
-    .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
-    .slice(0, 6);
-}
 
 function formatDuration(ms) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -479,40 +471,20 @@ Page({
       return;
     }
 
-    quickActionsService.listQuickActions()
-      .then((result) => {
-        const actions = selectActions(result.quickActions);
-        if (!actions.length) {
-          wx.showToast({ title: '暂无可用的专业整理', icon: 'none' });
-          return;
-        }
-        wx.showActionSheet({
-          itemList: actions.map((action) => action.title),
-          success: (res) => {
-            const selected = actions[res.tapIndex];
-            if (!selected) return;
-            this.setData({ transcribing: true });
-            aiAssistant.generateContent({
-              text,
-              type: 'content_polish',
-              actionId: selected.id
-            }).then((aiResult) => {
-              const newText = aiResult.bodyText || aiResult.resultText || text;
-              this.setData({
-                editableText: newText,
-                resultText: newText,
-                transcribing: false
-              });
-              this.persistDraft('edited');
-            }).catch((error) => {
-              this.setData({ transcribing: false });
-              wx.showToast({ title: error.message || '专业整理暂时不可用', icon: 'none' });
-            });
-          }
+    this.setData({ transcribing: true });
+    smartOrganize.runSmartOrganize(text)
+      .then((aiResult) => {
+        const newText = aiResult.bodyText || aiResult.resultText || text;
+        this.setData({
+          editableText: newText,
+          resultText: newText,
+          transcribing: false
         });
+        this.persistDraft('edited');
       })
-      .catch(() => {
-        wx.showToast({ title: '加载整理能力失败', icon: 'none' });
+      .catch((error) => {
+        this.setData({ transcribing: false });
+        wx.showToast({ title: error.message || '智能整理失败', icon: 'none' });
       });
   }
 });

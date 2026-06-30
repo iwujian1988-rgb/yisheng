@@ -1,4 +1,4 @@
-<view class="templates-container">
+<view class="templates-container {{activeTab === 'custom' ? 'templates-container--with-footer' : ''}}">
   <view class="tab-bar">
     <view
       class="tab-item {{activeTab === item.key ? 'tab-active' : ''}}"
@@ -25,7 +25,7 @@
       <text class="empty-icon-text">T</text>
     </view>
     <text class="state-title">暂无可用模板</text>
-    <text class="state-desc">请确认已开通会员、已连接设备，并由后台配置模板。</text>
+    <text class="state-desc">请确认已开通会员；专业模板在连接设备后可见。可先添加自有模板。</text>
   </view>
 
   <view class="list-section" wx:else>
@@ -38,9 +38,13 @@
     >
       <view class="template-main">
         <text class="template-name">{{item.name}}</text>
-        <text class="template-desc">{{item.description || '填写关键信息后生成可编辑文本'}}</text>
+        <text class="template-desc">{{item.templateType || item.template_type || '模板'}} · {{item.tag === 'official' ? '官方' : '自有'}}</text>
       </view>
       <text class="template-arrow">›</text>
     </view>
+  </view>
+
+  <view class="create-bar" wx:if="{{activeTab === 'custom'}}">
+    <button class="create-btn" bindtap="goCreate">添加模板</button>
   </view>
 </view>

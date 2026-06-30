@@ -19,6 +19,7 @@ function ensureCollections(store) {
     'longTextTests',
     'bugReports',
     'userTemplates',
+    'agentTemplates',
     'deviceSessionChallenges',
     'deviceSessions'
   ].forEach((key) => {

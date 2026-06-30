@@ -106,11 +106,6 @@
     />
   </t-cell-group>
 
-  <view class="help-entry" bindtap="openHelp">
-    <t-icon name="help-circle" size="28rpx" color="rgba(0,0,0,0.26)" />
-    <text class="help-entry__text">使用帮助</text>
-  </view>
-
   <view class="banner section-block" wx:if="{{banner}}" bindtap="openBanner">
     <t-icon name="info-circle" size="36rpx" color="#1677FF" t-class="banner-icon" />
     <view class="banner-copy">

@@ -1,0 +1,44 @@
+<view class="import-container">
+  <view class="form-section">
+    <text class="form-label">模板类型</text>
+    <picker mode="selector" range="{{templateTypes}}" value="{{templateTypeIndex}}" bindchange="onTypeChange">
+      <view class="form-input picker-value">{{templateTypes[templateTypeIndex]}}</view>
+    </picker>
+  </view>
+
+  <view class="form-section">
+    <text class="form-label">模板名称</text>
+    <input
+      class="form-input"
+      placeholder="给模板取个名字（可选）"
+      value="{{templateName}}"
+      bindinput="onNameInput"
+      maxlength="30"
+    />
+  </view>
+
+  <view class="form-section">
+    <text class="form-label">模板范文</text>
+    <textarea
+      class="form-textarea"
+      placeholder="粘贴范文，或拍照识别后由 AI 提取字段结构"
+      value="{{content}}"
+      bindinput="onContentInput"
+      maxlength="20000"
+      show-confirm-bar="{{false}}"
+    />
+    <view class="content-actions">
+      <button class="content-btn" bindtap="goCamera">拍照识别</button>
+      <button class="content-btn" bindtap="pasteFromClipboard">粘贴文本</button>
+    </view>
+  </view>
+
+  <button
+    class="save-btn {{content.length > 0 && !saving ? 'active' : ''}}"
+    disabled="{{content.length === 0 || saving}}"
+    loading="{{saving}}"
+    bindtap="saveTemplate"
+  >
+    生成并保存模板
+  </button>
+</view>

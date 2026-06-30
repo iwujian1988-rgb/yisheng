@@ -4,8 +4,10 @@ var tabBarNav = require('../../services/navigation/tab-bar');
 
 Page({
   data: {
-    activeTab: 'all',
+    activeTab: 'custom',
     tabs: [
+      { key: 'custom', name: '自有模板' },
+      { key: 'official', name: '官方模板' },
       { key: 'all', name: '全部' }
     ],
     templates: [],
@@ -14,11 +16,11 @@ Page({
     loadError: ''
   },
 
-  onLoad() {
+  onLoad: function () {
     this.loadTemplates();
   },
 
-  onShow() {
+  onShow: function () {
     tabBarNav.syncTabBar(this, 'pages/templates/index');
     if (!featureEntitlements.guardAiFeature('templates', '场景模板')) {
       wx.switchTab({ url: '/pages/home/home' });
@@ -27,62 +29,52 @@ Page({
     this.loadTemplates();
   },
 
-  loadTemplates() {
+  loadTemplates: function () {
+    var that = this;
     this.setData({ isLoading: true, loadError: '' });
-    var app = getApp();
-    var connected = Boolean(app && app.globalData && (app.globalData.bleLinkReady || app.globalData.deviceConnected));
-    templateCatalog.listTemplates(connected)
-      .then((result) => {
-        var templates = result.templates || [];
-        var remainingCategories = [];
-        var seen = {};
-        templates.forEach(function(t) {
-          var cat = t.category || t.scene || '';
-          if (cat && !seen[cat]) { seen[cat] = true; remainingCategories.push(cat); }
-        });
-        var tabs = [{ key: 'all', name: '全部' }].concat(
-          remainingCategories.map(function (c) { return { key: c, name: c }; })
-        );
-        this.setData({
-          templates: templates,
-          tabs: tabs,
-          isLoading: false
-        });
-        this.applyFilter();
-      })
-      .catch((err) => {
-        this.setData({
-          templates: [],
-          filteredTemplates: [],
-          isLoading: false,
-          loadError: err.message || '模板加载失败'
-        });
+    templateCatalog.listTemplates().then(function (result) {
+      var templates = result.templates || [];
+      that.setData({
+        templates: templates,
+        isLoading: false
       });
+      that.applyFilter();
+    }).catch(function (err) {
+      that.setData({
+        templates: [],
+        filteredTemplates: [],
+        isLoading: false,
+        loadError: err.message || '模板加载失败'
+      });
+    });
   },
 
-  switchTab(e) {
+  switchTab: function (e) {
     this.setData({ activeTab: e.currentTarget.dataset.key });
     this.applyFilter();
   },
 
-  applyFilter() {
+  applyFilter: function () {
     var activeTab = this.data.activeTab;
-    var filteredTemplates = (this.data.templates || []).filter((item) => {
+    var hideProfessional = !featureEntitlements.hasDeviceSession();
+    var filtered = (this.data.templates || []).filter(function (item) {
+      if (hideProfessional && item.audience === 'professional' && item.tag === 'official') {
+        return false;
+      }
       if (activeTab === 'all') return true;
-      return (item.category || item.scene || '') === activeTab;
+      if (activeTab === 'official') return item.tag === 'official';
+      if (activeTab === 'custom') return item.tag === 'custom';
+      return true;
     });
-    this.setData({ filteredTemplates });
+    this.setData({ filteredTemplates: filtered });
   },
 
-  openTemplate(e) {
+  openTemplate: function (e) {
     var id = e.currentTarget.dataset.id;
-    var template = (this.data.templates || []).find((item) => item.id === id);
-    if (!template) {
-      wx.showToast({ title: '模板不可用', icon: 'none' });
-      return;
-    }
-    wx.navigateTo({
-      url: '/pages/templates/detail?template=' + encodeURIComponent(JSON.stringify(template))
-    });
+    wx.navigateTo({ url: '/pages/templates/detail?id=' + encodeURIComponent(id) });
+  },
+
+  goCreate: function () {
+    wx.navigateTo({ url: '/pages/templates/create' });
   }
 });

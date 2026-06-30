@@ -28,13 +28,10 @@ function hasBoundDevice() {
 function guardAiFeature(featureKey, featureName) {
   if (wx.getStorageSync('purchaseStatus') !== 'paid') {
     wx.showModal({
-      title: '需要开通服务',
-      content: (featureName || '该功能') + '为会员能力，请开通后使用。',
-      confirmText: '去开通',
-      cancelText: '稍后',
-      success: function (res) {
-        if (res.confirm) wx.navigateTo({ url: '/pages/purchase/index' });
-      }
+      title: '需要开通会员',
+      content: (featureName || '该功能') + '为会员能力，请联系管理员开通后使用。',
+      showCancel: false,
+      confirmText: '知道了'
     });
     return false;
   }

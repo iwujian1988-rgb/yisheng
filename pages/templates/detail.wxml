@@ -1,49 +1,24 @@
 <view class="detail-container">
   <view class="header-section">
     <text class="template-title">{{title || '模板详情'}}</text>
-    <text class="template-desc">{{description || '填写关键信息后生成可编辑文本。'}}</text>
+    <text class="template-desc" wx:if="{{template}}">{{template.templateType || template.template_type || ''}} · {{template.tag === 'official' ? '官方' : '自有'}}</text>
   </view>
 
   <view class="fields-section" wx:if="{{fields.length > 0}}">
-    <text class="section-label">填写内容</text>
+    <text class="section-label">字段结构</text>
     <view class="field-item" wx:for="{{fields}}" wx:key="key">
       <view class="field-title-row">
         <text class="field-label">{{item.label}}</text>
-        <text class="required-mark" wx:if="{{item.required}}">必填</text>
+        <text class="required-mark" wx:if="{{item.is_required || item.isRequired}}">必填</text>
       </view>
-      <textarea
-        wx:if="{{item.type === 'textarea'}}"
-        class="field-textarea"
-        placeholder="{{item.placeholder || ''}}"
-        placeholder-class="input-placeholder"
-        value="{{item.value}}"
-        bindinput="onFieldInput"
-        data-key="{{item.key}}"
-        maxlength="1200"
-      />
-      <input
-        wx:else
-        class="field-input"
-        placeholder="{{item.placeholder || ''}}"
-        placeholder-class="input-placeholder"
-        value="{{item.value}}"
-        bindinput="onFieldInput"
-        data-key="{{item.key}}"
-        maxlength="240"
-      />
+      <text class="field-desc">{{item.description || ''}}</text>
     </view>
   </view>
 
-  <view class="empty-section" wx:else>
-    <text class="empty-text">暂无可填写字段</text>
+  <view class="fields-section" wx:if="{{hasSample}}">
+    <text class="section-label">样例预览</text>
+    <text class="sample-preview">{{samplePreview}}</text>
   </view>
 
-  <button
-    class="btn btn-primary generate-btn {{canGenerate && !isGenerating ? '' : 'disabled'}}"
-    disabled="{{!canGenerate || isGenerating}}"
-    loading="{{isGenerating}}"
-    bindtap="generateResult"
-  >
-    {{isGenerating ? '正在生成' : '生成文本'}}
-  </button>
+  <button class="btn btn-primary generate-btn" bindtap="useInAi">用此模板去 AI 对话</button>
 </view>
