@@ -5,6 +5,7 @@ const { writeAudit } = require('../security/audit');
 const { hashPassword } = require('../security/password');
 const { parseCsvText, toCsv } = require('../security/csv');
 const { publicDevice } = require('./auth');
+const { ensureAgentTemplates } = require('./templates');
 
 function createAdminModule(deps) {
   var store = deps.store;
@@ -956,7 +957,100 @@ function createAdminModule(deps) {
     });
   }
 
+  function parseAgentTemplateFields(value) {
+    if (value === undefined) return undefined;
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch (error) {
+        throw new Error('INVALID_JSON');
+      }
+    }
+    return value;
+  }
+
+  function listAgentTemplates(req, res, ctx) {
+    ensureAgentTemplates(store);
+    var items = store.agentTemplates.filter(function (item) {
+      return item.tag === 'official';
+    });
+    ok(res, paginate(items, ctx.query));
+  }
+
+  function agentTemplateDetail(req, res, ctx) {
+    ensureAgentTemplates(store);
+    var item = store.agentTemplates.find(function (tpl) {
+      return tpl.tag === 'official' && tpl.id === ctx.params.id;
+    });
+    if (!item) {
+      fail(res, 404, 'TEMPLATE_NOT_FOUND', 'agent template not found');
+      return;
+    }
+    ok(res, item);
+  }
+
+  async function updateAgentTemplate(req, res, ctx) {
+    var actor = ctx.actor;
+    ensureAgentTemplates(store);
+    var item = store.agentTemplates.find(function (tpl) {
+      return tpl.tag === 'official' && tpl.id === ctx.params.id;
+    });
+    if (!item) {
+      fail(res, 404, 'TEMPLATE_NOT_FOUND', 'agent template not found');
+      return;
+    }
+    var body = await parseBody(req);
+    var before = Object.assign({}, item);
+    if (body.name !== undefined) {
+      var name = String(body.name || '').trim();
+      if (!name) {
+        fail(res, 400, 'INVALID_NAME', 'name is required');
+        return;
+      }
+      item.name = name;
+    }
+    if (body.fields !== undefined) {
+      var fields;
+      try {
+        fields = parseAgentTemplateFields(body.fields);
+      } catch (error) {
+        fail(res, 400, 'INVALID_JSON', 'fields must be valid JSON');
+        return;
+      }
+      if (!fields || (typeof fields !== 'object')) {
+        fail(res, 400, 'INVALID_FIELDS', 'fields must be object or array');
+        return;
+      }
+      item.fields = fields;
+    }
+    if (body.sample !== undefined) {
+      item.sample = String(body.sample || '');
+    }
+    if (body.status !== undefined) {
+      if (['active', 'archived'].indexOf(body.status) === -1) {
+        fail(res, 400, 'INVALID_STATUS', 'status must be active or archived');
+        return;
+      }
+      item.status = body.status;
+    }
+    item.updated_at = nowIso();
+    item.updated_by = actor.id;
+    writeAudit(store, {
+      actor: actor,
+      ip: getIp(req),
+      module: 'agent_template',
+      actionType: 'update',
+      targetId: item.id,
+      beforeJson: before,
+      afterJson: item
+    });
+    ok(res, item);
+  }
+
   return {
+    agentTemplateDetail: withGuard(agentTemplateDetail),
+    listAgentTemplates: withGuard(listAgentTemplates),
+    updateAgentTemplate: withGuard(updateAgentTemplate),
     createDevice: withGuard(createDevice),
     createPaidUser: withGuard(createPaidUser),
     createAdminUser: withSuperGuard(createAdminUser),

@@ -190,7 +190,9 @@ async function run() {
       Authorization: 'Bearer ' + activatedUser.token
     }
   });
-  assert(professionalTemplates.templates.some((item) => item.id === 'tpl_official_first_course' || item.tag === 'official'), 'professional template missing');
+  assert(professionalTemplates.templates.some((item) => item.id === 'tpl_official_first_course'), 'official first course missing');
+  const officialCount = professionalTemplates.templates.filter((item) => item.tag === 'official').length;
+  assert(officialCount >= 5, 'expected at least 5 official templates, got ' + officialCount);
 
   const textTasks = await request('/api/agent/text/tasks', {
     headers: {

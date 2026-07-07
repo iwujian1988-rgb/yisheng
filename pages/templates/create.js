@@ -1,7 +1,7 @@
 var templateCatalog = require('../../services/templates/catalog');
 var featureEntitlements = require('../../services/entitlements/features');
 
-var TEMPLATE_TYPES = ['首次病程记录', '门诊记录', '通用'];
+var TEMPLATE_TYPES = ['首次病程记录', '出院记录', '72小时谈话记录', '大病历', '会诊记录', '通用'];
 
 Page({
   data: {

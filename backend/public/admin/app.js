@@ -157,6 +157,7 @@ var viewTitles = {
   paidUsers: ['服务用户', '管理开通状态和设备交付'],
   devices: ['设备', '预置设备、批量导入、查看绑定状态'],
   templates: ['模板', '维护通用模板和专业模板'],
+  agentTemplates: ['官方 Agent 模板', '维护 agentTemplates 官方 fields / sample'],
   templateGuide: ['模板创建指南', '发给 AI 助手，让它帮你写模板 JSON'],
   quickActions: ['快捷任务', '维护 AI 聊天的任务芯片和提示词'],
   activationCodes: ['激活码', '导入和查看服务激活码'],
@@ -482,6 +483,7 @@ async function renderCurrentView() {
   if (state.currentView === 'paidUsers') await renderPaidUsers();
   if (state.currentView === 'devices') await renderDevices();
   if (state.currentView === 'templates') await renderTemplates();
+  if (state.currentView === 'agentTemplates') await renderAgentTemplates();
   if (state.currentView === 'templateGuide') renderTemplateGuide();
   if (state.currentView === 'quickActions') await renderQuickActions();
   if (state.currentView === 'activationCodes') await renderActivationCodes();
@@ -591,6 +593,82 @@ async function updateTemplateStatus(id, status) {
     body: JSON.stringify({ status: status })
   });
   await renderTemplates();
+}
+
+var agentTemplateEditorState = { selectedId: '' };
+
+async function loadAgentTemplateDetail(id) {
+  if (!id) return;
+  var item = await api('/api/admin/agent-templates/' + encodeURIComponent(id));
+  agentTemplateEditorState.selectedId = item.id;
+  $('agentTplIdInput').value = item.id;
+  $('agentTplTypeInput').value = item.template_type || '';
+  $('agentTplNameInput').value = item.name || '';
+  $('agentTplStatusInput').value = item.status || 'active';
+  $('agentTplFieldsInput').value = JSON.stringify(item.fields || {}, null, 2);
+  $('agentTplSampleInput').value = item.sample || '';
+}
+
+async function renderAgentTemplates() {
+  var data = await api('/api/admin/agent-templates');
+  $('agentTemplatesView').innerHTML = [
+    '<div class="split"><section class="panel form-panel">',
+    '<h2>编辑官方模板</h2>',
+    '<label>模板 ID<input id="agentTplIdInput" readonly></label>',
+    '<label>模板类型<input id="agentTplTypeInput" readonly></label>',
+    '<label>名称<input id="agentTplNameInput"></label>',
+    '<label>状态<select id="agentTplStatusInput"><option value="active">active</option><option value="archived">archived</option></select></label>',
+    '<label>fields JSON<textarea id="agentTplFieldsInput" class="code-input" rows="16"></textarea></label>',
+    '<label>sample 样例<textarea id="agentTplSampleInput" class="code-input" rows="12"></textarea></label>',
+    '<button id="saveAgentTemplateBtn">保存</button>',
+    '</section><section class="panel table-panel"><div id="agentTemplatesTable"></div></section></div>'
+  ].join('');
+  $('saveAgentTemplateBtn').onclick = saveAgentTemplate;
+  renderTable($('agentTemplatesTable'), [
+    { key: 'id', label: 'ID' },
+    { key: 'template_type', label: '类型' },
+    { key: 'name', label: '名称' },
+    { key: 'status', label: '状态', render: function (row) { return badgeForStatus(row.status); } },
+    { key: 'updated_at', label: '更新时间' }
+  ], data.list, function (row) {
+    return '<button class="small" data-agent-template-id="' + escapeHtml(row.id) + '">编辑</button>';
+  });
+  document.querySelectorAll('[data-agent-template-id]').forEach(function (button) {
+    button.onclick = function () {
+      loadAgentTemplateDetail(button.dataset.agentTemplateId).catch(function (error) { alert(error.message); });
+    };
+  });
+  if (data.list && data.list.length) {
+    var preferred = agentTemplateEditorState.selectedId;
+    if (!preferred) {
+      var activeItem = data.list.find(function (item) { return item.status === 'active'; });
+      preferred = activeItem ? activeItem.id : data.list[0].id;
+    }
+    await loadAgentTemplateDetail(preferred);
+  }
+}
+
+async function saveAgentTemplate() {
+  var id = agentTemplateEditorState.selectedId;
+  if (!id) { alert('请先选择模板'); return; }
+  var fields;
+  try {
+    fields = JSON.parse($('agentTplFieldsInput').value || '{}');
+  } catch (error) {
+    alert('fields JSON 格式错误');
+    return;
+  }
+  await api('/api/admin/agent-templates/' + encodeURIComponent(id), {
+    method: 'PATCH',
+    body: JSON.stringify({
+      name: $('agentTplNameInput').value.trim(),
+      status: $('agentTplStatusInput').value,
+      fields: fields,
+      sample: $('agentTplSampleInput').value
+    })
+  });
+  await renderAgentTemplates();
+  alert('已保存');
 }
 
 function renderTemplateGuide() {

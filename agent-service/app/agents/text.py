@@ -7,6 +7,7 @@ from typing import Any
 from app.agents.base import BaseAgent
 from app.clients.chat import ChatClient
 from app.utils.agent_context import AgentSources, format_context_history_item, format_sources_block
+from app.utils.field_schema import format_fields_schema
 from app.utils.prompts import load_prompt
 from app.utils.text_output import split_sectioned_output
 
@@ -49,19 +50,12 @@ def _resolve_max_tokens(task: str, extract_target: str) -> int:
 
 
 def _format_fields(template: dict[str, Any] | None, baseline: dict[str, Any] | None) -> str:
-    fields: list[dict[str, Any]] = []
-    if template and isinstance(template.get("fields"), list):
-        fields = template["fields"]
-    elif baseline and isinstance(baseline.get("fields"), list):
-        fields = baseline["fields"]
-    if not fields:
-        return "（无模板字段约束）"
-    lines = []
-    for field in fields:
-        label = field.get("label") or field.get("key") or ""
-        desc = field.get("description") or ""
-        lines.append(f"- {label}: {desc}")
-    return "\n".join(lines)
+    fields: Any = None
+    if template and template.get("fields") is not None:
+        fields = template.get("fields")
+    elif baseline and baseline.get("fields") is not None:
+        fields = baseline.get("fields")
+    return format_fields_schema(fields)
 
 
 def _build_task_instruction(task: str, mode: str, user_instruction: str, extract_target: str) -> str:

@@ -1,6 +1,6 @@
 const { fail, ok, parseBody } = require('../http');
 const { createId, nowIso } = require('../security/ids');
-const { createFirstCourseOfficialTemplate } = require('../data/first-course-template');
+const { seedOfficialTemplates } = require('../data/official');
 
 const TEXT_TASKS = [
   { key: 'organize', label: '整理文字', description: '把零散内容整理成结构清晰的文本' },
@@ -10,16 +10,20 @@ const TEXT_TASKS = [
   { key: 'convert', label: '格式转换', description: '按目标格式重新组织内容' }
 ];
 
+function hasTemplateFields(fields) {
+  if (Array.isArray(fields)) return fields.length > 0;
+  if (fields && typeof fields === 'object') return Object.keys(fields).length > 0;
+  return false;
+}
+
+function normalizeFields(fields) {
+  if (Array.isArray(fields)) return fields;
+  if (fields && typeof fields === 'object') return fields;
+  return {};
+}
+
 function ensureAgentTemplates(store) {
-  if (!Array.isArray(store.agentTemplates)) {
-    store.agentTemplates = [];
-  }
-  var hasOfficial = store.agentTemplates.some(function (item) {
-    return item.id === 'tpl_official_first_course' && item.status === 'active';
-  });
-  if (!hasOfficial) {
-    store.agentTemplates.push(createFirstCourseOfficialTemplate(nowIso()));
-  }
+  seedOfficialTemplates(store, nowIso());
   return store.agentTemplates;
 }
 
@@ -30,9 +34,10 @@ function publicTemplate(item) {
     audience: item.audience || 'general',
     tag: item.tag,
     name: item.name,
-    fields: item.fields || [],
+    fields: normalizeFields(item.fields),
     sample: item.sample ? '[sample]' : '',
     hasSample: Boolean(item.sample),
+    hasFields: hasTemplateFields(item.fields),
     status: item.status,
     updatedAt: item.updated_at
   };
@@ -45,11 +50,12 @@ function templateDetail(item) {
     audience: item.audience || 'general',
     tag: item.tag,
     name: item.name,
-    fields: item.fields || [],
+    fields: normalizeFields(item.fields),
     sample: item.sample || '',
     status: item.status,
     createdAt: item.created_at,
-    updatedAt: item.updated_at
+    updatedAt: item.updated_at,
+    hasFields: hasTemplateFields(item.fields)
   };
 }
 
@@ -138,7 +144,7 @@ function createTemplatesModule(deps) {
       tag: 'custom',
       name: name,
       user_id: actor.id,
-      fields: Array.isArray(draft.fields) ? draft.fields : [],
+      fields: Array.isArray(draft.fields) ? draft.fields : (draft.fields && typeof draft.fields === 'object' ? draft.fields : []),
       sample: String(draft.sample || '').trim(),
       status: 'active',
       created_at: nowIso(),
@@ -157,11 +163,11 @@ function createTemplatesModule(deps) {
         && item.status === 'active';
     });
     if (!official) {
-      return { template_type: templateType, fields: [] };
+      return { template_type: templateType, fields: {} };
     }
     return {
       template_type: official.template_type,
-      fields: official.fields || [],
+      fields: normalizeFields(official.fields),
       sample: official.sample || ''
     };
   }
@@ -184,5 +190,7 @@ function createTemplatesModule(deps) {
 
 module.exports = {
   createTemplatesModule: createTemplatesModule,
-  ensureAgentTemplates: ensureAgentTemplates
+  ensureAgentTemplates: ensureAgentTemplates,
+  hasTemplateFields: hasTemplateFields,
+  normalizeFields: normalizeFields
 };
