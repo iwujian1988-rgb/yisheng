@@ -3,6 +3,7 @@ const { maskPhone } = require('../security/masking');
 const { hashPassword, verifyPassword } = require('../security/password');
 const { writeAudit } = require('../security/audit');
 const { createId, nowIso } = require('../security/ids');
+const wechatSessionStore = require('../security/wechat-session-store');
 const { config } = require('../config');
 
 const TEST_VERIFICATION_CODE = '123456';
@@ -220,6 +221,13 @@ function createAuthModule(deps) {
     var payload = await response.json();
     if (!response.ok || payload.errcode) {
       throw new Error(payload.errmsg || 'wechat code exchange failed');
+    }
+    if (payload.session_key) {
+      try {
+        wechatSessionStore.storeSessionKey(store, payload.openid, payload.session_key, payload.unionid || '');
+      } catch (e) {
+        console.warn('[auth] failed to persist session_key:', e.message);
+      }
     }
     return {
       openid: payload.openid,

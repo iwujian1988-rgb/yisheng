@@ -6,22 +6,14 @@ const { createRouter } = require('./router');
 const { fail, ok } = require('./http');
 const { createSessionManager } = require('./security/tokens');
 const { createStore } = require('./store/create-store');
+const { logger, requestLogger } = require('./middleware/logger');
+const health = require('./middleware/health');
 const { createAuthModule } = require('./modules/auth');
 const { createAdminModule } = require('./modules/admin');
 const { createUserApiModule } = require('./modules/user-api');
 const { createProviderGatewayModule } = require('./modules/provider-gateway');
 const { createTemplatesModule } = require('./modules/templates');
 const { createAgentApiModule } = require('./modules/agent-api');
-
-const store = createStore();
-const sessions = createSessionManager(config.sessionTtlSeconds);
-const auth = createAuthModule({ store, sessions });
-const admin = createAdminModule({ store, auth });
-const userApi = createUserApiModule({ store, auth });
-const providers = createProviderGatewayModule({ auth, store });
-const templatesModule = createTemplatesModule({ store, auth, contentAccess: require('./security/content-access') });
-const agentApi = createAgentApiModule({ store, auth, templates: templatesModule });
-const router = createRouter();
 
 function serveAdminAsset(req, res) {
   var url = new URL(req.url, 'http://localhost');
@@ -47,6 +39,19 @@ function serveAdminAsset(req, res) {
   return true;
 }
 
+const store = createStore();
+const storeReady = Promise.resolve(store.ready || null);
+health.register(store);
+storeReady.then(function () { store.__mysqlReady = true; }, function () { store.__mysqlReady = false; });
+const sessions = createSessionManager(config.sessionTtlSeconds);
+const auth = createAuthModule({ store, sessions });
+const admin = createAdminModule({ store, auth });
+const userApi = createUserApiModule({ store, auth });
+const providers = createProviderGatewayModule({ auth, store });
+const templatesModule = createTemplatesModule({ store, auth, contentAccess: require('./security/content-access') });
+const agentApi = createAgentApiModule({ store, auth, templates: templatesModule });
+const router = createRouter();
+
 router.get('/api/health', (req, res) => {
   var dashscopeReady = Boolean(config.dashscopeApiKey);
   var ocrCloudReady = Boolean(config.ocrCloudEnabled && dashscopeReady);
@@ -66,6 +71,9 @@ router.get('/api/health', (req, res) => {
     wechatConfigured: Boolean(config.wechatAppId && config.wechatAppSecret)
   });
 });
+
+router.get('/healthz', health.liveness);
+router.get('/readyz', health.readiness);
 
 router.post('/api/admin/auth/login', auth.adminLogin);
 router.post('/api/auth/login', auth.login);
@@ -117,6 +125,7 @@ router.post('/api/devices/auto-bind', userApi.autoBindDevice);
 router.post('/api/devices/session/start', userApi.startDeviceSession);
 router.post('/api/devices/session/verify', userApi.verifyDeviceSession);
 router.post('/api/devices/session/refresh', userApi.refreshDeviceSession);
+router.post('/api/devices/heartbeat', userApi.heartbeatDevice);
 router.post('/api/devices/unbind', userApi.unbindDevice);
 router.get('/api/devices/firmware', userApi.firmware);
 router.get('/api/purchase/entitlement', userApi.purchaseEntitlement);
@@ -148,11 +157,13 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && serveAdminAsset(req, res)) {
       return;
     }
+    requestLogger(req, res);
     await router.handle(req, res, { store });
     if (req.method !== 'GET' && typeof store.save === 'function') {
       store.save();
     }
   } catch (error) {
+    logger.error({ err: error }, 'unhandled request error');
     if (error.message === 'INVALID_JSON') {
       fail(res, 400, 'INVALID_JSON', 'request body is not valid JSON');
       return;
@@ -166,14 +177,21 @@ const server = http.createServer(async (req, res) => {
 });
 
 if (require.main === module) {
-  server.listen(config.port, '0.0.0.0', () => {
-    console.log('Yisheng backend listening on 0.0.0.0:' + config.port);
-    console.log('Local:   http://127.0.0.1:' + config.port);
-    console.log('Network: http://<your-lan-ip>:' + config.port + '  (set app.js lanBaseHost)');
+  Promise.resolve(storeReady).then(function () {
+    server.listen(config.port, '0.0.0.0', () => {
+      console.log('Yisheng backend listening on 0.0.0.0:' + config.port);
+      console.log('Local:   http://127.0.0.1:' + config.port);
+      console.log('Network: http://<your-lan-ip>:' + config.port + '  (set app.js lanBaseHost)');
+    });
+  }).catch(function (err) {
+    console.error('[server] bootstrap failed:', err && err.stack || err);
+    process.exit(1);
   });
 }
 
 module.exports = {
   server,
-  store
+  store,
+  router,
+  storeReady
 };

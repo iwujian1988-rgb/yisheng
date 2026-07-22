@@ -16,7 +16,9 @@ Page({
   },
 
   goAI() {
-    if (!featureEntitlements.guardAiFeature('aiWriting', '智能创作')) return;
-    wx.navigateTo({ url: '/pages/ai/detail' });
+    featureEntitlements.guardAiFeature('aiWriting', '智能创作').then(function (ok) {
+      if (!ok) return;
+      wx.navigateTo({ url: '/pages/ai/detail' });
+    });
   }
 });

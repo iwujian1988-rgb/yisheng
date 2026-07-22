@@ -59,12 +59,14 @@ Page({
 
   onLoad() {
     if (!authGuard.requireActiveAccount()) return;
-    if (!featureEntitlements.guardAiFeature('ocr', '图片识别')) {
-      wx.navigateBack({
-        delta: 1,
-        fail: () => wx.reLaunch({ url: '/pages/home/home' })
-      });
-    }
+    featureEntitlements.guardAiFeature('ocr', '图片识别').then(function (ok) {
+      if (!ok) {
+        wx.navigateBack({
+          delta: 1,
+          fail: () => wx.reLaunch({ url: '/pages/home/home' })
+        });
+      }
+    });
   },
 
   onShow() {

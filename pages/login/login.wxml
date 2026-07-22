@@ -1,6 +1,6 @@
 <view class="login-container">
   <view class="logo-section">
-    <text class="app-name">科室打字员</text>
+    <text class="app-name">小科打字猿</text>
     <text class="app-desc">帮助你早点下班的ai助手</text>
   </view>
 

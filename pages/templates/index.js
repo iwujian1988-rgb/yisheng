@@ -21,12 +21,15 @@ Page({
   },
 
   onShow: function () {
+    var that = this;
     tabBarNav.syncTabBar(this, 'pages/templates/index');
-    if (!featureEntitlements.guardAiFeature('templates', '场景模板')) {
-      wx.switchTab({ url: '/pages/home/home' });
-      return;
-    }
-    this.loadTemplates();
+    featureEntitlements.guardAiFeature('templates', '场景模板').then(function (ok) {
+      if (!ok) {
+        wx.switchTab({ url: '/pages/home/home' });
+        return;
+      }
+      that.loadTemplates();
+    });
   },
 
   loadTemplates: function () {

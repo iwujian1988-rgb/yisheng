@@ -27,6 +27,7 @@ const ENDPOINTS = {
     sessionStart: '/api/devices/session/start',
     sessionVerify: '/api/devices/session/verify',
     sessionRefresh: '/api/devices/session/refresh',
+    heartbeat: '/api/devices/heartbeat',
     unbind: '/api/devices/unbind',
     firmware: '/api/devices/firmware'
   },

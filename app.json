@@ -7,6 +7,9 @@
     "pages/profile/profile",
     "pages/help/help",
     "pages/common/agreement",
+    "pages/common/webview",
+    "pages/common/encryption-note",
+    "pages/common/release-note",
     "pages/ai/detail",
     "pages/templates/index",
     "pages/templates/create",
@@ -35,14 +38,12 @@
     "pages/settings/privacy",
     "pages/settings/notifications",
     "pages/settings/storage",
-    "pages/dev/index",
     "pages/onboarding/index",
     "pages/device/checklist",
     "pages/import/index",
     "pages/bluetooth/index",
     "pages/transfer/editor",
     "pages/transfer/confirm",
-    "pages/common/webview",
     "pages/transfer/queue",
     "pages/settings/system-guide",
     "pages/ai/redaction-guide",
@@ -55,112 +56,192 @@
     "pages/device/unbind-confirm",
     "pages/ai/review-result",
     "pages/ai/template-import",
-    "pages/common/encryption-note",
-    "pages/admin/index",
-    "pages/admin/paid-user-create",
-    "pages/admin/paid-user-list",
-    "pages/admin/device-list",
-    "pages/admin/service-records",
-    "pages/admin/feedback-review",
-    "pages/qa/smoke-checklist",
-    "pages/qa/long-text-test",
-    "pages/qa/release-check",
-    "pages/qa/test-accounts",
-    "pages/admin/paid-user-detail",
-    "pages/admin/paid-user-edit",
-    "pages/admin/device-detail",
-    "pages/admin/service-record-detail",
-    "pages/admin/feedback-detail",
-    "pages/admin/audit-log",
-    "pages/admin/settings",
-    "pages/qa/smoke-result",
-    "pages/qa/bug-report",
-    "pages/qa/hardware-test-guide",
-    "pages/qa/bluetooth-test-report",
-    "pages/qa/privacy-check",
-    "pages/ops/field-checklist",
-    "pages/ops/target-env-note",
-    "pages/ops/device-handover",
-    "pages/ops/ticket-list",
-    "pages/ops/ticket-detail",
-    "pages/manual/index",
-    "pages/manual/detail",
-    "pages/common/release-note",
-    "pages/sales/leads",
-    "pages/sales/lead-detail",
-    "pages/sales/shipping-records",
-    "pages/admin/activation-import",
-    "pages/admin/activation-list",
-    "pages/customer/success-dashboard",
-    "pages/customer/training-records",
-    "pages/customer/follow-up-records",
-    "pages/demo/index",
-    "pages/demo/scenario-select",
-    "pages/demo/result",
-    "pages/customer/messages",
-    "pages/customer/expiry-reminder",
-    "pages/customer/device-alert",
-    "pages/customer/transfer-alert",
-    "pages/backend/status",
-    "pages/backend/health-check",
-    "pages/backend/error-log",
-    "pages/backend/config-guide",
-    "pages/admin/role-list",
-    "pages/admin/role-detail",
-    "pages/compliance/encryption-status",
-    "pages/compliance/redaction-rules",
-    "pages/compliance/third-party-ai",
-    "pages/compliance/checklist",
-    "pages/metrics/long-text-dashboard",
-    "pages/metrics/transfer-performance",
-    "pages/metrics/device-stability",
-    "pages/metrics/ai-usage",
-    "pages/metrics/ocr-asr-usage",
-    "pages/customer/onboarding-done",
-    "pages/customer/device-bound-success",
-    "pages/customer/first-transfer-success",
-    "pages/customer/service-overview",
-    "pages/customer/data-export-note",
-    "pages/finance/service-overview",
-    "pages/finance/invoice-info",
-    "pages/finance/records",
-    "pages/integration/status",
-    "pages/integration/wechat-login-guide",
-    "pages/integration/ai-provider-guide",
-    "pages/integration/ocr-provider-guide",
-    "pages/integration/asr-provider-guide",
-    "pages/release/version-list",
-    "pages/release/version-detail",
-    "pages/release/rollback-confirm",
-    "pages/analytics/index",
-    "pages/analytics/users",
-    "pages/analytics/devices",
-    "pages/analytics/transfers",
-    "pages/analytics/support",
-    "pages/maintenance/index",
-    "pages/maintenance/logs",
-    "pages/maintenance/config-check",
-    "pages/maintenance/cleanup-confirm",
-    "pages/legal/index",
-    "pages/legal/disclaimer",
-    "pages/legal/data-processing",
-    "pages/training/admin-index",
-    "pages/training/user-index",
-    "pages/training/detail",
-    "pages/training/done",
-    "pages/training/feedback",
-    "pages/release/final-acceptance",
-    "pages/release/project-done",
     "pages/home/home"
+  ],
+  "subPackages": [
+    {
+      "root": "pages/admin",
+      "name": "admin",
+      "pages": [
+        "index",
+        "paid-user-create",
+        "paid-user-list",
+        "paid-user-detail",
+        "paid-user-edit",
+        "device-list",
+        "device-detail",
+        "service-records",
+        "service-record-detail",
+        "feedback-review",
+        "feedback-detail",
+        "audit-log",
+        "settings",
+        "activation-import",
+        "activation-list",
+        "role-list",
+        "role-detail"
+      ]
+    },
+    {
+      "root": "pages/qa",
+      "name": "qa",
+      "pages": [
+        "smoke-checklist",
+        "smoke-result",
+        "long-text-test",
+        "release-check",
+        "test-accounts",
+        "bug-report",
+        "hardware-test-guide",
+        "bluetooth-test-report",
+        "privacy-check"
+      ]
+    },
+    {
+      "root": "pages/ops",
+      "name": "ops",
+      "pages": [
+        "field-checklist",
+        "target-env-note",
+        "device-handover",
+        "ticket-list",
+        "ticket-detail"
+      ]
+    },
+    {
+      "root": "pages/sales",
+      "name": "sales",
+      "pages": ["leads", "lead-detail", "shipping-records"]
+    },
+    {
+      "root": "pages/finance",
+      "name": "finance",
+      "pages": ["service-overview", "invoice-info", "records"]
+    },
+    {
+      "root": "pages/customer",
+      "name": "customer",
+      "pages": [
+        "success-dashboard",
+        "training-records",
+        "follow-up-records",
+        "messages",
+        "expiry-reminder",
+        "device-alert",
+        "transfer-alert",
+        "onboarding-done",
+        "device-bound-success",
+        "first-transfer-success",
+        "service-overview",
+        "data-export-note"
+      ]
+    },
+    {
+      "root": "pages/metrics",
+      "name": "metrics",
+      "pages": [
+        "long-text-dashboard",
+        "transfer-performance",
+        "device-stability",
+        "ai-usage",
+        "ocr-asr-usage"
+      ]
+    },
+    {
+      "root": "pages/compliance",
+      "name": "compliance",
+      "pages": [
+        "encryption-status",
+        "redaction-rules",
+        "third-party-ai",
+        "checklist"
+      ]
+    },
+    {
+      "root": "pages/training",
+      "name": "training",
+      "pages": [
+        "admin-index",
+        "user-index",
+        "detail",
+        "done",
+        "feedback"
+      ]
+    },
+    {
+      "root": "pages/legal",
+      "name": "legal",
+      "pages": ["index", "disclaimer", "data-processing"]
+    },
+    {
+      "root": "pages/analytics",
+      "name": "analytics",
+      "pages": ["index", "users", "devices", "transfers", "support"]
+    },
+    {
+      "root": "pages/integration",
+      "name": "integration",
+      "pages": [
+        "status",
+        "wechat-login-guide",
+        "ai-provider-guide",
+        "ocr-provider-guide",
+        "asr-provider-guide"
+      ]
+    },
+    {
+      "root": "pages/release",
+      "name": "release",
+      "pages": [
+        "version-list",
+        "version-detail",
+        "rollback-confirm",
+        "final-acceptance",
+        "project-done"
+      ]
+    },
+    {
+      "root": "pages/maintenance",
+      "name": "maintenance",
+      "pages": ["index", "logs", "config-check", "cleanup-confirm"]
+    },
+    {
+      "root": "pages/backend",
+      "name": "backend",
+      "pages": ["status", "health-check", "error-log", "config-guide"]
+    },
+    {
+      "root": "pages/manual",
+      "name": "manual",
+      "pages": ["index", "detail"]
+    },
+    {
+      "root": "pages/demo",
+      "name": "demo",
+      "pages": ["index", "scenario-select", "result"]
+    },
+    {
+      "root": "pages/dev",
+      "name": "dev",
+      "pages": ["index"]
+    }
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#1677FF",
-    "navigationBarTitleText": "文本传输助手",
+    "navigationBarTitleText": "小科打字猿",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#F5F7FA"
   },
-  "requiredPrivateInfos": [],
+  "__usePrivacyProtocol__": true,
+  "requiredPrivateInfos": [
+    "chooseAddress",
+    "chooseLocation",
+    "getLocation",
+    "onLocationChange",
+    "startLocationUpdate",
+    "startLocationUpdateBackground"
+  ],
   "sitemapLocation": "sitemap.json",
   "componentFramework": "glass-easel",
   "lazyCodeLoading": "requiredComponents",

@@ -139,14 +139,18 @@ Page({
 
   goOcr() {
     if (!this.ensureDeviceReady()) return;
-    if (!featureEntitlements.guardAiFeature('ocr', '图片识别')) return;
-    wx.navigateTo({ url: '/pages/ocr/index' });
+    featureEntitlements.guardAiFeature('ocr', '图片识别').then(function (ok) {
+      if (!ok) return;
+      wx.navigateTo({ url: '/pages/ocr/index' });
+    });
   },
 
   goAsr() {
     if (!this.ensureDeviceReady()) return;
-    if (!featureEntitlements.guardAiFeature('asr', '语音转写')) return;
-    wx.navigateTo({ url: '/pages/asr/index' });
+    featureEntitlements.guardAiFeature('asr', '语音转写').then(function (ok) {
+      if (!ok) return;
+      wx.navigateTo({ url: '/pages/asr/index' });
+    });
   },
 
   openBanner() {

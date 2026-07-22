@@ -252,14 +252,17 @@ Page({
   },
 
   onLoad: function (options) {
-    if (!featureEntitlements.guardAiFeature('aiWriting', '智能创作')) {
-      wx.navigateBack({ fail: function () { wx.reLaunch({ url: '/pages/home/home' }); } });
-      return;
-    }
-    var initialText = options && options.text ? decodeURIComponent(options.text) : '';
-    this.setData({ inputText: initialText });
-    this.consumeMediaInputDraft();
-    this.prepareWorkspace();
+    var that = this;
+    featureEntitlements.guardAiFeature('aiWriting', '智能创作').then(function (ok) {
+      if (!ok) {
+        wx.navigateBack({ fail: function () { wx.reLaunch({ url: '/pages/home/home' }); } });
+        return;
+      }
+      var initialText = options && options.text ? decodeURIComponent(options.text) : '';
+      that.setData({ inputText: initialText });
+      that.consumeMediaInputDraft();
+      that.prepareWorkspace();
+    });
   },
 
   onShow: function () {
@@ -343,7 +346,14 @@ Page({
   },
 
   openTemplatePicker: function () {
-    if (!featureEntitlements.guardAiFeature('templates', '场景模板')) return;
+    var that = this;
+    featureEntitlements.guardAiFeature('templates', '场景模板').then(function (ok) {
+      if (!ok) return;
+      that._openTemplatePickerInner();
+    });
+  },
+
+  _openTemplatePickerInner: function () {
     var names = (this.data.templateNames || []).slice();
     var itemList = names.slice();
 
@@ -400,8 +410,10 @@ Page({
   },
 
   goTemplateImport: function () {
-    if (!featureEntitlements.guardAiFeature('templates', '场景模板')) return;
-    wx.navigateTo({ url: '/pages/ai/template-import' });
+    featureEntitlements.guardAiFeature('templates', '场景模板').then(function (ok) {
+      if (!ok) return;
+      wx.navigateTo({ url: '/pages/ai/template-import' });
+    });
   },
 
   onInput: function (e) {
@@ -616,26 +628,30 @@ Page({
   },
 
   goImage: function () {
-    if (!featureEntitlements.guardAiFeature('ocr', '图片识别')) return;
-    var remaining = MAX_PENDING_IMAGES - (this.data.pendingAttachments || []).length;
-    if (remaining <= 0) {
-      wx.showToast({ title: '最多添加 ' + MAX_PENDING_IMAGES + ' 张图片', icon: 'none' });
-      return;
-    }
     var that = this;
-    wx.chooseImage({
-      count: remaining,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: function (res) {
-        that.appendAttachmentsFromPaths(res.tempFilePaths || []);
+    featureEntitlements.guardAiFeature('ocr', '图片识别').then(function (ok) {
+      if (!ok) return;
+      var remaining = MAX_PENDING_IMAGES - (that.data.pendingAttachments || []).length;
+      if (remaining <= 0) {
+        wx.showToast({ title: '最多添加 ' + MAX_PENDING_IMAGES + ' 张图片', icon: 'none' });
+        return;
       }
+      wx.chooseImage({
+        count: remaining,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+        success: function (res) {
+          that.appendAttachmentsFromPaths(res.tempFilePaths || []);
+        }
+      });
     });
   },
 
   goVoice: function () {
-    if (!featureEntitlements.guardAiFeature('asr', '语音转写')) return;
-    wx.navigateTo({ url: '/pages/asr/index?returnTo=ai&auto=1' });
+    featureEntitlements.guardAiFeature('asr', '语音转写').then(function (ok) {
+      if (!ok) return;
+      wx.navigateTo({ url: '/pages/asr/index?returnTo=ai&auto=1' });
+    });
   },
 
   consumeMediaInputDraft: function () {

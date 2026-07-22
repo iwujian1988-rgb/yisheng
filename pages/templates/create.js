@@ -1,7 +1,7 @@
 var templateCatalog = require('../../services/templates/catalog');
 var featureEntitlements = require('../../services/entitlements/features');
 
-var TEMPLATE_TYPES = ['首次病程记录', '出院记录', '72小时谈话记录', '大病历', '会诊记录', '通用'];
+var TEMPLATE_TYPES = ['通用'];
 
 Page({
   data: {
@@ -13,9 +13,11 @@ Page({
   },
 
   onLoad: function () {
-    if (!featureEntitlements.guardAiFeature('templates', '场景模板')) {
-      wx.navigateBack({ fail: function () { wx.reLaunch({ url: '/pages/home/home' }); } });
-    }
+    featureEntitlements.guardAiFeature('templates', '场景模板').then(function (ok) {
+      if (!ok) {
+        wx.navigateBack({ fail: function () { wx.reLaunch({ url: '/pages/home/home' }); } });
+      }
+    });
   },
 
   onTypeChange: function (e) {

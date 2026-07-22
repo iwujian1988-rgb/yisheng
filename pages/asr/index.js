@@ -82,23 +82,26 @@ Page({
   _activeTranscribes: 0,
 
   onLoad(options) {
-    if (!featureEntitlements.guardAiFeature('asr', '语音转文字')) {
-      wx.navigateBack({
-        delta: 1,
-        fail: () => wx.reLaunch({ url: '/pages/home/home' })
-      });
-      return;
-    }
+    var that = this;
+    featureEntitlements.guardAiFeature('asr', '语音转文字').then(function (ok) {
+      if (!ok) {
+        wx.navigateBack({
+          delta: 1,
+          fail: () => wx.reLaunch({ url: '/pages/home/home' })
+        });
+        return;
+      }
 
-    this.setData({ returnToAi: Boolean(options && options.returnTo === 'ai') });
-    this.restoreRecoverableDraft();
-    this.setupRecorder();
-    this.enableLeaveGuard();
-    if (options && options.auto === '1') {
-      setTimeout(() => {
-        if (!this.data.recording && !this.data.transcribing) this.toggleRecord();
-      }, 300);
-    }
+      that.setData({ returnToAi: Boolean(options && options.returnTo === 'ai') });
+      that.restoreRecoverableDraft();
+      that.setupRecorder();
+      that.enableLeaveGuard();
+      if (options && options.auto === '1') {
+        setTimeout(() => {
+          if (!that.data.recording && !that.data.transcribing) that.toggleRecord();
+        }, 300);
+      }
+    });
   },
 
   onUnload() {

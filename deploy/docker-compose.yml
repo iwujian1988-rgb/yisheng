@@ -1,0 +1,75 @@
+# 小科打字猿 生产部署 docker-compose（maxnote.me 子域）
+# 服务器 nginx 已在 host 上跑，这里只起 api + mysql，由 host nginx 反代
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME:-yisheng}
+      MYSQL_USER: ${DB_USER:-yisheng}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=caching_sha2_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ../backend/db/migrations:/migrations:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    networks:
+      - internal
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      STORE_MODE: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-yisheng}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME:-yisheng}
+      ALLOW_FILE_STORE_IN_PRODUCTION: "false"
+      ALLOW_UNKNOWN_DEVICE_BINDING: "false"
+      ADMIN_ACCOUNT: ${ADMIN_ACCOUNT:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY}
+      DASHSCOPE_BASE_URL: ${DASHSCOPE_BASE_URL:-https://dashscope.aliyuncs.com}
+      AI_PROVIDER: ${AI_PROVIDER:-openai-compatible}
+      AI_BASE_URL: ${AI_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode}
+      AI_API_KEY: ${AI_API_KEY:-${DASHSCOPE_API_KEY}}
+      AI_MODEL: ${AI_MODEL:-qwen-max}
+      OCR_ENGINE: cloud
+      OCR_CLOUD_ENABLED: "true"
+      OCR_CLOUD_MODEL: ${OCR_CLOUD_MODEL:-qwen-vl-ocr-2025-11-20}
+      ASR_ENGINE: cloud
+      ASR_CLOUD_MODEL: ${ASR_CLOUD_MODEL:-qwen3-asr-flash}
+      WECHAT_APP_ID: ${WECHAT_APP_ID}
+      WECHAT_APP_SECRET: ${WECHAT_APP_SECRET}
+      AGENT_SERVICE_ENABLED: "false"
+    ports:
+      # 只绑 127.0.0.1，由 host nginx 反代；不对公网暴露
+      - "127.0.0.1:8080:8080"
+    networks:
+      - internal
+
+volumes:
+  mysql_data:
+
+networks:
+  internal:

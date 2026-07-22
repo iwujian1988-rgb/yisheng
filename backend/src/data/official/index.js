@@ -3,13 +3,17 @@ const { createDischargeOrderOfficialTemplate } = require('./discharge-order');
 const { createTalk72hOfficialTemplate } = require('./talk-72h');
 const { createAdmissionNoteOfficialTemplate } = require('./admission-note');
 const { createConsultationOfficialTemplate } = require('./consultation');
+const { createMeetingOfficialTemplate, createWorkReportOfficialTemplate, createEmailOfficialTemplate } = require('./generic');
 
 const OFFICIAL_TEMPLATE_FACTORIES = [
   createFirstCourseOfficialTemplate,
   createDischargeOrderOfficialTemplate,
   createTalk72hOfficialTemplate,
   createAdmissionNoteOfficialTemplate,
-  createConsultationOfficialTemplate
+  createConsultationOfficialTemplate,
+  createMeetingOfficialTemplate,
+  createWorkReportOfficialTemplate,
+  createEmailOfficialTemplate
 ];
 
 const OFFICIAL_TEMPLATE_IDS = OFFICIAL_TEMPLATE_FACTORIES.map(function (factory) {
@@ -58,5 +62,8 @@ module.exports = {
   createDischargeOrderOfficialTemplate,
   createTalk72hOfficialTemplate,
   createAdmissionNoteOfficialTemplate,
-  createConsultationOfficialTemplate
+  createConsultationOfficialTemplate,
+  createMeetingOfficialTemplate,
+  createWorkReportOfficialTemplate,
+  createEmailOfficialTemplate
 };

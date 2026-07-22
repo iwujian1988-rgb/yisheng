@@ -1,9 +1,9 @@
 <view class="about-container">
   <view class="product-section">
     <view class="logo-circle">
-      <text class="logo-text">文</text>
+      <text class="logo-text">小科</text>
     </view>
-    <text class="product-name">文本传输助手</text>
+    <text class="product-name">小科打字猿</text>
     <text class="product-desc">AI 内容整理与离线电脑输入工具</text>
     <text class="version-text">v{{version || '--'}}</text>
   </view>

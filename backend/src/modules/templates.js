@@ -98,7 +98,7 @@ function createTemplatesModule(deps) {
 
     var items = listVisibleTemplates(store, {
       userId: actor.id,
-      showProfessional: accessContext.memberActive
+      showProfessional: accessContext.hasProfessionalAccess
     });
 
     ok(res, {
@@ -116,9 +116,17 @@ function createTemplatesModule(deps) {
       return;
     }
 
-    if (item.audience === 'professional' && !contentAccess.isMemberActive(store, actor.id)) {
-      fail(res, 404, 'TEMPLATE_NOT_FOUND', 'template not found');
-      return;
+    if (item.audience === 'professional') {
+      var accessContext = contentAccess.getAccessContext({
+        store: store,
+        req: req,
+        actor: actor,
+        businessKey: 'templates'
+      });
+      if (!accessContext.hasProfessionalAccess) {
+        fail(res, 404, 'TEMPLATE_NOT_FOUND', 'template not found');
+        return;
+      }
     }
 
     ok(res, templateDetail(item));

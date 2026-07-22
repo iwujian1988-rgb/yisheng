@@ -155,6 +155,15 @@ async function run() {
     })
   });
 
+  const heartbeat = await request('/api/devices/heartbeat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + activatedUser.token,
+      'X-Device-Session': deviceSession.deviceSessionToken
+    }
+  });
+
   const createdTemplate = await request('/api/admin/templates', {
     method: 'POST',
     headers: {
@@ -187,7 +196,9 @@ async function run() {
   const professionalTemplates = await request('/api/templates', {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + activatedUser.token
+      Authorization: 'Bearer ' + activatedUser.token,
+      'X-Device-Session': deviceSession.deviceSessionToken,
+      'X-Device-Live': heartbeat.liveProof
     }
   });
   assert(professionalTemplates.templates.some((item) => item.id === 'tpl_official_first_course'), 'official first course missing');

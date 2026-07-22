@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  smoke:
+    name: Lint + Smoke tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package.json
+
+      - name: Install backend deps
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+
+      - name: Node syntax check (server)
+        working-directory: backend
+        run: node --check src/server.js
+
+      - name: Run smoke tests
+        working-directory: backend
+        env:
+          STORE_MODE: memory
+          SMOKE_PORT: '18080'
+          PORT: '18080'
+        run: node scripts/smoke.js
+
+      - name: Run trial flow smoke
+        working-directory: backend
+        env:
+          STORE_MODE: memory
+          SMOKE_PORT: '18081'
+          PORT: '18081'
+        run: node scripts/trial-flow-smoke.js
+
+      - name: Release check
+        run: node backend/scripts/release-check.js
+        env:
+          STORE_MODE: memory

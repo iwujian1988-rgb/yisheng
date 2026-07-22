@@ -56,5 +56,19 @@
       <text class="section-title">六、用户权利</text>
       <text class="section-text">用户可按产品提供的入口查看、修改或删除相关信息。具体能力将随服务接入逐步开放。</text>
     </view>
+
+    <view class="section">
+      <text class="section-title">七、第三方信息处理清单</text>
+      <text class="section-text">为提供文本整理、图片识别、语音转写等能力，本产品接入以下第三方服务：</text>
+      <text class="section-text">1. 阿里云 DashScope：用于 AI 文本整理、图片 OCR、语音识别。处理内容为用户主动提交的待整理文本、图片和录音。</text>
+      <text class="section-text">2. 微信开放平台：用于账号登录身份核验。处理内容为微信 openid。</text>
+      <text class="section-text">3. 蓝牙设备：用于将已确认文本通过蓝牙发送至连接的电脑。仅处理用户主动确认的最终文本。</text>
+      <text class="section-text">所有第三方均按其各自隐私政策处理数据，详情可访问对应官网。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">八、权限使用说明</text>
+      <text class="section-text">本产品申请以下权限：蓝牙（连接文本传输设备）、相机/相册（图片识别）、麦克风（语音转写）。各权限仅在用户主动使用对应功能时调用，可随时在小程序设置中关闭。</text>
+    </view>
   </view>
 </view>

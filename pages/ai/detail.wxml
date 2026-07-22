@@ -10,7 +10,7 @@
         <view class="bot-avatar">AI</view>
         <view class="welcome-bubble">
           <text class="welcome-title">描述你的需求，可附带图片或语音转写内容</text>
-          <text class="welcome-desc">例如：识别这张报告并整理成病程记录。系统会自动识别、整理并直接给出结果。</text>
+          <text class="welcome-desc">例如：识别这张图片并整理成结构化文本。系统会自动识别、整理并直接给出结果。</text>
         </view>
       </view>
 

@@ -21,7 +21,9 @@ function ensureCollections(store) {
     'userTemplates',
     'agentTemplates',
     'deviceSessionChallenges',
-    'deviceSessions'
+    'deviceSessions',
+    'deviceLiveProofs',
+    'wechatSessionKeys'
   ].forEach((key) => {
     if (!Array.isArray(store[key])) store[key] = [];
   });
@@ -38,6 +40,10 @@ function ensureCollections(store) {
 }
 
 function createStore() {
+  if (config.storeMode === 'mysql') {
+    const { createSqlStore } = require('./create-sql-store');
+    return createSqlStore();
+  }
   if (config.storeMode !== 'file') {
     return ensureCollections(createMemoryStore());
   }

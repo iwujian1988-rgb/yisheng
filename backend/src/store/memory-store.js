@@ -359,7 +359,9 @@ function createMemoryStore() {
     longTextTests: [],
     bugReports: [],
     deviceSessionChallenges: [],
-    deviceSessions: []
+    deviceSessions: [],
+    deviceLiveProofs: [],
+    wechatSessionKeys: []
   };
 }
 

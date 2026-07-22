@@ -1,0 +1,51 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build + SSH deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # 仅 main 分支且配置了 secrets 时触发
+    if: ${{ github.ref == 'refs/heads/main' && vars.ENABLE_DEPLOY == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build API image & save tarball
+        working-directory: backend
+        run: |
+          docker build -t yisheng-api:${{ github.sha }} .
+          docker save yisheng-api:${{ github.sha }} -o /tmp/api.tar
+
+      - name: Copy image to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: /tmp/api.tar
+          target: /tmp/
+
+      - name: Trigger remote deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd ${{ vars.DEPLOY_PATH || '/srv/yisheng/deploy' }}
+            docker load -i /tmp/api.tar
+            docker tag yisheng-api:${{ github.sha }} yisheng-api:latest
+            docker compose --env-file .env.production up -d --no-deps api
+            rm -f /tmp/api.tar
+            docker compose --env-file .env.production exec -T api wget -qO- http://127.0.0.1:8080/api/health

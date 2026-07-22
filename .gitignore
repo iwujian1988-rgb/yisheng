@@ -9,3 +9,5 @@ backend/logs/
 backend/.env
 backend/.env.*
 .claude/
+deploy/certs/
+deploy/.env.production

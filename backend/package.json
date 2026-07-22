@@ -14,7 +14,13 @@
     "release:check": "node scripts/release-check.js",
     "test:ocr-image": "node scripts/ocr-image-test.js",
     "worker:ocr": "node workers/ocr-worker.example.js",
-    "worker:asr": "node workers/asr-worker.example.js"
+    "worker:asr": "node workers/asr-worker.example.js",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "mysql2": "^3.11.0",
+    "pino": "^9.4.0"
   },
   "engines": {
     "node": ">=18"

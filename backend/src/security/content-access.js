@@ -93,6 +93,9 @@ function getAccessContext(options) {
   var connected = requestConnected(opts.req);
   var boundDevice = hasBoundDevice(opts.store, userId);
   var connectedBoundDevice = Boolean(connected && boundDevice);
+  var hasLiveProof = opts.req && userId
+    ? deviceSession.verifyLiveProof(opts.store, opts.req, userId)
+    : false;
 
   return {
     businessKey: opts.businessKey || '',
@@ -102,7 +105,10 @@ function getAccessContext(options) {
     connected,
     hasBoundDevice: boundDevice,
     hasConnectedBoundDevice: connectedBoundDevice,
-    hasProfessionalAccess: Boolean(memberActive && (deviceAccess.ok || connectedBoundDevice)),
+    hasLiveProof,
+    hasProfessionalAccess: Boolean(
+      memberActive && (deviceAccess.ok || connectedBoundDevice) && hasLiveProof
+    ),
     deviceAccess
   };
 }

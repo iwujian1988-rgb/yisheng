@@ -2,6 +2,7 @@ const authSession = require('./services/auth/session');
 const deviceSession = require('./services/device/session');
 const apiBase = require('./services/config/api-base');
 const bleLink = require('./services/device/ble-link');
+const liveHeartbeat = require('./services/device/live-heartbeat');
 
 var _envInfo = wx.getAccountInfoSync();
 var _isDev = _envInfo.miniProgram.envVersion === 'develop';
@@ -17,10 +18,11 @@ App({
     bleLinkReady: false,
     deviceSessionToken: '',
     deviceSessionExpiresAt: '',
-    // 模拟器地址；真机调试时会自动换成 lanBaseHost
-    baseUrl: 'http://127.0.0.1:8080',
-    // 真机调试必填：改成你电脑在当前 WiFi 下的局域网 IP（ipconfig 查看）
-    lanBaseHost: '192.168.50.194',
+    // 生产环境：替换为你的 HTTPS 域名（微信公众平台 request 合法域名要与此一致）
+    // 开发/真机调试：可临时改回 'http://127.0.0.1:8080'，并配置下面的 lanBaseHost
+    baseUrl: 'https://api.maxnote.me',
+    // 仅真机调试时使用：改成你电脑在当前 WiFi 下的局域网 IP（ipconfig 查看）
+    lanBaseHost: '',
     resolvedBaseUrl: ''
   },
 
@@ -71,6 +73,7 @@ App({
 
   logout() {
     authSession.clearSession();
+    liveHeartbeat.stop();
     this.globalData.token = '';
     this.globalData.userInfo = null;
     this.globalData.deviceId = null;

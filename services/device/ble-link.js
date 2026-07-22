@@ -1,3 +1,5 @@
+var liveHeartbeat = require('./live-heartbeat');
+
 function getAppGlobalData() {
   const app = typeof getApp === 'function' ? getApp() : null;
   return (app && app.globalData) || {};
@@ -35,6 +37,7 @@ function markBleLinkReady(deviceId) {
   gd.bleLinkReady = Boolean(gd.bleDeviceId);
   if (gd.bleLinkReady) {
     gd.deviceConnected = true;
+    liveHeartbeat.start();
   }
 }
 
@@ -44,6 +47,7 @@ function clearBleLink() {
   gd.bleDeviceName = '';
   gd.bleLinkReady = false;
   gd.deviceConnected = Boolean(wx.getStorageSync('boundDevice') && wx.getStorageSync('boundDevice').id);
+  liveHeartbeat.stop();
 }
 
 function isAccountBound() {

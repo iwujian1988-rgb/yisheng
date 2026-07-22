@@ -416,6 +416,17 @@ function createUserApiModule(deps) {
     ok(res, result.data);
   }
 
+  function heartbeatDevice(req, res) {
+    var actor = auth.requireUser(req, res);
+    if (!actor) return;
+    var result = deviceSession.issueLiveProofForSession(store, req, actor.id);
+    if (!result.ok) {
+      fail(res, 403, result.code, result.message);
+      return;
+    }
+    ok(res, result.data);
+  }
+
   async function unbindDevice(req, res) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
@@ -737,6 +748,7 @@ function createUserApiModule(deps) {
     bindDevice,
     firmware,
     generateTemplate,
+    heartbeatDevice,
     listLongTextTests,
     listQuickActions,
     listTemplates,

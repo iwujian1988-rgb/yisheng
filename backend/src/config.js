@@ -54,6 +54,15 @@ const config = {
   storeMode: process.env.STORE_MODE || 'file',
   storeFile: process.env.STORE_FILE || 'data/store.json',
   allowFileStoreInProduction: readBoolean(process.env.ALLOW_FILE_STORE_IN_PRODUCTION, false),
+  db: {
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: Number(process.env.DB_PORT || 3306),
+    user: process.env.DB_USER || 'yisheng',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || process.env.DB_DATABASE || 'yisheng',
+    connectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10),
+    charset: process.env.DB_CHARSET || 'utf8mb4'
+  },
   allowUnknownDeviceBinding: readBoolean(
     process.env.ALLOW_UNKNOWN_DEVICE_BINDING,
     (process.env.NODE_ENV || 'development') !== 'production'

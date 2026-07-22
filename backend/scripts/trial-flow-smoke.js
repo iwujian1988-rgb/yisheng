@@ -3,6 +3,15 @@ process.env.STORE_MODE = 'memory';
 process.env.PORT = String(PORT);
 
 const { server } = require('../src/server');
+const { config } = require('../src/config');
+
+// Trial-flow smoke must not actually hit WeChat jscode2session.
+config.wechatAppId = '';
+config.wechatAppSecret = '';
+config.dashscopeApiKey = '';
+config.asrCloudApiKey = '';
+config.ocrCloudEnabled = false;
+config.agentServiceEnabled = false;
 
 const BASE_URL = 'http://127.0.0.1:' + PORT;
 

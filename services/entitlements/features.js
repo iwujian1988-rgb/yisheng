@@ -1,6 +1,7 @@
-const deviceSession = require('../device/session');
+var deviceSession = require('../device/session');
+var liveDevice = require('./live-device');
 
-const PROFESSIONAL_FEATURES = {
+var PROFESSIONAL_FEATURES = {
   aiTemplateEnhance: true,
   professionalAi: true,
   professionalTemplates: true,
@@ -21,22 +22,31 @@ function hasDeviceSession() {
 }
 
 function hasBoundDevice() {
-  const boundDevice = wx.getStorageSync('boundDevice');
+  var boundDevice = wx.getStorageSync('boundDevice');
   return Boolean(boundDevice && boundDevice.id);
 }
 
+function isPaidMember() {
+  return wx.getStorageSync('purchaseStatus') === 'paid';
+}
+
 function guardAiFeature(featureKey, featureName) {
-  if (wx.getStorageSync('purchaseStatus') !== 'paid') {
+  if (!isPaidMember()) {
     wx.showModal({
       title: '需要开通会员',
       content: (featureName || '该功能') + '为会员能力，请联系管理员开通后使用。',
       showCancel: false,
       confirmText: '知道了'
     });
-    return false;
+    return Promise.resolve(false);
   }
 
-  if (PROFESSIONAL_FEATURES[featureKey] && !hasBoundDevice()) {
+  if (!PROFESSIONAL_FEATURES[featureKey]) {
+    return Promise.resolve(true);
+  }
+
+  return liveDevice.hasLiveAuthorizedDevice().then(function (live) {
+    if (live) return true;
     wx.showModal({
       title: '请先连接设备',
       content: (featureName || '该功能') + '需要先连接蓝牙设备。',
@@ -47,9 +57,7 @@ function guardAiFeature(featureKey, featureName) {
       }
     });
     return false;
-  }
-
-  return true;
+  });
 }
 
 function guardTransferFeature(featureName) {
@@ -73,5 +81,6 @@ module.exports = {
   guardTransferFeature: guardTransferFeature,
   hasBoundDevice: hasBoundDevice,
   hasDeviceSession: hasDeviceSession,
-  isBluetoothConnected: isBluetoothConnected
+  isBluetoothConnected: isBluetoothConnected,
+  isPaidMember: isPaidMember
 };

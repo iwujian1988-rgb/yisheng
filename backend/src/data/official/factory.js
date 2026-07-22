@@ -2,7 +2,7 @@ function createOfficialTemplate(def, nowIso) {
   return {
     id: def.id,
     template_type: def.template_type,
-    audience: 'professional',
+    audience: def.audience === 'general' ? 'general' : 'professional',
     tag: 'official',
     name: def.name,
     user_id: null,

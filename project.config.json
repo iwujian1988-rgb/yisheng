@@ -1,5 +1,5 @@
 {
-  "description": "文本传输助手项目配置文件",
+  "description": "小科打字猿项目配置文件",
   "packOptions": {
     "ignore": [
       {
@@ -19,11 +19,39 @@
         "type": "folder"
       },
       {
+        "value": "agent-service",
+        "type": "folder"
+      },
+      {
+        "value": "firmware",
+        "type": "folder"
+      },
+      {
         "value": ".git",
         "type": "folder"
       },
       {
+        "value": ".claude",
+        "type": "folder"
+      },
+      {
         "value": "package.json",
+        "type": "file"
+      },
+      {
+        "value": "package-lock.json",
+        "type": "file"
+      },
+      {
+        "value": "bingli.md",
+        "type": "file"
+      },
+      {
+        "value": "规则.md",
+        "type": "file"
+      },
+      {
+        "value": "PROJECT_PROGRESS.MD",
         "type": "file"
       }
     ],

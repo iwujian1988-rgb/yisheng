@@ -11,16 +11,19 @@ Page({
   },
 
   onLoad: function (options) {
-    if (!featureEntitlements.guardAiFeature('templates', '场景模板')) {
-      wx.navigateBack({ fail: function () { wx.reLaunch({ url: '/pages/home/home' }); } });
-      return;
-    }
-    var id = options && options.id ? decodeURIComponent(options.id) : '';
-    if (!id) {
-      wx.showToast({ title: '模板不存在', icon: 'none' });
-      return;
-    }
-    this.loadTemplate(id);
+    var that = this;
+    featureEntitlements.guardAiFeature('templates', '场景模板').then(function (ok) {
+      if (!ok) {
+        wx.navigateBack({ fail: function () { wx.reLaunch({ url: '/pages/home/home' }); } });
+        return;
+      }
+      var id = options && options.id ? decodeURIComponent(options.id) : '';
+      if (!id) {
+        wx.showToast({ title: '模板不存在', icon: 'none' });
+        return;
+      }
+      that.loadTemplate(id);
+    });
   },
 
   loadTemplate: function (id) {

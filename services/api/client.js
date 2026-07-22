@@ -40,6 +40,15 @@ function getDeviceSessionHeader() {
   return token ? { 'X-Device-Session': token } : {};
 }
 
+function getLiveProofHeader() {
+  try {
+    const proof = wx.getStorageSync('deviceLiveProof');
+    return proof ? { 'X-Device-Live': proof } : {};
+  } catch (e) {
+    return {};
+  }
+}
+
 function handleUnauthorized() {
   clearAuthStorage();
   wx.reLaunch({ url: '/pages/login/login' });
@@ -129,7 +138,7 @@ function request(options) {
       header: Object.assign({
         'Content-Type': 'application/json',
         Authorization: token ? 'Bearer ' + token : ''
-      }, getDeviceSessionHeader(), header),
+      }, getDeviceSessionHeader(), getLiveProofHeader(), header),
       success(res) {
         const body = res.data || {};
         if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -188,7 +197,7 @@ function uploadFile(options) {
       formData,
       header: Object.assign({
         Authorization: token ? 'Bearer ' + token : ''
-      }, getDeviceSessionHeader()),
+      }, getDeviceSessionHeader(), getLiveProofHeader()),
       success(res) {
         let body = {};
         try {

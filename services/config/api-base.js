@@ -19,6 +19,10 @@ function buildUrl(host, port) {
   return 'http://' + host + ':' + (port || DEFAULT_PORT);
 }
 
+function isHttps(url) {
+  return /^https:\/\//i.test(String(url || ''));
+}
+
 function usesLocalhost(url) {
   return /localhost|127\.0\.0\.1/.test(String(url || ''));
 }
@@ -30,6 +34,11 @@ function resolveApiBaseUrl() {
   const gd = getAppGlobalData();
   const configured = gd.baseUrl || '';
   if (!configured) return '';
+
+  // 生产域名（https）直接使用，不做局域网替换
+  if (isHttps(configured) && !usesLocalhost(configured)) {
+    return configured;
+  }
 
   if (isDevtoolsEnvironment() || !usesLocalhost(configured)) {
     return configured;

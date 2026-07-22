@@ -5,6 +5,7 @@ const { verifyPassword } = require('./password');
 
 const DEVICE_SESSION_TTL_MS = 15 * 60 * 1000;
 const CHALLENGE_TTL_MS = 60 * 1000;
+const LIVE_PROOF_TTL_MS = 60 * 1000;
 const ALL_CAPABILITIES = [
   'professional_templates',
   'professional_ai',
@@ -16,6 +17,7 @@ const ALL_CAPABILITIES = [
 function ensureCollections(store) {
   if (!Array.isArray(store.deviceSessionChallenges)) store.deviceSessionChallenges = [];
   if (!Array.isArray(store.deviceSessions)) store.deviceSessions = [];
+  if (!Array.isArray(store.deviceLiveProofs)) store.deviceLiveProofs = [];
 }
 
 function hashToken(token) {
@@ -70,6 +72,9 @@ function cleanupExpired(store) {
   });
   store.deviceSessions = store.deviceSessions.filter((item) => {
     return !item.revokedAt && new Date(item.expiresAt).getTime() > now;
+  });
+  store.deviceLiveProofs = store.deviceLiveProofs.filter((item) => {
+    return new Date(item.expiresAt).getTime() > now;
   });
 }
 
@@ -214,16 +219,67 @@ function refreshDeviceSession(store, req, userId) {
   };
 }
 
+function getLiveProofHeader(req) {
+  return String(
+    (req && (req.headers['x-device-live'] || req.headers['x-device-live-proof'])) ||
+    ''
+  ).trim();
+}
+
+function issueLiveProof(store, userId, device) {
+  ensureCollections(store);
+  cleanupExpired(store);
+  var proof = crypto.randomBytes(24).toString('hex');
+  var item = {
+    proof: proof,
+    proofHash: hashToken(proof),
+    userId: userId,
+    deviceId: device ? device.id : '',
+    expiresAt: new Date(Date.now() + LIVE_PROOF_TTL_MS).toISOString(),
+    createdAt: nowIso()
+  };
+  store.deviceLiveProofs.push(item);
+  return {
+    liveProof: proof,
+    expiresAt: item.expiresAt,
+    expiresIn: Math.floor(LIVE_PROOF_TTL_MS / 1000)
+  };
+}
+
+function verifyLiveProof(store, req, userId) {
+  ensureCollections(store);
+  var proof = getLiveProofHeader(req);
+  if (!proof) return false;
+  var proofHash = hashToken(proof);
+  var now = Date.now();
+  var matched = store.deviceLiveProofs.find((item) => {
+    if (item.proofHash !== proofHash) return false;
+    if (item.userId !== userId) return false;
+    return new Date(item.expiresAt).getTime() > now;
+  });
+  return Boolean(matched);
+}
+
+function issueLiveProofForSession(store, req, userId) {
+  var resolved = resolveDeviceSession(store, req, userId, '');
+  if (!resolved.ok) return resolved;
+  return { ok: true, data: issueLiveProof(store, userId, resolved.device) };
+}
+
 module.exports = {
   ALL_CAPABILITIES,
   CHALLENGE_TTL_MS,
   DEVICE_SESSION_TTL_MS,
+  LIVE_PROOF_TTL_MS,
   createChallenge,
   findBoundDevice,
   getDeviceSessionToken,
   hasDeviceSession,
   isMemberActive,
+  issueLiveProof,
+  issueLiveProofForSession,
   refreshDeviceSession,
   resolveDeviceSession,
-  verifyChallengeAndIssue
+  verifyChallengeAndIssue,
+  verifyLiveProof
 };

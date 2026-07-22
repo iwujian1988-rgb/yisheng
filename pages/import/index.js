@@ -30,17 +30,23 @@ Page({
   },
 
   goAsr() {
-    if (!featureEntitlements.guardAiFeature('asr', '语音成稿')) return;
-    wx.navigateTo({ url: '/pages/asr/index' });
+    featureEntitlements.guardAiFeature('asr', '语音成稿').then(function (ok) {
+      if (!ok) return;
+      wx.navigateTo({ url: '/pages/asr/index' });
+    });
   },
 
   goAi() {
-    if (!featureEntitlements.guardAiFeature('aiWriting', '智能润色')) return;
-    wx.switchTab({ url: '/pages/ai/detail' });
+    featureEntitlements.guardAiFeature('aiWriting', '智能润色').then(function (ok) {
+      if (!ok) return;
+      wx.switchTab({ url: '/pages/ai/detail' });
+    });
   },
 
   goTemplate() {
-    if (!featureEntitlements.guardAiFeature('templates', '场景模板')) return;
-    wx.switchTab({ url: '/pages/templates/index' });
+    featureEntitlements.guardAiFeature('templates', '场景模板').then(function (ok) {
+      if (!ok) return;
+      wx.switchTab({ url: '/pages/templates/index' });
+    });
   }
 });
