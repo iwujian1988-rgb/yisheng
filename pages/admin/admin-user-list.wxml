@@ -1,0 +1,35 @@
+<view class="page">
+  <view class="search-bar">
+    <t-input
+      placeholder="搜索账号 / 角色"
+      value="{{keyword}}"
+      bind:change="onSearchInput"
+      t-class="search-input"
+    />
+  </view>
+
+  <view class="action-bar">
+    <t-button theme="primary" size="medium" bind:tap="goCreate">+ 新建管理员</t-button>
+  </view>
+
+  <t-loading wx:if="{{isLoading}}" theme="circular" size="40rpx" text="加载中..." />
+  <view wx:elif="{{items.length === 0}}" class="empty">暂无管理员账号</view>
+
+  <t-cell-group wx:else theme="card">
+    <t-cell
+      wx:for="{{items}}"
+      wx:key="id"
+      title="{{item.account}}"
+      description="{{item.role}}"
+      data-id="{{item.id}}"
+      bind:click="goDetail"
+      arrow
+      hover
+    >
+      <view slot="note">
+        <t-tag wx:if="{{item.status === 'active'}}" theme="success" variant="light" size="small">启用</t-tag>
+        <t-tag wx:else theme="danger" variant="light" size="small">停用</t-tag>
+      </view>
+    </t-cell>
+  </t-cell-group>
+</view>

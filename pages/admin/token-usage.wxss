@@ -1,0 +1,8 @@
+.page { padding: 16rpx; background: #f5f6f8; min-height: 100vh; }
+.stats-card { background: #fff; border-radius: 12rpx; padding: 24rpx; margin-bottom: 16rpx; }
+.stat-row { display: flex; justify-content: space-between; padding: 12rpx 0; }
+.stat-label { color: #666; }
+.stat-value { font-weight: bold; font-size: 32rpx; }
+.section-label { padding: 24rpx 16rpx 12rpx; color: #888; font-size: 26rpx; }
+.empty { text-align: center; color: #999; padding: 80rpx 0; }
+.token-count { color: #1677ff; font-weight: 500; }

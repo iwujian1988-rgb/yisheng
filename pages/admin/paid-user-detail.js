@@ -7,7 +7,8 @@ Page({
     serviceStatus: '',
     expiryDate: '',
     deviceSerial: '',
-    remark: ''
+    remark: '',
+    loading: true
   },
 
   onLoad(options) {
@@ -23,27 +24,41 @@ Page({
   },
 
   loadUser(id, options) {
-    const user = id ? paidUsers.getPaidUserById(id) : null;
-    if (user) {
-      this.setData({
-        id: user.id,
-        phone: user.phone,
-        serviceStatus: user.status,
-        expiryDate: user.expiryDate,
-        deviceSerial: user.serialNo,
-        remark: user.remark
-      });
+    if (!id) {
+      if (options) {
+        this.setData({
+          loading: false,
+          phone: options.phone ? decodeURIComponent(options.phone) : '',
+          serviceStatus: options.serviceStatus ? decodeURIComponent(options.serviceStatus) : '',
+          expiryDate: options.expiryDate ? decodeURIComponent(options.expiryDate) : '',
+          deviceSerial: options.deviceSerial ? decodeURIComponent(options.deviceSerial) : ''
+        });
+      } else {
+        this.setData({ loading: false });
+      }
       return;
     }
 
-    if (options) {
-      this.setData({
-        phone: options.phone ? decodeURIComponent(options.phone) : '',
-        serviceStatus: options.serviceStatus ? decodeURIComponent(options.serviceStatus) : '',
-        expiryDate: options.expiryDate ? decodeURIComponent(options.expiryDate) : '',
-        deviceSerial: options.deviceSerial ? decodeURIComponent(options.deviceSerial) : ''
+    this.setData({ loading: true });
+    paidUsers.getPaidUserById(id)
+      .then((user) => {
+        if (!user) {
+          this.setData({ loading: false });
+          return;
+        }
+        this.setData({
+          id: user.id,
+          phone: user.phone,
+          serviceStatus: user.status,
+          expiryDate: user.expiryDate,
+          deviceSerial: user.serialNo,
+          remark: user.remark,
+          loading: false
+        });
+      })
+      .catch(() => {
+        this.setData({ loading: false });
       });
-    }
   },
 
   editUser() {

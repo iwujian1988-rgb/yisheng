@@ -1,0 +1,86 @@
+<view class="page">
+  <t-cell-group theme="card">
+    <t-cell title="动作编码" wx:if="{{!isEdit}}" required hover>
+      <t-input
+        slot="note"
+        placeholder="字母/数字/_- 3-64位"
+        value="{{actionCode}}"
+        data-field="actionCode"
+        bind:change="onInput"
+      />
+    </t-cell>
+    <t-cell title="动作编码" wx:else hover>
+      <text slot="note">{{actionCode}}</text>
+    </t-cell>
+    <t-cell title="动作标题" required hover>
+      <t-input
+        slot="note"
+        placeholder="如：会议纪要"
+        value="{{title}}"
+        data-field="title"
+        bind:change="onInput"
+      />
+    </t-cell>
+    <t-cell title="分类" hover>
+      <t-input
+        slot="note"
+        placeholder="如：办公"
+        value="{{category}}"
+        data-field="category"
+        bind:change="onInput"
+      />
+    </t-cell>
+    <t-cell title="描述" hover>
+      <t-input
+        slot="note"
+        placeholder="一句话描述"
+        value="{{description}}"
+        data-field="description"
+        bind:change="onInput"
+      />
+    </t-cell>
+    <t-cell title="输入框占位" hover>
+      <t-input
+        slot="note"
+        placeholder="如：粘贴会议记录..."
+        value="{{placeholder}}"
+        data-field="placeholder"
+        bind:change="onInput"
+      />
+    </t-cell>
+  </t-cell-group>
+
+  <view class="section-label">受众与状态</view>
+  <t-cell-group theme="card">
+    <t-cell title="受众范围" hover>
+      <t-radio-group slot="note" value="{{audience}}" bind:change="onAudienceChange">
+        <t-radio value="general" label="通用" />
+        <t-radio value="professional" label="专业（需会员+硬件）" />
+      </t-radio-group>
+    </t-cell>
+    <t-cell title="状态" hover>
+      <t-radio-group slot="note" value="{{status}}" bind:change="onStatusChange">
+        <t-radio value="published" label="发布" />
+        <t-radio value="draft" label="草稿" />
+      </t-radio-group>
+    </t-cell>
+  </t-cell-group>
+
+  <view class="section-label">Prompt 内容</view>
+  <view class="textarea-wrap">
+    <t-textarea
+      placeholder="快捷动作的 AI Prompt..."
+      value="{{promptContent}}"
+      data-field="promptContent"
+      bind:change="onInput"
+      maxlength="-1"
+      autosize="{{ {minHeight: 240, maxHeight: 600} }}"
+    />
+  </view>
+
+  <view class="footer">
+    <t-button theme="primary" block loading="{{saving}}" disabled="{{!canSave}}" bind:tap="save">
+      保存
+    </t-button>
+  </view>
+</view>

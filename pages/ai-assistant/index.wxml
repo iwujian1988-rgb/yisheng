@@ -1,0 +1,48 @@
+<view class="page">
+  <view class="header">
+    <view class="header-icon">🤖</view>
+    <text class="header-title">AI 助手</text>
+    <text class="header-desc">AI 帮你整理文本、识别图片、转写语音</text>
+    <view class="header-status" wx:if="{{isMember}}">
+      <t-tag theme="success" variant="light" size="small">已开通 · 有效期至 {{memberExpiry}}</t-tag>
+    </view>
+    <view class="header-status" wx:else>
+      <t-tag theme="warning" variant="light" size="small">未开通</t-tag>
+    </view>
+  </view>
+
+  <view class="section-label">AI 能力</view>
+  <view class="feature-list">
+    <view
+      wx:for="{{features}}"
+      wx:key="key"
+      class="feature-item"
+      data-key="{{item.key}}"
+      data-path="{{item.path}}"
+      bindtap="goFeature"
+    >
+      <view class="feature-icon">{{item.icon}}</view>
+      <view class="feature-body">
+        <text class="feature-title">{{item.title}}</text>
+        <text class="feature-desc">{{item.desc}}</text>
+      </view>
+      <text class="feature-arrow">›</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!isMember}}" class="upgrade-card">
+    <view class="upgrade-title">如何升级 AI 助手？</view>
+    <view class="upgrade-desc">
+      AI 助手为增值服务。请联系客服咨询开通事宜，并说明您的硬件序列号。
+    </view>
+    <t-button theme="primary" block bind:tap="contactService">联系客服</t-button>
+  </view>
+
+  <view wx:else class="tips-card">
+    <view class="tips-title">💡 使用提示</view>
+    <view class="tips-desc">
+      连接硬件后可解锁更多专业模板（办公、写作、学习等场景）。
+      未连接硬件时仅可使用通用模板。
+    </view>
+  </view>
+</view>

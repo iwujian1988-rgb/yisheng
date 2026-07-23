@@ -73,6 +73,10 @@ function objectToRow(obj, jsonColumns) {
   Object.keys(obj).forEach(function (camelKey) {
     var column = camelToSnake(camelKey);
     var value = obj[camelKey];
+    if (value === '' ) {
+      row[column] = null;
+      return;
+    }
     if (value instanceof Date) {
       row[column] = value;
       return;
@@ -266,6 +270,7 @@ module.exports = {
   createSqlStore: createSqlStore,
   TABLE_TO_COLLECTION: TABLE_TO_COLLECTION,
   COLLECTION_TO_TABLE: COLLECTION_TO_TABLE,
+  JSON_COLUMNS_BY_TABLE: JSON_COLUMNS_BY_TABLE,
   rowToObject: rowToObject,
   objectToRow: objectToRow
 };

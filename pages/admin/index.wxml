@@ -23,6 +23,17 @@
       <text class="entry-arrow">›</text>
     </view>
 
+    <view class="entry-card" bindtap="goActivation">
+      <view class="entry-icon icon-activation">
+        <text class="icon-text">🎫</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">激活码管理</text>
+        <text class="entry-desc">导入、查看激活码使用情况</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+
     <view class="entry-card" bindtap="goServiceRecords">
       <view class="entry-icon icon-records">
         <text class="icon-text">≡</text>
@@ -34,6 +45,28 @@
       <text class="entry-arrow">›</text>
     </view>
 
+    <view class="entry-card" bindtap="goTemplates">
+      <view class="entry-icon icon-template">
+        <text class="icon-text">📑</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">模板管理</text>
+        <text class="entry-desc">编辑 AI 模板内容与受众</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+
+    <view class="entry-card" bindtap="goQuickActions">
+      <view class="entry-icon icon-quick">
+        <text class="icon-text">⚡</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">快捷动作</text>
+        <text class="entry-desc">管理首页快捷动作配置</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+
     <view class="entry-card" bindtap="goFeedback">
       <view class="entry-icon icon-feedback">
         <text class="icon-text">✉</text>
@@ -41,6 +74,39 @@
       <view class="entry-info">
         <text class="entry-title">问题反馈</text>
         <text class="entry-desc">查看和处理用户反馈</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+
+    <view class="entry-card" bindtap="goTokenUsage">
+      <view class="entry-icon icon-token">
+        <text class="icon-text">📊</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">Token 用量</text>
+        <text class="entry-desc">AI 调用次数与 Token 消耗</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+
+    <view class="entry-card" bindtap="goAdminUsers">
+      <view class="entry-icon icon-admin">
+        <text class="icon-text">👤</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">管理员账号</text>
+        <text class="entry-desc">创建、停用管理员账号</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+
+    <view class="entry-card" bindtap="goAuditLog">
+      <view class="entry-icon icon-audit">
+        <text class="icon-text">📜</text>
+      </view>
+      <view class="entry-info">
+        <text class="entry-title">审计日志</text>
+        <text class="entry-desc">查看后台操作记录</text>
       </view>
       <text class="entry-arrow">›</text>
     </view>

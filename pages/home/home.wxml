@@ -13,7 +13,7 @@
   <t-cell-group wx:else theme="card" t-class="section-block device-status-group">
     <t-cell
       title="{{statusTitle}}"
-      description="{{statusDesc}}"
+      description="{{statusDesc}}{{isMember ? ' · AI 助手有效期至 ' + memberExpiry : ''}}"
       arrow
       hover
       bind:click="onConnectTap"
@@ -85,26 +85,66 @@
     </view>
   </view>
 
-  <view class="section-label">更多输入方式</view>
+  <view class="section-label">文本工具</view>
+  <view class="tool-grid section-block">
+    <view class="tool-item" bindtap="goHistory">
+      <view class="tool-icon icon-history">📋</view>
+      <text class="tool-title">历史记录</text>
+    </view>
+    <view class="tool-item" bindtap="goPhrases">
+      <view class="tool-icon icon-phrases">⚡</view>
+      <text class="tool-title">快速短语</text>
+    </view>
+    <view class="tool-item" bindtap="goSnippets">
+      <view class="tool-icon icon-snippets">📦</view>
+      <text class="tool-title">文本片段</text>
+    </view>
+    <view class="tool-item" bindtap="onConnectTap">
+      <view class="tool-icon icon-device">🔧</view>
+      <text class="tool-title">设备管理</text>
+    </view>
+  </view>
 
-  <t-cell-group theme="card" t-class="section-block tool-group">
-    <t-cell
-      title="图片识别"
-      description="图片转文字"
-      leftIcon="scan"
-      arrow
-      hover
-      bind:click="goOcr"
-    />
-    <t-cell
-      title="语音转写"
-      description="语音转文字"
-      leftIcon="sound"
-      arrow
-      hover
-      bind:click="goAsr"
-    />
-  </t-cell-group>
+  <view class="section-label">AI 助手{{isMember ? ' · 已开通' : ' · 升级解锁'}}</view>
+  <view wx:if="{{isMember}}" class="ai-grid section-block">
+    <view class="ai-item" bindtap="goAiText">
+      <view class="ai-icon icon-text">✨</view>
+      <view class="ai-body">
+        <text class="ai-title">智能整理</text>
+        <text class="ai-desc">AI 帮你整理文本结构</text>
+      </view>
+    </view>
+    <view class="ai-item" bindtap="goAiTemplate">
+      <view class="ai-icon icon-template">📑</view>
+      <view class="ai-body">
+        <text class="ai-title">模板库</text>
+        <text class="ai-desc">按模板生成结构化内容</text>
+      </view>
+    </view>
+    <view class="ai-item" bindtap="goOcr">
+      <view class="ai-icon icon-ocr">📷</view>
+      <view class="ai-body">
+        <text class="ai-title">图片识别</text>
+        <text class="ai-desc">图片转文字</text>
+      </view>
+    </view>
+    <view class="ai-item" bindtap="goAsr">
+      <view class="ai-icon icon-asr">🎤</view>
+      <view class="ai-body">
+        <text class="ai-title">语音转写</text>
+        <text class="ai-desc">语音转文字</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="ai-upgrade-card section-block" bindtap="goAiAssistant">
+    <view class="upgrade-icon">🤖</view>
+    <view class="upgrade-body">
+      <text class="upgrade-title">升级 AI 助手</text>
+      <text class="upgrade-desc">AI 帮你整理文本、识别图片、转写语音</text>
+    </view>
+    <t-icon name="chevron-right" size="40rpx" color="rgba(0,0,0,0.26)" />
+  </view>
 
   <view class="banner section-block" wx:if="{{banner}}" bindtap="openBanner">
     <t-icon name="info-circle" size="36rpx" color="#1677FF" t-class="banner-icon" />

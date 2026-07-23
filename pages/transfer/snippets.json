@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "文本片段",
+  "usingComponents": {
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-input": "tdesign-miniprogram/input/input",
+    "t-textarea": "tdesign-miniprogram/textarea/textarea",
+    "t-tag": "tdesign-miniprogram/tag/tag",
+    "t-dialog": "tdesign-miniprogram/dialog/dialog",
+    "t-empty": "tdesign-miniprogram/empty/empty"
+  }
+}

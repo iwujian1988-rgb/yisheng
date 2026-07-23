@@ -3,6 +3,7 @@ const { fail, ok, parseBody } = require('../http');
 const deviceSession = require('../security/device-session');
 const contentAccess = require('../security/content-access');
 const { buildOcrPayload } = require('../ocr/split-lines');
+const wxContentCheck = require('../security/wx-content-check');
 
 var MODE_CONFIG = {
   organize: {
@@ -335,12 +336,15 @@ function createProviderGatewayModule(deps) {
         ? payload.choices[0].message.content
         : '';
       var sectioned = splitSectionedOutput(content);
+      var safeResultText = await wxContentCheck.sanitizeText(sectioned.resultText);
+      var safeBodyText = await wxContentCheck.sanitizeText(sectioned.bodyText);
+      var safeConfirmText = await wxContentCheck.sanitizeText(sectioned.confirmText);
       return {
         provider: config.aiProvider,
         status: 'ok',
-        resultText: sectioned.resultText,
-        bodyText: sectioned.bodyText,
-        confirmText: sectioned.confirmText,
+        resultText: safeResultText,
+        bodyText: safeBodyText,
+        confirmText: safeConfirmText,
         model: config.aiModel,
         usage: payload.usage || null
       };

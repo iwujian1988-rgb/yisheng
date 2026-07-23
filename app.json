@@ -56,7 +56,11 @@
     "pages/device/unbind-confirm",
     "pages/ai/review-result",
     "pages/ai/template-import",
-    "pages/home/home"
+    "pages/home/home",
+    "pages/transfer/history",
+    "pages/transfer/phrases",
+    "pages/transfer/snippets",
+    "pages/ai-assistant/index"
   ],
   "subPackages": [
     {
@@ -75,11 +79,15 @@
         "feedback-review",
         "feedback-detail",
         "audit-log",
-        "settings",
         "activation-import",
         "activation-list",
-        "role-list",
-        "role-detail"
+        "template-list",
+        "template-edit",
+        "quick-action-list",
+        "quick-action-edit",
+        "admin-user-list",
+        "admin-user-edit",
+        "token-usage"
       ]
     },
     {

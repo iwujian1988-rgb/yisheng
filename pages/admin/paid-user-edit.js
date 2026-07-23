@@ -7,18 +7,35 @@ Page({
     serviceStatus: 'active',
     remark: '',
     canSave: false,
-    saving: false
+    saving: false,
+    loading: true
   },
 
   onLoad(options) {
     const id = options.id ? decodeURIComponent(options.id) : '';
-    const user = id ? paidUsers.getPaidUserById(id) : null;
-    this.setData({
-      id,
-      expiryDate: user ? user.expiryDate : (options.expiryDate ? decodeURIComponent(options.expiryDate) : ''),
-      serviceStatus: user ? user.status : (options.serviceStatus ? decodeURIComponent(options.serviceStatus) : 'active'),
-      remark: user ? user.remark : ''
-    }, this.checkCanSave);
+    this.setData({ id });
+
+    if (!id) {
+      this.setData({
+        loading: false,
+        expiryDate: options.expiryDate ? decodeURIComponent(options.expiryDate) : '',
+        serviceStatus: options.serviceStatus ? decodeURIComponent(options.serviceStatus) : 'active'
+      }, this.checkCanSave);
+      return;
+    }
+
+    paidUsers.getPaidUserById(id)
+      .then((user) => {
+        this.setData({
+          loading: false,
+          expiryDate: user ? user.expiryDate : (options.expiryDate ? decodeURIComponent(options.expiryDate) : ''),
+          serviceStatus: user ? user.status : (options.serviceStatus ? decodeURIComponent(options.serviceStatus) : 'active'),
+          remark: user ? user.remark : ''
+        }, this.checkCanSave);
+      })
+      .catch(() => {
+        this.setData({ loading: false });
+      });
   },
 
   onDateChange(e) {

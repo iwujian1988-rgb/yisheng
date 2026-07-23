@@ -16,7 +16,7 @@
     "worker:ocr": "node workers/ocr-worker.example.js",
     "worker:asr": "node workers/asr-worker.example.js",
     "migrate": "node scripts/migrate.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node db/seed.js"
   },
   "dependencies": {
     "mysql2": "^3.11.0",

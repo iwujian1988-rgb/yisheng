@@ -1,0 +1,59 @@
+<view class="page">
+  <view class="toolbar">
+    <t-input
+      class="search"
+      placeholder="搜索片段标题或内容"
+      value="{{keyword}}"
+      bind:change="onSearchInput"
+    />
+  </view>
+
+  <view wx:if="{{!connected}}" class="warn-bar">
+    <text>⚠️ 当前未连接蓝牙设备，无法发送（仅可复制/编辑）</text>
+  </view>
+
+  <view wx:if="{{items.length === 0}}" class="empty">
+    <t-empty description="暂无片段，点击右下角添加" />
+  </view>
+
+  <view wx:else class="list">
+    <view wx:for="{{items}}" wx:key="id" class="item-card">
+      <view class="item-title">{{item.title}}</view>
+      <view class="item-text">{{item.text}}</view>
+      <view class="item-foot">
+        <t-tag theme="primary" variant="light" size="small">{{item.category}}</t-tag>
+        <view class="item-ops">
+          <t-button variant="outline" size="small" data-id="{{item.id}}" bind:tap="send">去发送</t-button>
+          <t-button variant="text" size="small" data-id="{{item.id}}" bind:tap="copy">复制</t-button>
+          <t-button variant="text" size="small" data-id="{{item.id}}" bind:tap="openEdit">编辑</t-button>
+          <t-button variant="text" theme="danger" size="small" data-id="{{item.id}}" bind:tap="remove">删除</t-button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="fab" bindtap="openAdd">+</view>
+
+  <t-dialog
+    visible="{{showEditor}}"
+    title="{{editId ? '编辑片段' : '新建片段'}}"
+    confirm-btn="保存"
+    cancel-btn="取消"
+    bind:confirm="saveSnippet"
+    bind:cancel="closeEditor"
+  >
+    <view class="dialog-form">
+      <t-input placeholder="片段标题" value="{{editTitle}}" bind:change="onTitleInput" />
+      <view style="height: 16rpx;"></view>
+      <t-textarea
+        placeholder="片段内容"
+        value="{{editText}}"
+        bind:change="onTextInput"
+        maxlength="-1"
+        autosize="{{ {minHeight: 200, maxHeight: 500} }}"
+      />
+      <view style="height: 16rpx;"></view>
+      <t-input placeholder="分类（默认：通用）" value="{{editCategory}}" bind:change="onCategoryInput" />
+    </view>
+  </t-dialog>
+</view>

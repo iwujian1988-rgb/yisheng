@@ -8,6 +8,7 @@ const bleLink = require('../../services/device/ble-link');
 const bleTransferBehavior = require('../../behaviors/ble-transfer');
 const tabBarNav = require('../../services/navigation/tab-bar');
 const transferSettings = require('../../services/settings/transfer-settings');
+const localHistory = require('../../services/transfer/local-history');
 
 Page({
   behaviors: [bleTransferBehavior],
@@ -20,7 +21,9 @@ Page({
     textareaAutosize: { minHeight: 200 },
     statusTitle: '设备已连接',
     statusDesc: '蓝牙已就绪，可直接发送',
-    speedModeText: ''
+    speedModeText: '',
+    isMember: false,
+    memberExpiry: ''
   },
 
   cancelSend: false,
@@ -48,6 +51,7 @@ Page({
     authSession.refreshCurrentSession().catch(() => null);
     this.refreshSpeedMode();
     this.refreshDeviceStatus();
+    this.refreshMemberStatus();
     const draft = draftService.consumeDraft();
     if (draft && draft.text) {
       this.updateInputText(draft.text);
@@ -58,6 +62,13 @@ Page({
     if (!this.manualDisconnect && !this.data.connected && !this.reconnecting) {
       this.tryReconnectBoundDevice();
     }
+  },
+
+  refreshMemberStatus() {
+    const summary = authSession.getStoredSessionSummary();
+    const isMember = summary.purchaseStatus === 'paid' || (summary.user && summary.user.memberStatus === 'active');
+    const memberExpiry = summary.user && summary.user.memberEnd ? String(summary.user.memberEnd).slice(0, 10) : '';
+    this.setData({ isMember, memberExpiry });
   },
 
   updateInputText(inputText) {
@@ -123,6 +134,45 @@ Page({
     this.sendTokens(tokens, text, 'manual');
   },
 
+  onTransferComplete(text, source) {
+    if (text) {
+      localHistory.addRecord(text, source || 'manual');
+    }
+  },
+
+  goHistory() {
+    wx.navigateTo({ url: '/pages/transfer/history' });
+  },
+
+  goPhrases() {
+    wx.navigateTo({ url: '/pages/transfer/phrases' });
+  },
+
+  goSnippets() {
+    wx.navigateTo({ url: '/pages/transfer/snippets' });
+  },
+
+  goAiAssistant() {
+    featureEntitlements.guardAiFeature('aiAssistant', 'AI 助手').then((ok) => {
+      if (!ok) return;
+      wx.navigateTo({ url: '/pages/ai-assistant/index' });
+    });
+  },
+
+  goAiText() {
+    featureEntitlements.guardAiFeature('aiWriting', 'AI 智能整理').then((ok) => {
+      if (!ok) return;
+      wx.navigateTo({ url: '/pages/agent/text' });
+    });
+  },
+
+  goAiTemplate() {
+    featureEntitlements.guardAiFeature('templates', 'AI 模板生成').then((ok) => {
+      if (!ok) return;
+      wx.navigateTo({ url: '/pages/templates/list' });
+    });
+  },
+
   ensureDeviceReady() {
     if (this.data.connected) return true;
     wx.showModal({
@@ -139,7 +189,7 @@ Page({
 
   goOcr() {
     if (!this.ensureDeviceReady()) return;
-    featureEntitlements.guardAiFeature('ocr', '图片识别').then(function (ok) {
+    featureEntitlements.guardAiFeature('ocr', '图片识别').then((ok) => {
       if (!ok) return;
       wx.navigateTo({ url: '/pages/ocr/index' });
     });
@@ -147,7 +197,7 @@ Page({
 
   goAsr() {
     if (!this.ensureDeviceReady()) return;
-    featureEntitlements.guardAiFeature('asr', '语音转写').then(function (ok) {
+    featureEntitlements.guardAiFeature('asr', '语音转写').then((ok) => {
       if (!ok) return;
       wx.navigateTo({ url: '/pages/asr/index' });
     });

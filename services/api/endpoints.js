@@ -4,8 +4,6 @@ const ENDPOINTS = {
     wechatLogin: '/api/auth/wechat-login',
     registerCode: '/api/auth/register-code',
     register: '/api/auth/register',
-    resetCode: '/api/auth/reset-code',
-    resetPassword: '/api/auth/reset-password',
     me: '/api/auth/me'
   },
   admin: {
@@ -18,7 +16,15 @@ const ENDPOINTS = {
     feedbackDetail: '/api/admin/feedbacks/{id}',
     activationCodes: '/api/admin/activation-codes',
     activationCodesImport: '/api/admin/activation-codes/import',
-    auditLogs: '/api/admin/audit-logs'
+    auditLogs: '/api/admin/audit-logs',
+    templates: '/api/admin/templates',
+    templateDetail: '/api/admin/templates/{id}',
+    quickActions: '/api/admin/quick-actions',
+    quickActionDetail: '/api/admin/quick-actions/{id}',
+    adminUsers: '/api/admin/admin-users',
+    adminUserDetail: '/api/admin/admin-users/{id}',
+    tokenUsage: '/api/admin/token-usage',
+    dashboard: '/api/admin/dashboard'
   },
   devices: {
     mine: '/api/devices/me',
@@ -38,17 +44,6 @@ const ENDPOINTS = {
   },
   content: {
     drafts: '/api/content/drafts'
-  },
-  ai: {
-    assistant: '/api/ai/assistant',
-    quickActions: '/api/ai/quick-actions',
-    templates: '/api/ai/templates',
-    templateDetail: '/api/ai/templates/{id}',
-    templateGenerate: '/api/ai/templates/{id}/generate',
-    modes: '/api/ai/modes',
-    userTemplates: '/api/ai/user-templates',
-    userTemplateDetail: '/api/ai/user-templates/{id}',
-    redactionPreview: '/api/ai/redaction-preview'
   },
   ocr: {
     recognize: '/api/ocr/recognize'

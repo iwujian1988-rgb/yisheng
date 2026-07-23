@@ -1,0 +1,37 @@
+<view class="page">
+  <view class="search-bar">
+    <t-input
+      placeholder="搜索模板名称 / 编码 / 分类"
+      value="{{keyword}}"
+      bind:change="onSearchInput"
+      t-class="search-input"
+    />
+  </view>
+
+  <view class="action-bar">
+    <t-button theme="primary" size="medium" bind:tap="goCreate">+ 新建模板</t-button>
+  </view>
+
+  <t-loading wx:if="{{isLoading}}" theme="circular" size="40rpx" text="加载中..." />
+
+  <view wx:elif="{{items.length === 0}}" class="empty">暂无模板</view>
+
+  <t-cell-group wx:else theme="card">
+    <t-cell
+      wx:for="{{items}}"
+      wx:key="id"
+      title="{{item.name}}"
+      description="{{item.templateCode}} · {{item.category || '未分类'}}"
+      data-id="{{item.id}}"
+      bind:click="goDetail"
+      arrow
+      hover
+    >
+      <view slot="note">
+        <t-tag wx:if="{{item.audience === 'professional'}}" theme="warning" variant="light" size="small">专业</t-tag>
+        <t-tag wx:else theme="success" variant="light" size="small">通用</t-tag>
+        <t-tag theme="default" variant="light" size="small">{{item.status}}</t-tag>
+      </view>
+    </t-cell>
+  </t-cell-group>
+</view>

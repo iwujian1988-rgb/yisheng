@@ -11,3 +11,4 @@ backend/.env.*
 .claude/
 deploy/certs/
 deploy/.env.production
+yisheng.tar.gz

@@ -1,7 +1,10 @@
 // pages/common/agreement.js
 Page({
   data: {
-    type: 'userAgreement'
+    type: 'userAgreement',
+    companyName: '杭州光刻创能科技有限公司',
+    contactEmail: 'imwujianfei@163.com',
+    serviceWechat: 'imwujianfei'
   },
 
   onLoad(options) {

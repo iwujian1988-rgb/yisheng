@@ -70,36 +70,6 @@ function loginWithPhoneCode(phone, code, wechatCode, userInfo) {
   });
 }
 
-function requestResetCode(phone) {
-  return Promise.resolve({
-    code: 'OK',
-    data: {
-      phone,
-      verificationCode: TEST_VERIFICATION_CODE,
-      expiresIn: 300
-    }
-  });
-}
-
-function resetPassword(phone, code, password) {
-  if (code !== TEST_VERIFICATION_CODE) {
-    return Promise.reject({
-      code: 'INVALID_VERIFICATION_CODE',
-      message: '验证码错误'
-    });
-  }
-
-  const testUser = createTestUserFromPhone(phone);
-  testUser.password = password;
-  return Promise.resolve({
-    code: 'OK',
-    data: {
-      phone,
-      passwordUpdated: Boolean(password)
-    }
-  });
-}
-
 function loginWithPassword(account, password) {
   const testUser = getTestUserByAccount(account);
   if (!testUser || testUser.password !== password) {
@@ -136,8 +106,6 @@ module.exports = {
   requestRegisterCode,
   loginWithPhoneCode,
   registerWithPhone,
-  requestResetCode,
-  resetPassword,
   loginWithPassword,
   loginWithWechat
 };

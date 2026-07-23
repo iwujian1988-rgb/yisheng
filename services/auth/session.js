@@ -163,30 +163,6 @@ function registerWithPhone(phone, code, password) {
   });
 }
 
-function requestResetCode(phone) {
-  if (!getBaseUrl()) {
-    return devAuth.requestResetCode(phone);
-  }
-
-  return request({
-    url: ENDPOINTS.auth.resetCode,
-    method: 'POST',
-    data: { phone }
-  });
-}
-
-function resetPassword(phone, code, password) {
-  if (!getBaseUrl()) {
-    return devAuth.resetPassword(phone, code, password);
-  }
-
-  return request({
-    url: ENDPOINTS.auth.resetPassword,
-    method: 'POST',
-    data: { phone, code, password }
-  });
-}
-
 module.exports = {
   normalizeSessionPayload,
   persistSession,
@@ -197,7 +173,5 @@ module.exports = {
   refreshCurrentSession,
   getStoredSessionSummary,
   requestRegisterCode,
-  registerWithPhone,
-  requestResetCode,
-  resetPassword
+  registerWithPhone
 };

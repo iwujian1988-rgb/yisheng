@@ -1,0 +1,62 @@
+<view class="page">
+  <scroll-view scroll-x class="cat-bar">
+    <view
+      wx:for="{{categories}}"
+      wx:key="*this"
+      class="cat-chip {{selectedCategory === item ? 'active' : ''}}"
+      data-cat="{{item}}"
+      bindtap="selectCategory"
+    >
+      {{item === 'all' ? '全部' : item}}
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{!connected}}" class="warn-bar">
+    <text>⚠️ 当前未连接蓝牙设备，无法发送（仅可复制）</text>
+  </view>
+
+  <view wx:if="{{items.length === 0}}" class="empty">
+    <t-empty description="暂无短语，点击右下角添加" />
+  </view>
+
+  <view wx:else class="list">
+    <view wx:for="{{items}}" wx:key="id" class="item-card">
+      <view class="item-text">{{item.text}}</view>
+      <view class="item-foot">
+        <t-tag theme="primary" variant="light" size="small">{{item.category}}</t-tag>
+        <view class="item-ops">
+          <t-button variant="outline" size="small" data-id="{{item.id}}" bind:tap="send">去发送</t-button>
+          <t-button variant="text" size="small" data-id="{{item.id}}" bind:tap="copy">复制</t-button>
+          <t-button variant="text" theme="danger" size="small" data-id="{{item.id}}" bind:tap="remove">删除</t-button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="fab" bindtap="openAdd">+</view>
+
+  <t-dialog
+    visible="{{showAdd}}"
+    title="添加短语"
+    confirm-btn="添加"
+    cancel-btn="取消"
+    bind:confirm="confirmAdd"
+    bind:cancel="closeAdd"
+  >
+    <view class="dialog-form">
+      <t-textarea
+        placeholder="短语内容"
+        value="{{newText}}"
+        bind:change="onTextInput"
+        maxlength="500"
+        autosize
+      />
+      <view style="height: 16rpx;"></view>
+      <t-input
+        placeholder="分类（默认：通用）"
+        value="{{newCategory}}"
+        bind:change="onCategoryInput"
+      />
+    </view>
+  </t-dialog>
+</view>

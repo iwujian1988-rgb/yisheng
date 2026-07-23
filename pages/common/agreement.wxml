@@ -1,74 +1,213 @@
 <view class="agreement-container">
+  <view class="agreement-meta">
+    <text class="meta-text">版本号：v1.0</text>
+    <text class="meta-text">更新日期：2026年7月23日</text>
+  </view>
+
   <view wx:if="{{type === 'userAgreement'}}">
     <view class="section">
       <text class="section-title">一、服务说明</text>
-      <text class="section-text">本产品提供文本整理、模板生成、内容确认和设备传输等辅助功能。用户确认后的文本可通过已连接设备输入到电脑端。</text>
+      <text class="section-text">「小科打字猿」（以下简称"本产品"）是一款配合专属蓝牙硬件使用的通用文本编辑与传输工具，提供文本整理、模板生成、内容确认、历史记录、短语管理和设备传输等辅助功能。用户确认后的文本可通过已连接的蓝牙硬件输入到电脑端。</text>
+      <text class="section-text">本产品仅作为通用效率工具使用，不针对任何特定行业提供专业服务，不以任何形式替代专业人员的判断与审核。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">二、用户义务</text>
-      <text class="section-text">用户应妥善保管账号、设备和激活信息，不得将账号或设备借予无权限人员使用。因保管不当造成的风险，由用户自行承担。</text>
+      <text class="section-title">二、账号注册与使用</text>
+      <text class="section-text">1. 用户可通过微信授权方式登录本产品。请使用真实身份信息，不得冒用他人身份。</text>
+      <text class="section-text">2. 用户应妥善保管账号、设备、激活信息，不得将账号、设备或会员权益转让、出借给他人使用。因保管不当造成的损失，由用户自行承担。</text>
+      <text class="section-text">3. 同一账号同一时间仅允许在一台设备上使用，异常登录或异常使用行为我们有权采取限制措施。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">三、使用规范</text>
-      <text class="section-text">用户应确保输入和发送的内容来源合法、用途合规，并在发送到电脑前自行核对最终文本。</text>
+      <text class="section-title">三、用户义务</text>
+      <text class="section-text">用户在使用本产品时应遵守中华人民共和国法律法规，不得利用本产品从事任何违法违规行为，包括但不限于：</text>
+      <text class="section-text">1. 制作、传输、传播违反法律法规或公序良俗的内容；</text>
+      <text class="section-text">2. 侵犯他人知识产权、隐私权、商业秘密等合法权益；</text>
+      <text class="section-text">3. 以任何方式干扰本产品正常运营或侵害其他用户权益。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">四、服务变更与终止</text>
-      <text class="section-text">我们可能根据业务需要调整服务内容。涉及重要变更时，将通过适当方式提示用户。</text>
+      <text class="section-title">四、使用规范</text>
+      <text class="section-text">1. 用户应确保输入和发送的内容来源合法、用途合规。</text>
+      <text class="section-text">2. 智能整理、模板生成、图片识别、语音转写等 AI 能力仅作为辅助参考，结果均需用户主动确认。用户应在发送到电脑前自行核对最终文本，并对最终发送内容负责。</text>
+      <text class="section-text">3. 本产品不保证 AI 自动生成内容完全准确、完整或适用于特定场景。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">五、免责声明</text>
-      <text class="section-text">智能润色、图片取字、语音成稿和模板整理结果均需用户确认。本产品不保证自动生成内容完全准确，用户应对最终发送内容负责。</text>
+      <text class="section-title">五、会员服务</text>
+      <text class="section-text">1. 本产品提供会员增值服务（AI 智能整理、模板库、图片识别、语音转写等）。会员权益的具体内容、价格、有效期以购买页面展示为准。</text>
+      <text class="section-text">2. 会员服务以购买周期为限，到期后若未续费，相应权益将停止提供。</text>
+      <text class="section-text">3. 会员服务属于虚拟内容，除法律法规另有规定外，已支付的费用一般不予退还。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">六、账号注销</text>
+      <text class="section-text">1. 用户可通过「我的 → 设置 → 账号与隐私 → 注销账号」入口申请注销账号，也可通过本协议末尾的联系方式联系我们提交注销申请。</text>
+      <text class="section-text">2. 注销前请确保无未完成的订单或未结清的费用。注销后，账号下的历史记录、短语、片段、会员权益等将一并清除且无法恢复。</text>
+      <text class="section-text">3. 注销完成后，我们将按《隐私政策》的约定对相关信息进行脱敏或删除处理。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">七、服务变更与终止</text>
+      <text class="section-text">1. 我们可能根据业务发展和法律法规要求调整服务内容，涉及重要变更时将通过小程序通知、公告等适当方式提示用户。</text>
+      <text class="section-text">2. 出现下列情况时，我们有权限制、中止或终止向用户提供服务：用户违反本协议、账号存在严重安全风险、法律法规要求或主管部门指令。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">八、免责声明</text>
+      <text class="section-text">1. 因不可抗力、系统维护、网络故障、第三方服务异常等原因导致服务中断或异常，我们不承担相关责任。</text>
+      <text class="section-text">2. 用户因自身原因（账号保管不当、设备故障、输入内容错误等）造成的损失，由用户自行承担。</text>
+      <text class="section-text">3. AI 生成内容仅供参考，用户应对其最终使用场景和使用结果独立判断并承担责任。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">九、知识产权</text>
+      <text class="section-text">本产品的软件代码、界面设计、模板内容、图标、标识等知识产权均归我们或权利人所有，未经书面授权不得复制、改编、传播或用于其他商业用途。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">十、未成年人保护</text>
+      <text class="section-text">1. 本产品主要面向成年人。若未成年用户需要使用，应在监护人指导和同意下进行。</text>
+      <text class="section-text">2. 监护人应妥善保管账号和支付密码，防止未成年人误操作产生费用。</text>
+      <text class="section-text">3. 如发现未成年用户未经同意使用本产品或产生非预期费用，可联系我们协助处理。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">十一、协议变更</text>
+      <text class="section-text">本协议可能根据业务发展和法律法规变化进行更新。更新后我们将在小程序内以显著方式提示，若用户继续使用即视为同意更新后的协议。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">十二、适用法律与争议解决</text>
+      <text class="section-text">1. 本协议的订立、执行和解释均适用中华人民共和国法律。</text>
+      <text class="section-text">2. 因本协议或本产品产生的争议，双方应首先友好协商解决；协商不成的，任何一方可向我们运营主体所在地有管辖权的人民法院提起诉讼。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">十三、联系我们</text>
+      <text class="section-text">运营主体：{{companyName}}</text>
+      <text class="section-text">联系邮箱：{{contactEmail}}</text>
+      <text class="section-text">客服微信：{{serviceWechat}}</text>
+      <text class="section-text">我们将在收到您的反馈后 3 个工作日内回复。</text>
     </view>
   </view>
 
   <view wx:if="{{type === 'privacyPolicy'}}">
     <view class="section">
-      <text class="section-title">一、信息收集</text>
-      <text class="section-text">我们仅收集提供服务所必需的信息，包括账号信息、设备绑定状态、服务开通状态和必要的使用状态。文本内容仅在用户主动使用相关功能时处理。</text>
+      <text class="section-title">一、信息收集说明</text>
+      <text class="section-text">本产品仅收集与提供服务直接相关的必要信息：</text>
+      <text class="section-text">1. 微信登录信息：包括 openid、_unionid（如有），用于身份识别；</text>
+      <text class="section-text">2. 设备信息：设备序列号、绑定状态、连接状态，用于设备配对与权限校验；</text>
+      <text class="section-text">3. 服务状态：会员开通状态、激活码使用记录、功能使用次数；</text>
+      <text class="section-text">4. 操作日志：操作类型、操作时间、设备型号、错误码，用于排查问题；</text>
+      <text class="section-text">5. 用户主动输入的文本、图片、语音：仅在用户主动使用对应功能时处理，处理完成后按本政策约定保留或删除。</text>
+      <text class="section-text">本产品不会主动读取或上传用户的通讯录、相册中未选中的图片、位置信息等与本产品服务无关的信息。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">二、文本内容处理</text>
-      <text class="section-text">设备传输功能通过本地连接完成。若用户选择保存历史记录，文本内容应以受保护方式保存，并仅用于用户查看、继续编辑或再次发送。</text>
+      <text class="section-title">二、信息使用</text>
+      <text class="section-text">收集的信息仅用于：</text>
+      <text class="section-text">1. 提供文本整理、模板生成、图片识别、语音转写、设备传输等服务；</text>
+      <text class="section-text">2. 维护账号与设备安全，识别异常使用行为；</text>
+      <text class="section-text">3. 改进产品功能、优化用户体验；</text>
+      <text class="section-text">4. 响应客户服务请求和处理投诉；</text>
+      <text class="section-text">5. 满足法律法规和主管部门的合规要求。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">三、第三方 AI 脱敏说明</text>
-      <text class="section-text">如使用智能套装能力，文本在提交服务前会进行必要的脱敏处理。用户仍应在提交前检查是否包含不应发送的信息。</text>
+      <text class="section-title">三、信息的存储与保留</text>
+      <text class="section-text">1. 信息存储于中华人民共和国境内的服务器（法律法规另有规定除外）。</text>
+      <text class="section-text">2. 文本历史、短语、片段等本地化功能的数据存储在用户设备本地，不会上传到服务器。用户卸载小程序或清除存储后，相应数据将被清除。</text>
+      <text class="section-text">3. 服务端保留期限：</text>
+      <text class="section-text">- 账号识别信息（openid）：账号注销后 15 日内删除或脱敏；</text>
+      <text class="section-text">- 操作日志：保留 90 日，到期自动清除；</text>
+      <text class="section-text">- AI 请求内容：仅做实时处理，不持久化保存完整正文；</text>
+      <text class="section-text">- 会员与激活记录：按业务需要保留至账号注销。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">四、数据安全</text>
-      <text class="section-text">我们会采用合理的技术和管理措施保护账号、设备和文本处理数据。日志记录仅保留操作类型、时间和必要状态，不应记录完整正文。</text>
+      <text class="section-title">四、文本内容处理</text>
+      <text class="section-text">1. 设备传输功能通过本地蓝牙连接完成，传输的文本不会经过我们的服务器中转。</text>
+      <text class="section-text">2. 若用户主动使用 AI 智能整理、图片识别、语音转写功能，相关文本、图片或语音将上传至第三方 AI 服务（详见第八条）进行实时处理。</text>
+      <text class="section-text">3. 用户主动选择保存的本地历史记录、短语、片段仅保存在用户设备本地，不会上传。</text>
+      <text class="section-text">4. AI 请求前会进行必要的脱敏处理（如自动遮蔽身份证号、手机号等），但建议用户在提交前再次检查是否包含不应发送的信息。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">五、信息共享</text>
-      <text class="section-text">未经用户同意，我们不会将个人信息共享给无关第三方；法律法规另有规定或用户主动选择第三方能力的情况除外。</text>
+      <text class="section-title">五、信息共享与转让</text>
+      <text class="section-text">1. 未经用户单独同意，我们不会将用户的个人信息共享、转让或公开披露给无关第三方。</text>
+      <text class="section-text">2. 以下情形除外：法律法规要求、主管部门指令、为完成用户主动选择的功能而必需（详见第八条第三方清单）、用户主动同意的其他情形。</text>
+      <text class="section-text">3. 我们不会将用户个人信息出售给任何第三方。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">六、用户权利</text>
-      <text class="section-text">用户可按产品提供的入口查看、修改或删除相关信息。具体能力将随服务接入逐步开放。</text>
+      <text class="section-title">六、数据安全</text>
+      <text class="section-text">1. 我们采用合理的技术和管理措施保护用户信息，包括 HTTPS 加密传输、权限分级管控、日志审计等。</text>
+      <text class="section-text">2. 服务端日志不记录完整的 AI 请求正文与响应正文，仅记录请求类型、时间、状态码等必要的运维信息。</text>
+      <text class="section-text">3. 如发生个人信息泄露事件，我们将在法定时限内通过公告或站内信方式通知用户并启动应急处置。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">七、第三方信息处理清单</text>
-      <text class="section-text">为提供文本整理、图片识别、语音转写等能力，本产品接入以下第三方服务：</text>
-      <text class="section-text">1. 阿里云 DashScope：用于 AI 文本整理、图片 OCR、语音识别。处理内容为用户主动提交的待整理文本、图片和录音。</text>
-      <text class="section-text">2. 微信开放平台：用于账号登录身份核验。处理内容为微信 openid。</text>
-      <text class="section-text">3. 蓝牙设备：用于将已确认文本通过蓝牙发送至连接的电脑。仅处理用户主动确认的最终文本。</text>
-      <text class="section-text">所有第三方均按其各自隐私政策处理数据，详情可访问对应官网。</text>
+      <text class="section-title">七、用户权利</text>
+      <text class="section-text">用户对个人信息享有以下权利：</text>
+      <text class="section-text">1. 查询、复制：可通过「我的」相关入口查看账号、设备、会员等数据；</text>
+      <text class="section-text">2. 更正：发现信息有误可联系我们更正；</text>
+      <text class="section-text">3. 删除：本地数据（历史/短语/片段）可自行删除；服务端数据可通过注销账号触发删除；</text>
+      <text class="section-text">4. 撤回授权：可在微信「设置 → 隐私」中关闭相应权限；关闭后对应功能将无法使用；</text>
+      <text class="section-text">5. 注销账号：详见《用户协议》第六条。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">八、权限使用说明</text>
-      <text class="section-text">本产品申请以下权限：蓝牙（连接文本传输设备）、相机/相册（图片识别）、麦克风（语音转写）。各权限仅在用户主动使用对应功能时调用，可随时在小程序设置中关闭。</text>
+      <text class="section-title">八、第三方信息处理清单</text>
+      <text class="section-text">为提供 AI 整理、图片识别、语音转写、账号登录、蓝牙传输等能力，本产品接入以下第三方服务：</text>
+      <text class="section-text">1. 阿里云 DashScope（运营主体：阿里云计算有限公司）</text>
+      <text class="section-text">用途：AI 文本整理、图片 OCR、语音识别；</text>
+      <text class="section-text">处理内容：用户主动提交的待整理文本、图片、录音；</text>
+      <text class="section-text">官网：https://dashscope.aliyun.com</text>
+      <text class="section-text">2. 微信开放平台（运营主体：深圳市腾讯计算机系统有限公司）</text>
+      <text class="section-text">用途：账号登录身份核验；</text>
+      <text class="section-text">处理内容：微信 openid；</text>
+      <text class="section-text">官网：https://open.weixin.qq.com</text>
+      <text class="section-text">3. 微信内容安全检测（运营主体：深圳市腾讯计算机系统有限公司）</text>
+      <text class="section-text">用途：AI 输出内容合规过滤；</text>
+      <text class="section-text">处理内容：AI 生成的文本摘要；</text>
+      <text class="section-text">官网：https://mp.weixin.qq.com</text>
+      <text class="section-text">4. 蓝牙 HID 设备</text>
+      <text class="section-text">用途：将已确认文本通过蓝牙传输至连接的电脑；</text>
+      <text class="section-text">处理方式：仅本地蓝牙通道，不经过服务器中转；</text>
+      <text class="section-text">处理内容：用户主动确认的最终文本。</text>
+      <text class="section-text">上述第三方均按其各自隐私政策处理数据，用户可访问对应官网了解详情。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">九、权限使用说明</text>
+      <text class="section-text">本产品申请以下权限，仅在用户主动使用对应功能时调用：</text>
+      <text class="section-text">1. 蓝牙：用于连接文本传输硬件设备；</text>
+      <text class="section-text">2. 相机/相册：用于图片识别取字功能；</text>
+      <text class="section-text">3. 麦克风：用于语音转写功能；</text>
+      <text class="section-text">4. 剪贴板：用于"粘贴文本"快捷操作；</text>
+      <text class="section-text">5. 设备信息：用于设备绑定与异常排查。</text>
+      <text class="section-text">用户可随时在微信「设置 → 隐私」中关闭上述权限，关闭后对应功能将无法使用，但不影响其他功能。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">十、未成年人保护</text>
+      <text class="section-text">1. 本产品主要面向成年人，不会主动收集未成年人个人信息。</text>
+      <text class="section-text">2. 如未成年人在监护人同意下使用本产品，我们将按本政策约定保护其个人信息。</text>
+      <text class="section-text">3. 监护人发现未成年人在未经同意的情况下使用本产品或产生非预期费用，可联系我们协助处理。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">十一、政策更新</text>
+      <text class="section-text">本隐私政策可能根据业务发展和法律法规要求进行更新。更新后我们将在小程序内以显著方式提示，若用户继续使用即视为同意更新后的政策。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">十二、联系我们</text>
+      <text class="section-text">运营主体：{{companyName}}</text>
+      <text class="section-text">个人信息保护负责人邮箱：{{contactEmail}}</text>
+      <text class="section-text">客服微信：{{serviceWechat}}</text>
+      <text class="section-text">我们将在收到您的请求后 15 个工作日内回复。</text>
     </view>
   </view>
 </view>

@@ -1,0 +1,49 @@
+<view class="page">
+  <t-cell-group theme="card">
+    <t-cell title="账号" wx:if="{{!isEdit}}" required hover>
+      <t-input
+        slot="note"
+        placeholder="登录账号"
+        value="{{account}}"
+        data-field="account"
+        bind:change="onInput"
+      />
+    </t-cell>
+    <t-cell title="账号" wx:else hover>
+      <text slot="note">{{account}}</text>
+    </t-cell>
+    <t-cell title="密码" required="{{!isEdit}}" hover>
+      <t-input
+        slot="note"
+        placeholder="{{isEdit ? '留空表示不修改' : '设置密码'}}"
+        value="{{password}}"
+        data-field="password"
+        bind:change="onInput"
+        password
+      />
+    </t-cell>
+  </t-cell-group>
+
+  <view class="section-label">角色与状态</view>
+  <t-cell-group theme="card">
+    <t-cell title="角色" hover>
+      <t-radio-group slot="note" value="{{role}}" bind:change="onRoleChange">
+        <t-radio value="super_admin" label="超级管理员" />
+        <t-radio value="customer_service_admin" label="客服管理员" />
+        <t-radio value="content_admin" label="内容管理员" />
+      </t-radio-group>
+    </t-cell>
+    <t-cell title="状态" hover>
+      <t-radio-group slot="note" value="{{status}}" bind:change="onStatusChange">
+        <t-radio value="active" label="启用" />
+        <t-radio value="disabled" label="停用" />
+      </t-radio-group>
+    </t-cell>
+  </t-cell-group>
+
+  <view class="footer">
+    <t-button theme="primary" block loading="{{saving}}" disabled="{{!canSave}}" bind:tap="save">
+      保存
+    </t-button>
+  </view>
+</view>

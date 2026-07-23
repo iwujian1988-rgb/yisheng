@@ -1,8 +1,0 @@
-/* pages/admin/role-list.wxss */
-.role-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
-.empty-section { display: flex; justify-content: center; padding-top: 120px; }
-.empty-text { font-size: 14px; color: #999999; }
-.role-list { display: flex; flex-direction: column; gap: 10px; }
-.role-card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; }
-.role-name { font-size: 16px; font-weight: 500; color: #333333; display: block; margin-bottom: 4px; }
-.role-desc { font-size: 13px; color: #999999; }
