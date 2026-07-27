@@ -454,13 +454,18 @@ void setup() {
 
   Serial.begin(115200);
 
+  delay(500);  // 等 USB CDC 在 Windows 端枚举完成，避免首条打印被吞
+
   Keyboard.begin();
 
-  USB.begin();
+  // 不调用 USB.begin() —— USB CDC On Boot=Enabled 时 Arduino 框架已自动调用，
+  // 用户代码再调一次会把已经启动的 TinyUSB CDC 弄死，端口消失
 
 
 
-  BLEDevice::init("舒克无线智能外设");
+  // BLE 设备名必须等于后端 store.json 里 devices[].serialNo 才能自动登记
+  // DEV-SERIAL-001 是 store.json 已预置的设备序列号
+  BLEDevice::init("DEV-SERIAL-001");
 
   pServer = BLEDevice::createServer();
 

@@ -158,9 +158,9 @@ function verifyChallengeAndIssue(store, userId, body) {
   if (!device) {
     return { ok: false, code: 'DEVICE_NOT_BOUND', message: 'device is not bound to current user' };
   }
-  if (!isMemberActive(store, userId)) {
-    return { ok: false, code: 'MEMBER_REQUIRED', message: 'professional features require active membership' };
-  }
+  // 注意：蓝牙连接 + 文本传输按 PRD_PERMISSION_AND_PRO_MODE_ADDENDUM 不应受会员 gate。
+  // 会员检查在 AI 接口（agent-api / smart-creation / template generation）各自入口完成，
+  // 不在蓝牙会话建立时做，避免微信审核判定"基础功能强制付费"。
   var proof = body.response || body.proof || body.hardwareCode || body.proofCode || '';
   if (!verifyDeviceProof(device, proof)) {
     return { ok: false, code: 'DEVICE_SESSION_PROOF_INVALID', message: 'device proof invalid' };
@@ -195,9 +195,7 @@ function resolveDeviceSession(store, req, userId, capability) {
   if (!device) {
     return { ok: false, code: 'DEVICE_NOT_BOUND', message: 'device is not bound to current user' };
   }
-  if (!isMemberActive(store, userId)) {
-    return { ok: false, code: 'MEMBER_REQUIRED', message: 'professional features require active membership' };
-  }
+  // 会员 gate 已下沉到 AI 接口入口；此处仅做 capability 校验，避免蓝牙/文本传输被会员检查拦截。
   if (capability && session.capabilities.indexOf(capability) === -1) {
     return { ok: false, code: 'DEVICE_CAPABILITY_REQUIRED', message: 'device session capability required' };
   }

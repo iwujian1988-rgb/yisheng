@@ -79,7 +79,7 @@ module.exports = Behavior({
         for (let i = 0; i < devices.length; i++) {
           const device = devices[i];
           const name = device.name || device.localName || '';
-          if (name.includes('BLE') || name.includes('VUC') || name.includes('HID') || name.includes('舒克')) {
+          if (name.includes('BLE') || name.includes('VUC') || name.includes('HID') || name.includes('舒克') || name.includes('DEV') || name.includes('YS-')) {
             this.stopSearch();
             this.connectDevice(device.deviceId);
             return;

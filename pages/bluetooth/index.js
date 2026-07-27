@@ -1,7 +1,7 @@
 var binding = require('../../services/device/binding');
 var bleProtocol = require('../../utils/ble/protocol');
 
-var DEVICE_NAME_KEYWORDS = ['BLE', 'VUC', 'HID', '舒克'];
+var DEVICE_NAME_KEYWORDS = ['BLE', 'VUC', 'HID', '舒克', 'DEV', 'YS-'];
 var SCAN_TIMEOUT = 10000;
 
 Page({
