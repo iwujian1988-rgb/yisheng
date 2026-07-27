@@ -24,7 +24,7 @@
 
 // ==========================================
 
-const String FIRMWARE_VERSION = "V3.0.6-VMode";
+const String FIRMWARE_VERSION = "V3.0.8-RestoreUSB";
 
 
 
@@ -454,17 +454,20 @@ void setup() {
 
   Serial.begin(115200);
 
-  delay(500);  // 等 USB CDC 在 Windows 端枚举完成，避免首条打印被吞
-
   Keyboard.begin();
 
-  // 不调用 USB.begin() —— USB CDC On Boot=Enabled 时 Arduino 框架已自动调用，
-  // 用户代码再调一次会把已经启动的 TinyUSB CDC 弄死，端口消失
+  // 必须调 USB.begin()：TinyUSB descriptor 在这里生成，
+  // Keyboard.begin() 已注册 HID interface，USB.begin() 才会把它加入 descriptor，
+  // Windows 才会把板子识别为 HID 键盘。
+  // 之前 4ded543 误删了这行，导致 BLE 通了但 HID 输出不到电脑。
+
+  USB.begin();
+
+  delay(500);  // 等 Windows 端枚举完成，避免首条打印被吞
 
 
 
-  // BLE 设备名必须等于后端 store.json 里 devices[].serialNo 才能自动登记
-  // DEV-SERIAL-001 是 store.json 已预置的设备序列号
+  // BLE 设备名必须等于后端 devices 表里的 serialNo 才能自动登记
   BLEDevice::init("DEV-SERIAL-001");
 
   pServer = BLEDevice::createServer();
