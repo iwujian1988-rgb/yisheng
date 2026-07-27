@@ -1,7 +1,7 @@
 <view class="page-home">
   <view class="connect-guide section-block" wx:if="{{!connected}}">
     <view class="connect-guide__head">
-      <t-icon name="bluetooth" size="40rpx" color="#1677FF" />
+      <t-icon name="bluetooth" size="40rpx" color="#7B61FF" />
       <text class="connect-guide__title">尚未连接电脑端设备</text>
     </view>
     <text class="connect-guide__desc">连接蓝牙设备后，内容将自动输入到电脑</text>
@@ -20,11 +20,11 @@
       t-class-left="device-status-left"
     >
       <view slot="left-icon" class="status-dot-wrap">
-        <view class="status-dot connected"></view>
+        <view class="status-dot {{connected ? 'connected' : ''}}"></view>
       </view>
       <view slot="note">
-        <t-tag wx:if="{{connected}}" theme="success" variant="light" size="small">已连接</t-tag>
-        <t-tag wx:else theme="default" variant="light" size="small">未连接</t-tag>
+        <view class="status-tag status-tag--connected" wx:if="{{connected}}">已连接</view>
+        <view class="status-tag status-tag--disconnected" wx:else>未连接</view>
       </view>
     </t-cell>
   </t-cell-group>
@@ -32,7 +32,7 @@
   <view class="composer-card section-block">
     <view class="composer-head">
       <text class="composer-title">发送内容</text>
-      <text class="char-count">{{inputText.length}}/5000</text>
+      <text class="char-count"><text class="char-count-current">{{inputText.length}}</text>/5000</text>
     </view>
     <t-textarea
       placeholder="输入或粘贴要发送到电脑的内容"
@@ -105,7 +105,7 @@
     </view>
   </view>
 
-  <view class="section-label">AI 助手{{isMember ? ' · 已开通' : ' · 升级解锁'}}</view>
+  <view class="section-label">AI 助手 <text class="section-label-suffix {{isMember ? 'section-label-suffix--active' : ''}}">· {{isMember ? '已开通' : '升级解锁'}}</text></view>
   <view wx:if="{{isMember}}" class="ai-grid section-block">
     <view class="ai-item" bindtap="goAiText">
       <view class="ai-icon icon-text">✨</view>
@@ -147,7 +147,7 @@
   </view>
 
   <view class="banner section-block" wx:if="{{banner}}" bindtap="openBanner">
-    <t-icon name="info-circle" size="36rpx" color="#1677FF" t-class="banner-icon" />
+    <t-icon name="info-circle" size="36rpx" color="#7B61FF" t-class="banner-icon" />
     <view class="banner-copy">
       <text class="banner-title">{{banner.title}}</text>
       <text class="banner-subtitle">{{banner.subtitle}}</text>

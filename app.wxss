@@ -19,4 +19,14 @@ page {
   --border-color: #E5E5E5;
   --bg-gray: #F5F7FA;
   --bg-white: #FFFFFF;
+
+  /* 紫色单色系 token — 试点 home 页面使用，不动旧 token */
+  --brand-900: #3D2A8C;
+  --brand-700: #5A3FCC;
+  --brand-500: #7B61FF;
+  --brand-300: #9D87FF;
+  --brand-100: #E8E1FF;
+  --brand-50: #F5F2FF;
+  --accent-gold: #FFB400;
+  --danger-strong: #FF5252;
 }

@@ -4,18 +4,28 @@
   padding-bottom: calc(var(--td-spacer-3, 48rpx) + var(--app-tab-bar-height, 100rpx));
   background-color: var(--td-bg-color-page, #f3f3f3);
   box-sizing: border-box;
+
+  /* 试点：在 home 作用域内把 TDesign 主色 token 切到紫色单色系 */
+  --td-brand-color: #7B61FF;
+  --td-brand-color-active: #5A3FCC;
+  --td-brand-color-light: #E8E1FF;
+  --td-brand-color-focus: #F5F2FF;
+  --td-brand-color-disabled: #C9BFFF;
+  --td-success-color: #7B61FF;
 }
 
 .section-block {
   margin-bottom: var(--td-spacer-2, 32rpx);
 }
 
+/* === 连接引导卡：紫色描边 + 浅紫底 + 紫色标题 === */
 .connect-guide {
   margin-left: var(--td-spacer-2, 32rpx);
   margin-right: var(--td-spacer-2, 32rpx);
   padding: var(--td-spacer-2, 32rpx);
-  border-radius: var(--td-radius-large, 18rpx);
-  background-color: var(--td-brand-color-light, #e6f4ff);
+  border-radius: 24rpx;
+  background-color: var(--brand-100);
+  border: 2rpx solid var(--brand-300);
   box-sizing: border-box;
 }
 
@@ -23,25 +33,29 @@
   display: flex;
   align-items: center;
   gap: var(--td-spacer, 16rpx);
-  margin-bottom: var(--td-spacer, 16rpx);
+  margin-bottom: 12rpx;
 }
 
 .connect-guide__title {
-  font: var(--td-font-title-small, 600 28rpx / 44rpx PingFang SC, Microsoft YaHei, Arial Regular);
-  color: var(--td-text-color-primary, rgba(0, 0, 0, 0.9));
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--brand-700);
+  letter-spacing: -0.5rpx;
 }
 
 .connect-guide__desc {
   display: block;
   margin-bottom: var(--td-spacer-2, 32rpx);
-  font: var(--td-font-body-medium, 28rpx / 44rpx PingFang SC, Microsoft YaHei, Arial Regular);
-  color: var(--td-text-color-secondary, rgba(0, 0, 0, 0.6));
+  font-size: 26rpx;
+  color: var(--brand-500);
+  opacity: 0.85;
 }
 
 .connect-guide__btn {
   margin-top: 0;
 }
 
+/* === 状态指示 === */
 .status-dot-wrap {
   display: flex;
   align-items: center;
@@ -58,25 +72,55 @@
 
 .device-status-group {
   margin-bottom: var(--td-spacer-2, 32rpx) !important;
+  overflow: hidden;
+  border-radius: 24rpx;
 }
 
+/* 状态 dot — 单色系：已连接用主紫，未连接用中性灰 */
 .status-dot {
-  width: var(--td-spacer, 16rpx);
-  height: var(--td-spacer, 16rpx);
-  border-radius: var(--td-radius-circle, 50%);
-  background-color: var(--td-gray-color-5, #c5c5c5);
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background-color: #d9d9d9;
   flex-shrink: 0;
+  position: relative;
 }
 
 .status-dot.connected {
-  background-color: var(--td-success-color, #2ba471);
+  background-color: var(--brand-500);
+  box-shadow: 0 0 0 6rpx rgba(123, 97, 255, 0.18);
 }
 
+/* 自定义紫色状态标签（替代 TDesign 默认绿色 success tag） */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 36rpx;
+  padding: 0 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  letter-spacing: 0.5rpx;
+}
+
+.status-tag--connected {
+  background-color: var(--brand-100);
+  color: var(--brand-700);
+  border: 2rpx solid var(--brand-300);
+}
+
+.status-tag--disconnected {
+  background-color: #f5f5f5;
+  color: #999;
+  border: 2rpx solid #e5e5e5;
+}
+
+/* === 发送内容卡 === */
 .composer-card {
   margin-left: var(--td-spacer-2, 32rpx);
   margin-right: var(--td-spacer-2, 32rpx);
   margin-top: 0;
-  border-radius: var(--td-radius-large, 18rpx);
+  border-radius: 24rpx;
   background-color: var(--td-bg-color-container, #ffffff);
   padding: var(--td-spacer-2, 32rpx);
   box-sizing: border-box;
@@ -85,18 +129,30 @@
 .composer-head {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   margin-bottom: var(--td-spacer, 16rpx);
 }
 
 .composer-title {
-  font: var(--td-font-title-small, 600 28rpx / 44rpx PingFang SC, Microsoft YaHei, Arial Regular);
+  font-size: 30rpx;
+  font-weight: 700;
   color: var(--td-text-color-primary, rgba(0, 0, 0, 0.9));
+  letter-spacing: -0.5rpx;
 }
 
+/* 字数 — 数字 ×1.5 标签字号，加粗着色 */
 .char-count {
-  font: var(--td-font-body-small, 24rpx / 40rpx PingFang SC, Microsoft YaHei, Arial Regular);
-  color: var(--td-text-color-placeholder, rgba(0, 0, 0, 0.4));
+  font-size: 24rpx;
+  color: var(--text-placeholder, #999);
+  font-variant-numeric: tabular-nums;
+}
+
+.char-count-current {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--brand-500);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1rpx;
 }
 
 .composer-textarea {
@@ -121,23 +177,27 @@
   gap: var(--td-spacer, 16rpx);
 }
 
+/* 速度提示：浅紫底 + 紫色链接 */
 .speed-mode-hint {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16rpx 20rpx;
-  border-radius: var(--td-radius-default, 12rpx);
-  background-color: var(--td-bg-color-secondarycontainer, #f3f3f3);
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background-color: var(--brand-50);
+  border: 2rpx solid var(--brand-100);
 }
 
 .speed-mode-hint__text {
-  font: var(--td-font-body-small, 24rpx / 40rpx PingFang SC, Microsoft YaHei, Arial Regular);
-  color: var(--td-text-color-secondary, rgba(0, 0, 0, 0.6));
+  font-size: 24rpx;
+  color: var(--brand-700);
+  opacity: 0.75;
 }
 
 .speed-mode-hint__link {
-  font: var(--td-font-body-small, 24rpx / 40rpx PingFang SC, Microsoft YaHei, Arial Regular);
-  color: var(--td-brand-color, #0052d9);
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--brand-500);
 }
 
 .cancel-send-btn {
@@ -149,23 +209,190 @@
   flex: 1;
 }
 
+/* === 区块标题 === */
 .section-label {
-  margin: 0 var(--td-spacer-2, 32rpx) var(--td-spacer, 16rpx);
-  font: var(--td-font-body-medium, 28rpx / 44rpx PingFang SC, Microsoft YaHei, Arial Regular);
-  color: var(--td-text-color-placeholder, rgba(0, 0, 0, 0.4));
+  margin: 0 var(--td-spacer-2, 32rpx) 16rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--text-placeholder, #999);
+  letter-spacing: 1rpx;
 }
 
+.section-label-suffix {
+  margin-left: 8rpx;
+  font-weight: 400;
+}
+
+.section-label-suffix--active {
+  color: var(--brand-500);
+}
+
+/* === 工具网格：4 个图标统一紫色 tint，靠明度做层次 === */
 .tool-group {
   margin-bottom: var(--td-spacer, 16rpx);
 }
 
+.tool-grid {
+  margin-left: var(--td-spacer-2, 32rpx);
+  margin-right: var(--td-spacer-2, 32rpx);
+  background-color: var(--td-bg-color-container, #ffffff);
+  border-radius: 24rpx;
+  padding: var(--td-spacer-2, 32rpx) var(--td-spacer, 16rpx);
+  display: flex;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+}
+
+.tool-item {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--td-spacer, 16rpx) 0;
+  box-sizing: border-box;
+}
+
+.tool-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  margin-bottom: 12rpx;
+}
+
+/* 4 档紫色 tint 做层次区分（不再用蓝橙紫青拼盘） */
+.icon-history { background: var(--brand-100); }
+.icon-phrases { background: var(--brand-500); color: #fff; }
+.icon-snippets { background: var(--brand-50); }
+.icon-device { background: var(--brand-300); color: #fff; }
+
+.tool-title {
+  font-size: 24rpx;
+  color: var(--td-text-color-primary, rgba(0, 0, 0, 0.9));
+}
+
+/* === AI 助手网格 === */
+.ai-grid {
+  margin-left: var(--td-spacer-2, 32rpx);
+  margin-right: var(--td-spacer-2, 32rpx);
+  background-color: var(--td-bg-color-container, #ffffff);
+  border-radius: 24rpx;
+  padding: var(--td-spacer, 16rpx) var(--td-spacer-2, 32rpx);
+  box-sizing: border-box;
+}
+
+.ai-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid var(--brand-50);
+}
+
+.ai-item:last-child {
+  border-bottom: none;
+}
+
+.ai-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.icon-text { background: var(--brand-100); }
+.icon-template { background: var(--brand-300); color: #fff; }
+.icon-ocr { background: var(--brand-50); }
+.icon-asr { background: var(--brand-500); color: #fff; }
+
+.ai-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.ai-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--td-text-color-primary, rgba(0, 0, 0, 0.9));
+}
+
+.ai-desc {
+  font-size: 22rpx;
+  color: var(--td-text-color-secondary, rgba(0, 0, 0, 0.6));
+}
+
+/* === 升级卡：浅紫底 + 紫描边 + 金色 PRO 角标 === */
+.ai-upgrade-card {
+  position: relative;
+  margin-left: var(--td-spacer-2, 32rpx);
+  margin-right: var(--td-spacer-2, 32rpx);
+  background: var(--brand-100);
+  border: 2rpx solid var(--brand-300);
+  border-radius: 24rpx;
+  padding: var(--td-spacer-2, 32rpx);
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.ai-upgrade-card::before {
+  content: 'PRO';
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--accent-gold);
+  color: #4a3000;
+  font-size: 20rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  padding: 6rpx 16rpx 6rpx 20rpx;
+  border-bottom-left-radius: 16rpx;
+  border-top-right-radius: 22rpx;
+}
+
+.upgrade-icon {
+  font-size: 56rpx;
+  margin-right: 24rpx;
+}
+
+.upgrade-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.upgrade-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--brand-700);
+  letter-spacing: -0.5rpx;
+}
+
+.upgrade-desc {
+  font-size: 24rpx;
+  color: var(--brand-500);
+  opacity: 0.8;
+}
+
+/* === Banner === */
 .banner {
   margin-left: var(--td-spacer-2, 32rpx);
   margin-right: var(--td-spacer-2, 32rpx);
-  border-radius: var(--td-radius-large, 18rpx);
+  border-radius: 24rpx;
   padding: var(--td-spacer-2, 32rpx);
-  background-color: var(--td-bg-color-container, #ffffff);
-  border: 1rpx solid var(--td-component-stroke, #e7e7e7);
+  background-color: var(--brand-50);
+  border: 2rpx solid var(--brand-100);
   display: flex;
   align-items: center;
   gap: var(--td-spacer, 16rpx);
@@ -185,141 +412,13 @@
 }
 
 .banner-title {
-  font: var(--td-font-body-medium, 28rpx / 44rpx PingFang SC, Microsoft YaHei, Arial Regular);
-  color: var(--td-text-color-primary, rgba(0, 0, 0, 0.9));
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--brand-700);
 }
 
 .banner-subtitle {
-  font: var(--td-font-body-small, 24rpx / 40rpx PingFang SC, Microsoft YaHei, Arial Regular);
-  color: var(--td-text-color-secondary, rgba(0, 0, 0, 0.6));
-}
-
-.tool-grid {
-  margin-left: var(--td-spacer-2, 32rpx);
-  margin-right: var(--td-spacer-2, 32rpx);
-  background-color: var(--td-bg-color-container, #ffffff);
-  border-radius: var(--td-radius-large, 18rpx);
-  padding: var(--td-spacer-2, 32rpx) var(--td-spacer, 16rpx);
-  display: flex;
-  flex-wrap: wrap;
-  box-sizing: border-box;
-}
-
-.tool-item {
-  width: 25%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: var(--td-spacer, 16rpx) 0;
-  box-sizing: border-box;
-}
-
-.tool-icon {
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 44rpx;
-  margin-bottom: 12rpx;
-}
-
-.icon-history { background: #e6f4ff; }
-.icon-phrases { background: #fff7e6; }
-.icon-snippets { background: #f9f0ff; }
-.icon-device { background: #e6fffb; }
-
-.tool-title {
   font-size: 24rpx;
-  color: var(--td-text-color-primary, rgba(0, 0, 0, 0.9));
-}
-
-.ai-grid {
-  margin-left: var(--td-spacer-2, 32rpx);
-  margin-right: var(--td-spacer-2, 32rpx);
-  background-color: var(--td-bg-color-container, #ffffff);
-  border-radius: var(--td-radius-large, 18rpx);
-  padding: var(--td-spacer, 16rpx) var(--td-spacer-2, 32rpx);
-  box-sizing: border-box;
-}
-
-.ai-item {
-  display: flex;
-  align-items: center;
-  padding: var(--td-spacer-2, 24rpx) 0;
-  border-bottom: 1rpx solid #f0f0f0;
-}
-
-.ai-item:last-child {
-  border-bottom: none;
-}
-
-.ai-icon {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: var(--td-radius-default, 12rpx);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36rpx;
-  margin-right: var(--td-spacer-2, 24rpx);
-  background: #e6f4ff;
-  flex-shrink: 0;
-}
-
-.icon-text { background: #e6f4ff; }
-.icon-template { background: #f9f0ff; }
-.icon-ocr { background: #fff7e6; }
-.icon-asr { background: #e6fffb; }
-
-.ai-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.ai-title {
-  font-size: 28rpx;
-  color: var(--td-text-color-primary, rgba(0, 0, 0, 0.9));
-}
-
-.ai-desc {
-  font-size: 22rpx;
-  color: var(--td-text-color-secondary, rgba(0, 0, 0, 0.6));
-}
-
-.ai-upgrade-card {
-  margin-left: var(--td-spacer-2, 32rpx);
-  margin-right: var(--td-spacer-2, 32rpx);
-  background: linear-gradient(135deg, #f0f5ff 0%, #e6f4ff 100%);
-  border-radius: var(--td-radius-large, 18rpx);
-  padding: var(--td-spacer-2, 32rpx);
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-.upgrade-icon {
-  font-size: 56rpx;
-  margin-right: var(--td-spacer-2, 24rpx);
-}
-
-.upgrade-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.upgrade-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #1677ff;
-}
-
-.upgrade-desc {
-  font-size: 24rpx;
-  color: #666;
+  color: var(--brand-500);
+  opacity: 0.8;
 }
