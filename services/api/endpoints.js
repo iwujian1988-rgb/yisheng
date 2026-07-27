@@ -4,7 +4,8 @@ const ENDPOINTS = {
     wechatLogin: '/api/auth/wechat-login',
     registerCode: '/api/auth/register-code',
     register: '/api/auth/register',
-    me: '/api/auth/me'
+    me: '/api/auth/me',
+    cancelAccount: '/api/auth/cancel-account'
   },
   admin: {
     paidUsers: '/api/admin/paid-users',

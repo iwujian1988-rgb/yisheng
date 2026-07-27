@@ -81,6 +81,7 @@ router.post('/api/auth/register-code', auth.requestRegisterCode);
 router.post('/api/auth/register', auth.phoneCodeLogin);
 router.post('/api/auth/wechat-login', auth.wechatLogin);
 router.get('/api/auth/me', auth.me);
+router.post('/api/auth/cancel-account', auth.cancelAccount);
 
 router.get('/api/admin/paid-users', admin.listPaidUsers);
 router.post('/api/admin/paid-users', admin.createPaidUser);

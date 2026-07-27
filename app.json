@@ -52,6 +52,7 @@
     "pages/transfer/long-text-check",
     "pages/settings/speed-calibration",
     "pages/settings/computer-env",
+    "pages/settings/account",
     "pages/device/firmware",
     "pages/device/unbind-confirm",
     "pages/ai/review-result",

@@ -30,6 +30,8 @@ const SERVICE_MENU = [
 
     items: [
 
+      { id: 'account', title: '账号与隐私', desc: '账号信息与注销', icon: 'user', action: 'account' },
+
       { id: 'agreement', title: '用户协议与隐私',  icon: 'secured', action: 'agreement' },
 
       { id: 'service', title: '联系客服', icon: 'service', action: 'customerService' }
@@ -332,7 +334,9 @@ Page({
 
       tutorials: '/pages/tutorials/index',
 
-      agreement: '/pages/common/agreement'
+      agreement: '/pages/common/agreement',
+
+      account: '/pages/settings/account'
 
     };
 

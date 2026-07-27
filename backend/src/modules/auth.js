@@ -256,6 +256,10 @@ function createAuthModule(deps) {
       fail(res, 404, 'WECHAT_NOT_BOUND', '微信未绑定账号，请用手机号验证码登录');
       return;
     }
+    if (user.status === 'cancelled') {
+      fail(res, 410, 'ACCOUNT_CANCELLED', '账号已注销，如需恢复请联系客服');
+      return;
+    }
     if (body.userInfo && body.userInfo.nickName && !user.nickname) {
       user.nickname = body.userInfo.nickName;
     }
@@ -309,6 +313,10 @@ function createAuthModule(deps) {
       }
     }
 
+    if (user.status === 'cancelled') {
+      fail(res, 410, 'ACCOUNT_CANCELLED', '账号已注销，如需恢复请联系客服');
+      return;
+    }
     user.lastLogin = now;
     user.updatedAt = now;
     ok(res, issueUserSession(user));
@@ -326,6 +334,10 @@ function createAuthModule(deps) {
     var user = store.users.find((item) => item.phone === account);
     if (!user || !user.passwordHash || !verifyPassword(password, user.passwordHash)) {
       fail(res, 401, 'INVALID_CREDENTIALS', '账号或密码错误');
+      return;
+    }
+    if (user.status === 'cancelled') {
+      fail(res, 410, 'ACCOUNT_CANCELLED', '账号已注销，如需恢复请联系客服');
       return;
     }
     user.lastLogin = nowIso();
@@ -362,6 +374,10 @@ function createAuthModule(deps) {
       }
     }
 
+    if (user.status === 'cancelled') {
+      fail(res, 410, 'ACCOUNT_CANCELLED', '账号已注销，如需恢复请联系客服');
+      return;
+    }
     user.lastLogin = now;
     user.updatedAt = now;
     ok(res, issueUserSession(user));
@@ -385,8 +401,56 @@ function createAuthModule(deps) {
     ok(res, buildUserSession(user, ''));
   }
 
+  async function cancelAccount(req, res) {
+    var actor = requireUser(req, res);
+    if (!actor) return;
+
+    var user = store.users.find((item) => item.id === actor.id);
+    if (!user) {
+      fail(res, 404, 'USER_NOT_FOUND', '账号不存在');
+      return;
+    }
+    if (user.status === 'cancelled') {
+      fail(res, 409, 'ACCOUNT_ALREADY_CANCELLED', '账号已注销');
+      return;
+    }
+
+    var beforeJson = JSON.stringify({
+      phone: maskPhone(user.phone),
+      openid: user.openid ? user.openid.slice(0, 8) + '***' : '',
+      status: user.status,
+      memberStatus: user.memberStatus
+    });
+
+    var now = nowIso();
+    user.status = 'cancelled';
+    user.disabledAt = now;
+    user.disabledReason = 'user_cancelled';
+    user.updatedAt = now;
+
+    if (user.openid) {
+      wechatSessionStore.removeByOpenid(store, user.openid);
+    }
+
+    sessions.revokeByUserId(user.id);
+
+    writeAudit(store, {
+      actor: { id: user.id, account: user.phone || user.openid || user.id },
+      ip: getIp(req),
+      module: 'user_account',
+      actionType: 'cancel',
+      targetId: user.id,
+      beforeJson: beforeJson,
+      afterJson: JSON.stringify({ status: 'cancelled', disabledAt: now }),
+      detail: '用户主动注销账号'
+    });
+
+    ok(res, { cancelled: true, cancelledAt: now });
+  }
+
   return {
     adminLogin,
+    cancelAccount,
     login,
     me,
     phoneCodeLogin,

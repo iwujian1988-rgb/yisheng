@@ -22,9 +22,19 @@ function createSessionManager(ttlSeconds) {
     return session.subject;
   }
 
+  function revokeByUserId(userId) {
+    if (!userId) return;
+    sessions.forEach(function (session, key) {
+      if (session.subject && session.subject.id === userId) {
+        sessions.delete(key);
+      }
+    });
+  }
+
   return {
     issueSession,
-    resolveSession
+    resolveSession,
+    revokeByUserId
   };
 }
 
