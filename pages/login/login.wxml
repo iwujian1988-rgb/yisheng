@@ -5,24 +5,25 @@
   </view>
 
   <view class="form-section">
-    <t-input
+    <input
+      class="native-input"
       type="number"
       placeholder="请输入手机号"
+      placeholder-class="native-input-placeholder"
       value="{{phone}}"
-      bind:change="onPhoneInput"
+      bindinput="onPhoneInput"
       maxlength="11"
-      t-class="login-input login-input--small"
     />
 
     <view class="code-row">
-      <t-input
-        class="code-input"
+      <input
+        class="native-input native-input--code"
         type="number"
         placeholder="请输入 6 位验证码"
+        placeholder-class="native-input-placeholder"
         value="{{code}}"
-        bind:change="onCodeInput"
+        bindinput="onCodeInput"
         maxlength="6"
-        t-class="login-input login-input--row"
       />
       <t-button
         variant="outline"

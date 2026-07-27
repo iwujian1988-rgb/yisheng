@@ -1,6 +1,5 @@
 {
   "usingComponents": {
-    "t-input": "tdesign-miniprogram/input/input",
     "t-button": "tdesign-miniprogram/button/button",
     "t-checkbox": "tdesign-miniprogram/checkbox/checkbox",
     "t-divider": "tdesign-miniprogram/divider/divider"

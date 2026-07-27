@@ -24,6 +24,7 @@ Page({
     if (session.token) {
       wx.reLaunch({ url: '/pages/home/home' });
     }
+    this.checkCanLogin();
   },
 
   onAccountInput(e) {
