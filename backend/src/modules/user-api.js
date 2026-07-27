@@ -374,10 +374,9 @@ function createUserApiModule(deps) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
     var body = await parseBody(req);
-    if (!isMemberActive(actor.id)) {
-      fail(res, 403, 'MEMBER_REQUIRED', 'professional features require active membership');
-      return;
-    }
+    // 注意：蓝牙会话建立按 PRD_PERMISSION_AND_PRO_MODE_ADDENDUM 不应受会员 gate。
+    // 会员检查在 AI 接口（agent-api / smart-creation / template generation）各自入口完成，
+    // 避免微信审核判定"基础功能强制付费"。
     var device = deviceSession.findBoundDevice(store, actor.id, body);
     if (!device) {
       fail(res, 403, 'DEVICE_NOT_BOUND', 'device is not bound to current user');
