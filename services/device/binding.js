@@ -148,7 +148,7 @@ function autoBind(bleDeviceName, bleDeviceId) {
     if (bleDeviceId) {
       bleLink.rememberBleDevice(bleDeviceId, bleDeviceName);
     }
-    return bindAndOpenSession(nextDevice, bleDeviceId, nextDevice.proofCode || '');
+    return bindAndOpenSession(nextDevice, bleDeviceId, nextDevice.proofCode || '0000');
   });
 }
 
