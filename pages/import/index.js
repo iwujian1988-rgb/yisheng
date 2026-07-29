@@ -1,26 +1,6 @@
 const featureEntitlements = require('../../services/entitlements/features');
 
-function isDeviceConnected() {
-  const app = typeof getApp === 'function' ? getApp() : null;
-  const globalData = app && app.globalData ? app.globalData : {};
-  return Boolean(globalData.deviceConnected || globalData.bleLinkReady);
-}
-
 Page({
-  ensureDeviceReady() {
-    if (isDeviceConnected()) return true;
-    wx.showModal({
-      title: '先连接设备',
-      content: '除直接编辑外，其余能力需要连接设备后使用。',
-      confirmText: '去连接',
-      cancelText: '稍后',
-      success(res) {
-        if (res.confirm) wx.switchTab({ url: '/pages/home/home' });
-      }
-    });
-    return false;
-  },
-
   goManualInput() {
     wx.switchTab({ url: '/pages/home/home' });
   },

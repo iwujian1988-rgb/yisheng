@@ -7,5 +7,6 @@
     "t-button": "tdesign-miniprogram/button/button",
     "t-textarea": "tdesign-miniprogram/textarea/textarea"
   },
+  "navigationStyle": "custom",
   "navigationBarTitleText": "小科打字猿"
 }

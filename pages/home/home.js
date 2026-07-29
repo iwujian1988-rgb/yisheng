@@ -173,22 +173,7 @@ Page({
     });
   },
 
-  ensureDeviceReady() {
-    if (this.data.connected) return true;
-    wx.showModal({
-      title: '先连接设备',
-      content: '使用该功能前需要先连接蓝牙设备。',
-      confirmText: '去连接',
-      cancelText: '稍后',
-      success: (res) => {
-        if (res.confirm) this.goConnect();
-      }
-    });
-    return false;
-  },
-
   goOcr() {
-    if (!this.ensureDeviceReady()) return;
     featureEntitlements.guardAiFeature('ocr', '图片识别').then((ok) => {
       if (!ok) return;
       wx.navigateTo({ url: '/pages/ocr/index' });
@@ -196,7 +181,6 @@ Page({
   },
 
   goAsr() {
-    if (!this.ensureDeviceReady()) return;
     featureEntitlements.guardAiFeature('asr', '语音转写').then((ok) => {
       if (!ok) return;
       wx.navigateTo({ url: '/pages/asr/index' });

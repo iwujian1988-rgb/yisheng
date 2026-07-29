@@ -1,15 +1,7 @@
 var deviceSession = require('../device/session');
 var liveDevice = require('./live-device');
 
-var PROFESSIONAL_FEATURES = {
-  aiTemplateEnhance: true,
-  professionalAi: true,
-  professionalTemplates: true,
-  templates: true,
-  aiWriting: true,
-  ocr: true,
-  asr: true
-};
+var PROFESSIONAL_FEATURES = {};
 
 function isBluetoothConnected() {
   var app = typeof getApp === 'function' ? getApp() : null;
