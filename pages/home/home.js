@@ -167,14 +167,14 @@ Page({
   goAiText() {
     featureEntitlements.guardAiFeature('aiWriting', 'AI 智能整理').then((ok) => {
       if (!ok) return;
-      wx.navigateTo({ url: '/pages/agent/text' });
+      wx.switchTab({ url: '/pages/ai/detail' });
     });
   },
 
   goAiTemplate() {
     featureEntitlements.guardAiFeature('templates', 'AI 模板生成').then((ok) => {
       if (!ok) return;
-      wx.navigateTo({ url: '/pages/templates/list' });
+      wx.switchTab({ url: '/pages/templates/index' });
     });
   },
 
