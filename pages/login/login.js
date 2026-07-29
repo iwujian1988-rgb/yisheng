@@ -1,4 +1,5 @@
 const authSession = require('../../services/auth/session');
+const reviewerMock = require('../../services/dev/reviewer-mock');
 
 Page({
   data: {
@@ -209,6 +210,9 @@ Page({
     const app = typeof getApp === 'function' ? getApp() : null;
     if (app && app.syncSession) {
       app.syncSession(profile);
+    }
+    if (reviewerMock.isReviewerAccount()) {
+      reviewerMock.setupReviewerMock();
     }
     this.setData({
       isLoading: false,

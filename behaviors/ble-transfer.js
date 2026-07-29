@@ -3,6 +3,7 @@ const bleProtocol = require('../utils/ble/protocol');
 const sendProfile = require('../utils/ble/send-profile');
 const bleLink = require('../services/device/ble-link');
 const transferSettings = require('../services/settings/transfer-settings');
+const reviewerMock = require('../services/dev/reviewer-mock');
 module.exports = Behavior({
   data: {
     connected: false,
@@ -347,6 +348,25 @@ module.exports = Behavior({
     },
 
     sendTokens(tokens, text, source) {
+      // 审核员 mock 模式：审核员没有真实硬件，在最底层蓝牙写入前拦截。
+      // 上层编码/历史/UI 全跑真实逻辑——finishSuccessfulSend 会写历史并提示完成。
+      if (reviewerMock.isMockBleMode()) {
+        this.cancelSend = false;
+        this.setData({ sending: true, sendProgress: 0 });
+        wx.setKeepScreenOn({ keepScreenOn: true });
+        const total = (tokens && tokens.length) || 1;
+        let i = 0;
+        const step = () => {
+          if (this.cancelSend) { this.finishCancelledSend(); return; }
+          if (i >= total) { this.finishSuccessfulSend(text, source); return; }
+          i += 1;
+          this.setData({ sendProgress: Math.floor((i / total) * 100) });
+          setTimeout(step, 40);
+        };
+        step();
+        return;
+      }
+
       if (!this.writeCharacteristic) {
         wx.showToast({ title: '未找到可发送设备', icon: 'none' });
         return;
