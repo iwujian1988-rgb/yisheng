@@ -9,6 +9,7 @@ const bleTransferBehavior = require('../../behaviors/ble-transfer');
 const tabBarNav = require('../../services/navigation/tab-bar');
 const transferSettings = require('../../services/settings/transfer-settings');
 const localHistory = require('../../services/transfer/local-history');
+const reviewerMock = require('../../services/dev/reviewer-mock');
 
 Page({
   behaviors: [bleTransferBehavior],
@@ -104,6 +105,10 @@ Page({
   },
 
   onConnectTap() {
+    if (reviewerMock.isMockBleMode()) {
+      wx.showToast({ title: '演示设备已连接', icon: 'none' });
+      return;
+    }
     if (this.data.connected) {
       if (!this.data.deviceId) {
         this.setData({ deviceId: bleLink.getStoredBleDeviceId() || '' });
