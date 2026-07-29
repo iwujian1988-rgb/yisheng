@@ -8,15 +8,41 @@
  *   - 一个超级管理员账号（来自 ADMIN_ACCOUNT / ADMIN_PASSWORD env）
  *   - 默认 prompts（general / professional）
  *   - 内置 templates / quick_actions（来自 memory-store）
+ *   - 一台出厂设备 DEV-SERIAL-001（proofCode=0000，未绑定，等首位用户自动绑定）
  */
 const mysql = require('mysql2/promise');
 const { config } = require('../src/config');
 const { createMemoryStore } = require('../src/store/memory-store');
+const { hashPassword } = require('../src/security/password');
 const {
   TABLE_TO_COLLECTION,
   objectToRow,
   JSON_COLUMNS_BY_TABLE
 } = require('../src/store/create-sql-store');
+
+// 出厂设备种子：与 memory-store.js 中 DEV-SERIAL-001 默认值对齐。
+// 用固定 ID 保证重新 seed 幂等；bindStatus=unbound 让首位真实用户走 autoBind 流程。
+// 没 seed 这条 -> 首次部署 mysql devices 表为空 -> create-sql-store.loadAll() 用空数组
+// 覆盖 memory-store 默认值 -> admin 后台显示"设备未登记"。
+function buildDeviceSeed() {
+  var now = new Date().toISOString();
+  return [{
+    id: 'device_seed_dev_serial_001',
+    mac: '',
+    serialNo: 'DEV-SERIAL-001',
+    model: 'TXT-HID',
+    firmwareVersion: '',
+    protocolVersion: '',
+    templateAccess: 'general',
+    proofCodeHash: hashPassword('0000'),
+    bindStatus: 'unbound',
+    reservedUserId: '',
+    boundUserId: '',
+    boundAt: '',
+    createdAt: now,
+    updatedAt: now
+  }];
+}
 
 function parseArgs(argv) {
   var args = { force: false };
@@ -101,6 +127,14 @@ async function main() {
       } else {
         console.log('[seed] ' + table + ' non-empty, skip (use --force to overwrite)');
       }
+    }
+
+    var devicesEmpty = await tableIsEmpty(conn, 'devices');
+    if (devicesEmpty || args.force) {
+      var deviceCount = await upsertSeed(conn, 'devices', buildDeviceSeed());
+      console.log('[seed] devices inserted:', deviceCount);
+    } else {
+      console.log('[seed] devices non-empty, skip (use --force to overwrite)');
     }
 
     console.log('[seed] done');
