@@ -2,6 +2,7 @@ const { config } = require('../config');
 const { fail, ok, parseBody, startSse, writeSse, endSse } = require('../http');
 const { redactSensitiveText } = require('../security/redaction');
 const { callAgentService, streamAgentChat } = require('./agent-proxy');
+const directAi = require('./direct-ai-chat');
 const contentAccess = require('../security/content-access');
 
 function createAgentApiModule(deps) {
@@ -38,6 +39,15 @@ function createAgentApiModule(deps) {
   }
 
   async function invokeAgent(agentType, actor, data, res, featureName) {
+    if (!config.agentServiceEnabled && (agentType === 'chat' || agentType === 'text')) {
+      try {
+        return { result: await directAi.callDirectAi(agentType, data) };
+      } catch (error) {
+        fail(res, error.name === 'AbortError' ? 504 : 502, 'AI_PROVIDER_FAILED', error.message);
+        return null;
+      }
+    }
+
     try {
       var response = await callAgentService(agentType, {
         userContext: {
@@ -49,8 +59,15 @@ function createAgentApiModule(deps) {
       }, { userId: actor.id });
       return response;
     } catch (error) {
+      if ((agentType === 'chat' || agentType === 'text') && directAi.isConfigured()) {
+        try {
+          return { result: await directAi.callDirectAi(agentType, data) };
+        } catch (fallbackError) {
+          error = fallbackError;
+        }
+      }
       var code = error.name === 'AbortError' ? 504 : 502;
-      fail(res, code, 'AGENT_SERVICE_FAILED', error.message);
+      fail(res, code, 'AI_PROVIDER_FAILED', error.message);
       return null;
     }
   }
@@ -91,7 +108,7 @@ function createAgentApiModule(deps) {
     if (!response) return;
     ok(res, Object.assign({}, response.result || {}, {
       redactionHits: guarded.hits,
-      provider: 'agent-service'
+      provider: response.result && response.result.provider || 'agent-service'
     }));
   }
 
@@ -214,7 +231,7 @@ function createAgentApiModule(deps) {
     if (!response) return;
     ok(res, Object.assign({}, response.result || {}, {
       redactionHits: payload.redactionHits,
-      provider: 'agent-service',
+      provider: response.result && response.result.provider || 'agent-service',
       timings: (response.result && response.result.timings) || null,
       steps: (response.result && response.result.steps) || []
     }));
@@ -226,6 +243,13 @@ function createAgentApiModule(deps) {
 
     startSse(res, 200);
     try {
+      if (!config.agentServiceEnabled) {
+        writeSse(res, 'status', { label: '\u6b63\u5728\u751f\u6210\u56de\u590d...' });
+        var directResult = await directAi.callDirectAi('chat', payload.data);
+        writeSse(res, 'done', { finalResult: directResult });
+        endSse(res);
+        return;
+      }
       await streamAgentChat({
         userContext: {
           userId: payload.actor.id,
@@ -236,13 +260,24 @@ function createAgentApiModule(deps) {
       }, { userId: payload.actor.id }, res);
       endSse(res);
     } catch (error) {
+      if (directAi.isConfigured()) {
+        try {
+          writeSse(res, 'status', { label: '\u6b63\u5728\u5207\u6362\u5907\u7528 AI \u670d\u52a1...' });
+          var fallbackResult = await directAi.callDirectAi('chat', payload.data);
+          writeSse(res, 'done', { finalResult: fallbackResult });
+          endSse(res);
+          return;
+        } catch (fallbackError) {
+          error = fallbackError;
+        }
+      }
       if (!res.headersSent) {
-        fail(res, error.name === 'AbortError' ? 504 : 502, 'AGENT_SERVICE_FAILED', error.message);
+        fail(res, error.name === 'AbortError' ? 504 : 502, 'AI_PROVIDER_FAILED', error.message);
         return;
       }
       writeSse(res, 'error', {
-        code: 'AGENT_SERVICE_FAILED',
-        message: error.message || 'AI 服务暂时不可用'
+        code: 'AI_PROVIDER_FAILED',
+        message: '\u0041\u0049 \u670d\u52a1\u6682\u65f6\u4e0d\u53ef\u7528\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5'
       });
       endSse(res);
     }
