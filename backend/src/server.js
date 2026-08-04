@@ -66,6 +66,7 @@ router.get('/api/health', (req, res) => {
     asrConfigured: dashscopeReady || Boolean(config.asrWorkerUrl),
     aiProvider: config.aiProvider,
     aiConfigured: Boolean(config.aiApiKey && (config.aiChatCompletionsUrl || config.aiBaseUrl)),
+    agentChatAvailable: config.agentServiceEnabled || Boolean(config.aiApiKey && (config.aiChatCompletionsUrl || config.aiBaseUrl)),
     agentServiceEnabled: config.agentServiceEnabled,
     agentServiceUrl: config.agentServiceUrl,
     wechatConfigured: Boolean(config.wechatAppId && config.wechatAppSecret)

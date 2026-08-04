@@ -53,6 +53,7 @@ async function run() {
   assert(Object.prototype.hasOwnProperty.call(health, 'ocrConfigured'), 'health missing OCR config state');
   assert(Object.prototype.hasOwnProperty.call(health, 'asrConfigured'), 'health missing ASR config state');
   assert(Object.prototype.hasOwnProperty.call(health, 'aiConfigured'), 'health missing AI config state');
+  assert(Object.prototype.hasOwnProperty.call(health, 'agentChatAvailable'), 'health missing agent chat availability');
 
   const adminLogin = await request('/api/admin/auth/login', {
     method: 'POST',
