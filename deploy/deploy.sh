@@ -55,11 +55,13 @@ fi
 echo "[deploy] building api image..."
 docker compose --env-file "$ENV_FILE" build api
 
+echo "[deploy] starting MySQL..."
+docker compose --env-file "$ENV_FILE" up -d mysql
+echo "[deploy] applying pending migrations..."
+docker compose --env-file "$ENV_FILE" run --rm api npm run migrate up
+
 echo "[deploy] starting all services..."
 docker compose --env-file "$ENV_FILE" up -d
-
-echo "[deploy] applying pending migrations..."
-docker compose --env-file "$ENV_FILE" exec -T api npm run migrate up
 
 # 3. 等待 API 健康
 echo "[deploy] waiting for API healthy..."

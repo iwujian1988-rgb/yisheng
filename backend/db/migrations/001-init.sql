@@ -40,7 +40,6 @@ CREATE TABLE IF NOT EXISTS devices (
   protocol_version VARCHAR(64),
   template_access VARCHAR(32) NOT NULL DEFAULT 'general',
   proof_code_hash VARCHAR(255),
-  binding_mode VARCHAR(32) NOT NULL DEFAULT 'registered',
   bind_status VARCHAR(32) NOT NULL,
   reserved_user_id VARCHAR(64),
   bound_user_id VARCHAR(64),
