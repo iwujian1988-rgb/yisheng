@@ -119,11 +119,10 @@ class TextAgent(BaseAgent):
         if not source_text:
             raise ValueError("source content is required")
 
+        # Medical-style samples can contain complete example-patient facts. Passing them to
+        # the model increases the chance of unsupported fact transfer, so the field schema
+        # remains the only template source of truth during generation.
         sample = ""
-        if template:
-            sample = str(template.get("sample") or "")
-        elif baseline:
-            sample = str(baseline.get("sample") or "")
 
         prompt_tpl = load_prompt("text")
         task_instruction = _build_task_instruction(task, mode, user_instruction, extract_target)
@@ -148,6 +147,9 @@ class TextAgent(BaseAgent):
                 "正文只保留有事实内容的章节，不得输出空字段、空标题、“未提供”、“不详”、“待补充”或下划线占位，也不得把全部模板字段做成清单。"
                 "缺失内容只在【待确认】集中列出少量确实影响文书质量的项目，不要追问所有字段。不得编造。"
                 "模板样例只用于学习文书结构、语气和详略，不得把样例中的患者事实带入结果。"
+                "除非原始材料明确提供，否则严禁新增诊断、诊断依据、鉴别诊断、检查发现、治疗方案、用药指示、监测计划、预后或风险结论；模板中有某个章节，不代表可以生成该章节的事实。"
+                "不得新增原材料没有明确表达的临床解释、评价、意义、关注点、因果说明或建议；只允许整理结构和规范表达。"
+                "只输出文书本身，不要添加开场解释、结束邀约、Markdown 加粗或分隔线，也不要出现“根据您提供的信息”“如需补充请告知”等对话套话。"
                 "用户说“没有”“不清楚”“未知”或“未提供”时，视为该项无法提供，不得再次追问同一项。"
                 "以会话历史为准；只有确实无法完成当前明确任务时，才能提出一个简短问题，否则直接给出当前最佳草稿。"
             )

@@ -5,26 +5,30 @@ import re
 
 def split_sectioned_output(text: str) -> dict[str, str | list[str]]:
     value = str(text or "").strip()
-    body_marker = "【正文】"
-    confirm_marker = "【待确认】"
+    body_match = re.search(
+        r"^[ \t]*(?:#+[ \t]*)?(?:【[ \t]*正文[ \t]*】|正文[：:])[ \t]*",
+        value,
+        re.MULTILINE,
+    )
+    confirm_match = re.search(
+        r"^[ \t]*(?:#+[ \t]*)?(?:【[ \t]*待确认(?:事项)?[ \t]*】|待确认(?:事项)?[：:])[ \t]*",
+        value,
+        re.MULTILINE,
+    )
 
-    if body_marker not in value and confirm_marker not in value:
+    if not body_match and not confirm_match:
         return {
             "result_text": value,
             "body_text": value,
             "confirm_items": [],
         }
 
-    body_start = value.find(body_marker)
-    confirm_start = value.find(confirm_marker)
-
-    if confirm_start >= 0:
-        body_text = value[
-            body_start + len(body_marker) if body_start >= 0 else 0 : confirm_start
-        ].strip()
-        confirm_raw = value[confirm_start + len(confirm_marker) :].strip()
+    body_start = body_match.end() if body_match else 0
+    if confirm_match:
+        body_text = value[body_start : confirm_match.start()].strip()
+        confirm_raw = value[confirm_match.end() :].strip()
     else:
-        body_text = value.replace(body_marker, "").strip()
+        body_text = value[body_start:].strip()
         confirm_raw = ""
 
     confirm_items = [
