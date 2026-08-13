@@ -70,6 +70,13 @@ function main() {
     "if(Object.prototype.hasOwnProperty.call(app,'requiredPrivateInfos')) throw new Error('unused private API declaration present');",
     "console.log('submission packages',packages.join(','));"
   ].join(' '));
+  runNodeEval('TDESIGN_ICON_LAYOUT', [
+    "const fs=require('fs');",
+    "const source=fs.readFileSync('miniprogram_npm/tdesign-miniprogram/icon/icon.wxss','utf8');",
+    "if(!source.includes('.t-icon-base{font-style:normal') || !source.includes('text-align:center;display:block')) throw new Error('TDesign icon base layout no longer matches upstream');",
+    "if(source.includes('.t-icon-base:before{') || source.includes('translateY(-.04em)')) throw new Error('TDesign icon glyph has an unsafe global vertical offset');",
+    "if(source.includes('.t-icon-base{box-sizing:border-box;width:1em;height:1em')) throw new Error('TDesign icon base was changed into a fixed flex box');"
+  ].join(' '));
   runNodeEval('AI_STREAM_DEVICE_PROOF_HEADER', [
     "const fs=require('fs');",
     "const source=fs.readFileSync('services/agent/chat.js','utf8');",
