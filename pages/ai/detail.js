@@ -74,6 +74,62 @@ function hasRecognizingAttachment(attachments) {
   });
 }
 
+function collectTemplateGuideFields(fields) {
+  var result = [];
+
+  function visit(value, key) {
+    if (value === undefined || value === null) return;
+    if (typeof value === 'string') {
+      result.push({ key: key || value, label: value, required: false, description: '' });
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach(function (item, index) { visit(item, String(index)); });
+      return;
+    }
+    if (typeof value !== 'object') return;
+    if (value.label) {
+      result.push({
+        key: key || value.label,
+        label: String(value.label),
+        required: Boolean(value.is_required || value.isRequired || value.required),
+        description: String(value.description || '')
+      });
+      return;
+    }
+    Object.keys(value).forEach(function (childKey) { visit(value[childKey], childKey); });
+  }
+
+  visit(fields, '');
+  return result.filter(function (item, index, list) {
+    return item.label && list.findIndex(function (candidate) { return candidate.label === item.label; }) === index;
+  });
+}
+
+function buildTemplateGuideState(template, expanded) {
+  var fields = collectTemplateGuideFields(template && template.fields);
+  var prioritized = fields.filter(function (item) { return item.required; }).concat(
+    fields.filter(function (item) { return !item.required; })
+  );
+  var limit = expanded ? 16 : 8;
+  return {
+    selectedTemplate: template || null,
+    templateGuideFields: fields,
+    visibleTemplateGuideFields: prioritized.slice(0, limit),
+    templateGuideExpanded: Boolean(expanded),
+    templateGuideHiddenCount: Math.max(0, prioritized.length - limit)
+  };
+}
+
+function buildConfirmedTemplateMessage(message) {
+  return [
+    '【用户已确认的生成材料】',
+    message || '用户本次仅提供了附件材料。',
+    '',
+    '请严格依据以上文字和附件中可识别的内容生成当前模板文书。未提供、未知或不确定的信息不得猜测或补写；先完成可生成部分，并在结果的待确认项中列出仍建议补充的字段。'
+  ].join('\n');
+}
+
 function hasFailedAttachment(attachments) {
   return (attachments || []).some(function (item) {
     return item.ocrStatus === 'failed';
@@ -268,6 +324,13 @@ Page({
     selectedTemplateIndex: 0,
     templateLabel: '选择模板（可选）',
     selectedTemplateName: '',
+    selectedTemplate: null,
+    templateGuideFields: [],
+    visibleTemplateGuideFields: [],
+    templateGuideExpanded: false,
+    templateGuideHiddenCount: 0,
+    templateConfirmVisible: false,
+    templateConfirmPreview: '',
     templatePickerVisible: false,
     templateSearchKeyword: '',
     templatePickerItems: [],
@@ -355,14 +418,15 @@ Page({
   applyTemplateList: function (templates) {
     templates = templates || [];
     var names = templates.map(function (item) { return item.name; });
-    var selectedId = wx.getStorageSync('selectedTemplateId') || '';
+    var storedSelectedId = wx.getStorageSync('selectedTemplateId') || '';
+    var selectedId = storedSelectedId || this.data.selectedTemplateId || '';
     var selectedIndex = 0;
     var selectedTemplateId = '';
     var templateLabel = '选择模板（可选）';
     var selectedTemplateName = '';
 
     if (selectedId) {
-      wx.removeStorageSync('selectedTemplateId');
+      if (storedSelectedId) wx.removeStorageSync('selectedTemplateId');
       for (var i = 0; i < templates.length; i += 1) {
         if (templates[i].id === selectedId) {
           selectedIndex = i;
@@ -374,7 +438,8 @@ Page({
       }
     }
 
-    this.setData({
+    var selectedTemplate = selectedTemplateId ? templates[selectedIndex] : null;
+    this.setData(Object.assign({
       templates: templates,
       templateNames: names,
       selectedTemplateIndex: selectedIndex,
@@ -382,7 +447,7 @@ Page({
       selectedTemplateName: selectedTemplateName,
       templateLabel: templateLabel,
       templatePickerItems: this.buildTemplatePickerItems(templates, '')
-    });
+    }, buildTemplateGuideState(selectedTemplate, false)));
   },
 
   buildTemplatePickerItems: function (templates, keyword) {
@@ -473,22 +538,60 @@ Page({
 
   selectTemplateByIndex: function (index) {
     var selected = (this.data.templates || [])[index] || null;
-    this.setData({
+    this.setData(Object.assign({
       selectedTemplateIndex: index,
       selectedTemplateId: selected ? selected.id : '',
       selectedTemplateName: selected ? selected.name : '',
       templateLabel: selected ? ('已选：' + selected.name) : '选择模板（可选）'
-    });
+    }, buildTemplateGuideState(selected, false)), this.scrollChatToBottom.bind(this));
   },
 
   clearTemplateSelection: function () {
-    this.setData({
+    this._pendingTemplateSend = null;
+    this.setData(Object.assign({
       selectedTemplateIndex: 0,
       selectedTemplateId: '',
       selectedTemplateName: '',
       templateLabel: '选择模板（可选）',
-      templatePickerVisible: false
-    });
+      templatePickerVisible: false,
+      templateConfirmVisible: false,
+      templateConfirmPreview: ''
+    }, buildTemplateGuideState(null, false)));
+  },
+
+  toggleTemplateGuide: function () {
+    var selected = this.data.selectedTemplate;
+    if (!selected) return;
+    this.setData(buildTemplateGuideState(selected, !this.data.templateGuideExpanded));
+  },
+
+  insertTemplateField: function (e) {
+    var label = String(e.currentTarget.dataset.label || '').trim();
+    if (!label) return;
+    var current = String(this.data.inputText || '');
+    var prefix = current && !/\n$/.test(current) ? '\n' : '';
+    this.setData({ inputText: current + prefix + label + '：' }, this.refreshSendState.bind(this));
+  },
+
+  insertTemplateOutline: function () {
+    var fields = (this.data.visibleTemplateGuideFields || []).slice(0, 8);
+    if (!fields.length) return;
+    var outline = fields.map(function (item) { return item.label + '：'; }).join('\n');
+    var current = String(this.data.inputText || '').trim();
+    this.setData({ inputText: current ? current + '\n' + outline : outline }, this.refreshSendState.bind(this));
+  },
+
+  closeTemplateConfirm: function () {
+    this._pendingTemplateSend = null;
+    this.setData({ templateConfirmVisible: false, templateConfirmPreview: '' });
+  },
+
+  confirmTemplateSubmission: function () {
+    var pending = this._pendingTemplateSend;
+    if (!pending) return;
+    this._pendingTemplateSend = null;
+    this.setData({ templateConfirmVisible: false, templateConfirmPreview: '' });
+    this.sendMessage(Object.assign({}, pending, { skipTemplateConfirm: true }));
   },
 
   goTemplateImport: function () {
@@ -527,6 +630,16 @@ Page({
     var attachments = options.attachments || (this.data.pendingAttachments || []).slice();
     if (!message && !attachments.length) return;
     var isDocumentRevision = Boolean(options.applyToDocumentId);
+    var templateId = options.templateId !== undefined ? options.templateId : (this.data.selectedTemplateId || '');
+    if (templateId && !isDocumentRevision && !options.skipTemplateConfirm) {
+      this._pendingTemplateSend = { message: message, attachments: attachments, templateId: templateId };
+      this.setData({
+        templateConfirmVisible: true,
+        templateConfirmPreview: message || ('已添加 ' + attachments.length + ' 张图片')
+      });
+      return;
+    }
+    var apiMessage = templateId && !isDocumentRevision ? buildConfirmedTemplateMessage(message) : message;
     var visibleMessage = isDocumentRevision ? '正在按补充信息修订文书' : message;
     var conversationHistory = buildConversationHistory(this.data.messages);
 
@@ -543,10 +656,10 @@ Page({
       bodyText: '',
       resultType: 'text',
       request: {
-        message: message,
+        message: apiMessage,
         restoreMessage: isDocumentRevision ? '' : message,
         attachments: attachments,
-        templateId: options.templateId !== undefined ? options.templateId : (this.data.selectedTemplateId || ''),
+        templateId: templateId,
         applyToDocumentId: options.applyToDocumentId || '',
         forceDocument: Boolean(options.forceDocument)
       }
@@ -571,10 +684,10 @@ Page({
     var that = this;
     var streamText = '';
     var streamTask = agentChat.sendChatStream({
-      message: message,
+      message: apiMessage,
       attachments: attachmentsToUploadPayload(attachments),
       messages: conversationHistory,
-      templateId: options.templateId !== undefined ? options.templateId : (this.data.selectedTemplateId || '')
+      templateId: templateId
     }, {
       onStatus: function (status) {
         if (!status || !status.label) return;
@@ -796,6 +909,12 @@ Page({
     var urls = (this.data.pendingPreviewItems || []).map(function (item) { return item.url; });
     if (!url || !urls.length) return;
     wx.previewImage({ current: url, urls: urls });
+  },
+
+  previewSentImage: function (e) {
+    var url = e.currentTarget.dataset.url;
+    if (!url) return;
+    wx.previewImage({ current: url, urls: [url] });
   },
 
   goImage: function () {

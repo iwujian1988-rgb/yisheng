@@ -6,6 +6,27 @@
       reverse="{{false}}"
       layout="both"
     >
+      <view wx:if="{{selectedTemplateId}}" class="template-guide">
+        <view class="template-guide__head">
+          <view class="template-guide__title-wrap">
+            <view class="template-guide__icon"><t-icon name="template" size="30rpx" color="#6F3DFF" /></view>
+            <view><text class="template-guide__eyebrow">当前文书模板</text><text class="template-guide__title">{{selectedTemplateName}}</text></view>
+          </view>
+          <text class="template-guide__change" bindtap="openTemplatePicker">更换</text>
+        </view>
+        <text class="template-guide__desc">按你掌握的情况提供即可，所有字段都可以跳过。AI 只使用你确认过的材料生成，完成后再提示可补充项。</text>
+        <view wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__fields">
+          <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}}" data-label="{{item.label}}" bindtap="insertTemplateField">
+            <text class="template-field__label">{{item.label}}</text><text class="template-field__add">＋</text>
+          </view>
+        </view>
+        <text wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__legend">紫色字段建议优先提供，但不代表必填</text>
+        <view class="template-guide__actions">
+          <text wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__primary" bindtap="insertTemplateOutline">插入填写提纲</text>
+          <text wx:if="{{templateGuideFields.length > 8}}" class="template-guide__secondary" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起字段' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text>
+        </view>
+      </view>
+
       <view wx:if="{{messages.length === 0 && !sending}}" class="welcome-message">
         <view class="bot-avatar">智</view>
         <view class="welcome-bubble">
@@ -20,7 +41,15 @@
       </view>
 
       <block wx:for="{{messages}}" wx:key="id">
-        <view wx:if="{{item.role === 'assistant' && item.isDocument && item.status === 'complete'}}" class="document-message">
+        <view wx:if="{{item.role === 'user'}}" class="user-message-row">
+          <view class="user-message-bubble">
+            <view wx:if="{{item.rawAttachments && item.rawAttachments.length}}" class="user-message-images">
+              <image wx:for="{{item.rawAttachments}}" wx:for-item="attachment" wx:key="id" class="user-message-image" src="{{attachment.previewUrl}}" mode="aspectFill" data-url="{{attachment.previewUrl}}" bindtap="previewSentImage" />
+            </view>
+            <text wx:if="{{item.content}}" selectable class="user-message-text">{{item.content}}</text>
+          </view>
+        </view>
+        <view wx:elif="{{item.role === 'assistant' && item.isDocument && item.status === 'complete'}}" class="document-message">
           <view class="ai-msg-avatar">智</view>
           <view class="document-card">
             <view class="document-card__head">
@@ -29,7 +58,7 @@
             </view>
             <text class="document-card__body">{{item.bodyText}}</text>
             <view wx:if="{{item.confirmItems.length}}" class="document-confirm-list">
-              <text class="document-confirm-list__title">待确认 {{item.confirmItems.length}} 项</text>
+              <text class="document-confirm-list__title">还可补充 {{item.confirmItems.length}} 项（均可跳过）</text>
               <view wx:for="{{item.confirmItems}}" wx:for-item="confirm" wx:key="index" class="document-confirm-item" bindtap="openConfirmEditor" data-id="{{item.id}}" data-index="{{index}}">
                 <text class="document-confirm-item__check">需核实</text><text class="document-confirm-item__text">{{confirm.text}}</text><text class="document-confirm-item__edit">修订</text>
               </view>
@@ -164,21 +193,20 @@
       />
       <view class="composer-toolbar">
         <view class="composer-toolbar__left">
-          <view class="composer-tool" catchtap="goVoice"><text class="composer-tool__label">录音</text>
-            <t-icon name="microphone" size="44rpx" color="rgba(0,0,0,0.55)" />
+          <view class="composer-tool" catchtap="goVoice"><view class="composer-tool__icon"><t-icon name="microphone" size="38rpx" color="#47516A" /></view>
+            <text class="composer-tool__label">录音</text>
           </view>
-          <view class="composer-tool" catchtap="goImage"><text class="composer-tool__label">图片</text>
-            <t-icon name="camera" size="44rpx" color="rgba(0,0,0,0.55)" />
+          <view class="composer-tool" catchtap="goImage"><view class="composer-tool__icon"><t-icon name="camera" size="38rpx" color="#47516A" /></view>
+            <text class="composer-tool__label">拍照/OCR</text>
           </view>
           <view
             class="composer-tool {{selectedTemplateId ? 'composer-tool--active' : ''}}"
             catchtap="openTemplatePicker"
-          ><text class="composer-tool__label">模板</text>
-            <t-icon
+          ><view class="composer-tool__icon"><t-icon
               name="template"
-              size="44rpx"
+              size="38rpx"
               color="{{selectedTemplateId ? '#6F3DFF' : 'rgba(0,0,0,0.55)'}}"
-            />
+            /></view><text class="composer-tool__label">模板</text>
           </view>
         </view>
         <button wx:if="{{sending}}" class="composer-stop" bindtap="stopGeneration"><t-icon name="pause" size="30rpx" color="#FFFFFF" /></button>
@@ -206,6 +234,20 @@
         </view>
       </scroll-view>
       <view class="template-picker__footer"><text bindtap="clearTemplateSelection">不使用模板</text><text bindtap="goTemplateImport">新建模板</text></view>
+    </view>
+  </view>
+
+  <view wx:if="{{templateConfirmVisible}}" class="template-confirm-mask" catchtap="closeTemplateConfirm">
+    <view class="template-confirm" catchtap="noop">
+      <view class="template-confirm__handle"></view>
+      <text class="template-confirm__title">确认用于生成的材料</text>
+      <text class="template-confirm__hint">AI 将只依据下面这份材料和附件生成“{{selectedTemplateName}}”。没有提供的字段不会猜测，生成后可继续补充。</text>
+      <scroll-view scroll-y class="template-confirm__preview"><text selectable>{{templateConfirmPreview}}</text></scroll-view>
+      <view class="template-confirm__notice"><t-icon name="info-circle" size="28rpx" color="#8A5A00" /><text>请确认内容中没有需要删除或更正的信息</text></view>
+      <view class="template-confirm__actions">
+        <button class="template-confirm__back" bindtap="closeTemplateConfirm">返回补充</button>
+        <button class="template-confirm__submit" bindtap="confirmTemplateSubmission">确认并生成</button>
+      </view>
     </view>
   </view>
 
