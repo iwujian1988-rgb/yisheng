@@ -40,12 +40,10 @@
 }
 
 .tab-bar-item__icon {
-  display: flex !important;
-  width: 44rpx !important;
-  height: 44rpx !important;
+  display: block;
+  width: 44rpx;
+  height: 44rpx;
   flex: 0 0 44rpx;
-  line-height: 1 !important;
-  vertical-align: top !important;
 }
 
 .tab-bar-item__text {

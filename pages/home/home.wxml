@@ -161,25 +161,25 @@
   <view class="quick-grid">
     <view class="quick-item" bindtap="goHistory" hover-class="quick-item--hover">
       <view class="quick-icon">
-        <t-icon name="time" size="40rpx" color="#6F3DFF" />
+        <image class="ui-icon ui-icon--quick" src="/assets/ui-icons/time-purple.svg" mode="aspectFit" />
       </view>
       <text class="quick-label">历史</text>
     </view>
     <view class="quick-item" bindtap="goPhrases" hover-class="quick-item--hover">
       <view class="quick-icon">
-        <t-icon name="star" size="40rpx" color="#6F3DFF" />
+        <image class="ui-icon ui-icon--quick" src="/assets/ui-icons/star-purple.svg" mode="aspectFit" />
       </view>
       <text class="quick-label">短语</text>
     </view>
     <view class="quick-item" bindtap="goSnippets" hover-class="quick-item--hover">
       <view class="quick-icon">
-        <t-icon name="folder" size="40rpx" color="#6F3DFF" />
+        <image class="ui-icon ui-icon--quick" src="/assets/ui-icons/folder-purple.svg" mode="aspectFit" />
       </view>
       <text class="quick-label">片段</text>
     </view>
     <view class="quick-item" bindtap="onConnectTap" hover-class="quick-item--hover">
       <view class="quick-icon">
-        <t-icon name="bluetooth" size="40rpx" color="#6F3DFF" />
+        <image class="ui-icon ui-icon--quick" src="/assets/ui-icons/bluetooth-purple.svg" mode="aspectFit" />
         <view class="quick-badge" wx:if="{{connected}}"></view>
       </view>
       <text class="quick-label">设备</text>
@@ -194,7 +194,7 @@
       <!-- LEFT: big card 智能整理 -->
       <view class="ai-main" bindtap="goAiText" hover-class="ai-main--hover">
         <view class="ai-main__icon">
-          <t-icon name="robot" size="48rpx" color="#6F3DFF" />
+          <image class="ui-icon ui-icon--ai-main" src="/assets/ui-icons/robot-purple.svg" mode="aspectFit" />
         </view>
         <text class="ai-main__title">智能整理</text>
         <text class="ai-main__desc">AI 帮你重构文本结构，自动分段与润色</text>
@@ -208,7 +208,7 @@
       <view class="ai-side-col">
         <view class="ai-side" bindtap="goAiTemplate" hover-class="ai-side--hover">
           <view class="ai-side__icon">
-            <t-icon name="catalog" size="32rpx" color="#6F3DFF" />
+            <image class="ui-icon ui-icon--ai-side" src="/assets/ui-icons/catalog-purple.svg" mode="aspectFit" />
           </view>
           <view class="ai-side__body">
             <text class="ai-side__title">模板生成</text>
@@ -219,7 +219,7 @@
 
         <view class="ai-side" bindtap="goOcr" hover-class="ai-side--hover">
           <view class="ai-side__icon">
-            <t-icon name="image" size="32rpx" color="#6F3DFF" />
+            <image class="ui-icon ui-icon--ai-side" src="/assets/ui-icons/image-purple.svg" mode="aspectFit" />
           </view>
           <view class="ai-side__body">
             <text class="ai-side__title">图片识别</text>
@@ -230,7 +230,7 @@
 
         <view class="ai-side" bindtap="goAsr" hover-class="ai-side--hover">
           <view class="ai-side__icon">
-            <t-icon name="sound" size="32rpx" color="#6F3DFF" />
+            <image class="ui-icon ui-icon--ai-side" src="/assets/ui-icons/sound-purple.svg" mode="aspectFit" />
           </view>
           <view class="ai-side__body">
             <text class="ai-side__title">语音转写</text>

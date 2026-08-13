@@ -58,8 +58,8 @@ def main():
         "@font-face{{font-family:t;src:url('data:font/woff;base64,{}') format('woff');font-weight:400;font-style:normal;}}"
         ".t-icon--image,.t-icon__image{{width:100%;height:100%;}}"
         ".t-icon__image{{vertical-align:top;}}"
-        ".t-icon-base{{box-sizing:border-box;width:100%;height:100%;font-style:normal;font-weight:400;font-variant:normal;text-transform:none;line-height:1;text-align:center;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}}"
-        ".t-icon{{box-sizing:border-box;width:1em;height:1em;line-height:1;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;font-family:t!important;}}{}"
+        ".t-icon-base{{font-style:normal;font-weight:400;font-variant:normal;text-transform:none;line-height:1;text-align:center;display:block;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}}"
+        ".t-icon{{font-family:t!important;}}{}"
     ).format(font_data, glyph_rules)
     ICON_WXSS.write_text(css, encoding="utf-8")
 

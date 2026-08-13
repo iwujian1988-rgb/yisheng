@@ -8,11 +8,10 @@
       bindtap="switchTab"
     >
       <view class="tab-bar-item__icon-box">
-        <t-icon
-          t-class="tab-bar-item__icon"
-          name="{{selected === index ? item.activeIcon : item.icon}}"
-          size="44rpx"
-          color="{{selected === index ? selectedColor : color}}"
+        <image
+          class="tab-bar-item__icon"
+          src="{{selected === index ? item.activeIconSrc : item.iconSrc}}"
+          mode="aspectFit"
         />
       </view>
       <text class="tab-bar-item__text">{{item.text}}</text>

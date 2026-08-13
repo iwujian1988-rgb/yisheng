@@ -9,28 +9,28 @@ Component({
       {
         pagePath: 'pages/home/home',
         text: '首页',
-        icon: 'home',
-        activeIcon: 'home'
+        iconSrc: '/assets/ui-icons/home-muted.svg',
+        activeIconSrc: '/assets/ui-icons/home-purple.svg'
       },
       {
         pagePath: 'pages/ai/detail',
         text: 'AI创作',
         featureKey: 'aiWriting',
-        icon: 'edit-1',
-        activeIcon: 'edit-1'
+        iconSrc: '/assets/ui-icons/edit-muted.svg',
+        activeIconSrc: '/assets/ui-icons/edit-purple.svg'
       },
       {
         pagePath: 'pages/templates/index',
         text: '场景模板',
         featureKey: 'templates',
-        icon: 'view-module',
-        activeIcon: 'view-module'
+        iconSrc: '/assets/ui-icons/view-module-muted.svg',
+        activeIconSrc: '/assets/ui-icons/view-module-purple.svg'
       },
       {
         pagePath: 'pages/profile/profile',
         text: '我的',
-        icon: 'user',
-        activeIcon: 'user'
+        iconSrc: '/assets/ui-icons/user-muted.svg',
+        activeIconSrc: '/assets/ui-icons/user-purple.svg'
       }
     ]
   },
