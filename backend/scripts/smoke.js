@@ -52,6 +52,11 @@ async function run() {
   const health = await request('/api/health');
   assert(health.service === 'xiaoke-api', 'health service mismatch');
   assert(health.status === 'ok', 'health status missing');
+  assert(health.storeMode === 'memory', 'health should expose store mode');
+  assert(Object.prototype.hasOwnProperty.call(health, 'ocrConfigured'), 'health missing OCR config state');
+  assert(Object.prototype.hasOwnProperty.call(health, 'asrConfigured'), 'health missing ASR config state');
+  assert(Object.prototype.hasOwnProperty.call(health, 'aiConfigured'), 'health missing AI config state');
+  assert(Object.prototype.hasOwnProperty.call(health, 'agentChatAvailable'), 'health missing agent chat availability');
 
   const adminLogin = await request('/api/admin/auth/login', {
     method: 'POST',
