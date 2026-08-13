@@ -7,11 +7,13 @@
       data-index="{{index}}"
       bindtap="switchTab"
     >
-      <t-icon
-        name="{{selected === index ? item.activeIcon : item.icon}}"
-        size="44rpx"
-        color="{{selected === index ? selectedColor : color}}"
-      />
+      <view class="tab-bar-item__icon-box">
+        <t-icon
+          name="{{selected === index ? item.activeIcon : item.icon}}"
+          size="44rpx"
+          color="{{selected === index ? selectedColor : color}}"
+        />
+      </view>
       <text class="tab-bar-item__text">{{item.text}}</text>
     </view>
   </view>

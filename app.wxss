@@ -55,7 +55,16 @@ page {
 }
 
 button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  line-height: 1.2;
   transition: transform 160ms ease, opacity 160ms ease;
+}
+
+button > text {
+  line-height: 1.2;
 }
 
 button::after {

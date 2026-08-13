@@ -12,7 +12,7 @@
 .tab-bar__inner {
   display: flex;
   height: 100rpx;
-  align-items: center;
+  align-items: stretch;
 }
 
 .tab-bar-item {
@@ -22,12 +22,28 @@
   align-items: center;
   justify-content: center;
   gap: 4rpx;
-  padding: 8rpx 0;
+  height: 100rpx;
+  padding: 6rpx 0 4rpx;
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+.tab-bar-item__icon-box {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 48rpx;
+  line-height: 0;
 }
 
 .tab-bar-item__text {
+  display: block;
+  width: 100%;
   font-size: 20rpx;
-  line-height: 28rpx;
+  line-height: 26rpx;
+  text-align: center;
   color: #8B94AC;
 }
 
