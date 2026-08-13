@@ -70,9 +70,15 @@ App({
   },
 
   syncSession(profile) {
+    const previousBleDeviceId = this.globalData.bleDeviceId || '';
+    const previousBleLinkReady = Boolean(this.globalData.bleLinkReady && previousBleDeviceId);
     this.globalData.token = profile.token || '';
     this.globalData.userInfo = profile.user || null;
     this.restoreDeviceStatus();
+    if (previousBleLinkReady) {
+      this.globalData.bleDeviceId = previousBleDeviceId;
+      bleLink.markBleLinkReady(previousBleDeviceId);
+    }
     transferDemo.applySessionFeatures(profile.features);
   },
 

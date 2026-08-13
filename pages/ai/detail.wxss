@@ -596,3 +596,16 @@
   font-size: 22rpx;
   color: var(--td-text-color-placeholder, rgba(0, 0, 0, 0.4));
 }
+.template-load-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 20rpx 24rpx;
+  color: #64739A;
+  font-size: 22rpx;
+}
+
+.template-load-state--error {
+  color: #6F3DFF;
+}

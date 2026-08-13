@@ -42,6 +42,14 @@
         </view>
       </view>
 
+      <view wx:if="{{templatesLoading}}" class="template-load-state">
+        <t-loading theme="circular" size="30rpx" />
+        <text>正在同步可用模板…</text>
+      </view>
+      <view wx:elif="{{templatesLoadError}}" class="template-load-state template-load-state--error" bindtap="prepareWorkspace">
+        <text>{{templatesLoadError}}，点击重试</text>
+      </view>
+
       <template
         wx:if="{{selectedTemplateId && !templateGuideAfterMessageId}}"
         is="templateGuideCard"
@@ -240,7 +248,8 @@
       <view class="template-picker__head"><text class="template-picker__title">选择文书模板</text><text class="template-picker__close" bindtap="closeTemplatePicker">关闭</text></view>
       <input class="template-picker__search" placeholder="搜索模板名称或类型" value="{{templateSearchKeyword}}" bindinput="onTemplateSearch" />
       <scroll-view scroll-y class="template-picker__list">
-        <view wx:if="{{!templatePickerItems.length}}" class="template-picker__empty">未找到匹配模板</view>
+        <view wx:if="{{templatesLoading}}" class="template-picker__empty">正在同步可用模板…</view>
+        <view wx:elif="{{!templatePickerItems.length}}" class="template-picker__empty">未找到匹配模板</view>
         <view wx:for="{{templatePickerItems}}" wx:key="id" class="template-picker__item" bindtap="selectTemplateFromPicker" data-id="{{item.id}}">
           <view><text class="template-picker__name">{{item.name}}</text><text class="template-picker__meta">{{item.category}}</text></view>
           <text wx:if="{{item.isRecent}}" class="template-picker__recent">最近使用</text>

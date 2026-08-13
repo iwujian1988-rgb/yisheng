@@ -49,9 +49,24 @@ function getLiveProofHeader() {
   }
 }
 
-function handleUnauthorized() {
+let authRedirecting = false;
+
+function handleUnauthorized(expectedToken, responseCode) {
+  if (responseCode !== 'AUTH_REQUIRED') return;
+  if (!expectedToken || getToken() !== expectedToken || authRedirecting) return;
+  authRedirecting = true;
+  try {
+    const pages = getCurrentPages();
+    const current = pages && pages.length ? pages[pages.length - 1] : null;
+    if (current && current.route) wx.setStorageSync('postLoginReturnUrl', '/' + current.route);
+  } catch (e) {}
   clearAuthStorage();
-  wx.reLaunch({ url: '/pages/login/login' });
+  wx.reLaunch({
+    url: '/pages/login/login',
+    complete() {
+      setTimeout(() => { authRedirecting = false; }, 500);
+    }
+  });
 }
 
 function friendlyMessage(code, fallback) {
@@ -155,7 +170,7 @@ function request(options) {
         }
 
         if (res.statusCode === 401) {
-          handleUnauthorized();
+          handleUnauthorized(token, body.code);
         }
 
         reject({

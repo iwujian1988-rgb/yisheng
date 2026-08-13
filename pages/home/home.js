@@ -67,7 +67,6 @@ Page({
     this.refreshGreeting();
     this.refreshDeviceStatus();
     this.refreshMemberStatus();
-    this.resumePendingBleConnection();
     this.showGuidePosterOnce();
     const draft = draftService.consumeDraft();
     if (draft && draft.text) {
@@ -103,14 +102,6 @@ Page({
       note = '别太晚，注意休息！';
     }
     this.setData({ greeting: '主任，' + period + '！', greetingNote: note });
-  },
-
-  resumePendingBleConnection() {
-    const pendingDeviceId = wx.getStorageSync('pendingBleConnect');
-    if (pendingDeviceId) wx.removeStorageSync('pendingBleConnect');
-    if (!pendingDeviceId && !bleLink.shouldAutoReconnect() && !bleLink.isBleLinkReady()) return;
-    this.manualDisconnect = false;
-    this.resumeBleConnection();
   },
 
   updateInputText(inputText) {

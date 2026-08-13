@@ -85,6 +85,15 @@ function main() {
     "for(const name of ['time','star','folder','bluetooth','robot','catalog','image','sound']){if(!home.includes('/assets/ui-icons/'+name+'-purple.svg')) throw new Error('Homepage primary SVG icon missing: '+name);}",
     "if(tab.includes('<t-icon')) throw new Error('Tab bar regressed to font glyph icons');"
   ].join(' '));
+  runNodeEval('AI_WORKSPACE_STARTUP_SEQUENCE', [
+    "const fs=require('fs');",
+    "const home=fs.readFileSync('pages/home/home.js','utf8'); const ai=fs.readFileSync('pages/ai/detail.js','utf8'); const client=fs.readFileSync('services/api/client.js','utf8'); const app=fs.readFileSync('app.js','utf8');",
+    "if(home.includes('this.resumePendingBleConnection()')) throw new Error('Home startup must not request Bluetooth access');",
+    "if(!ai.includes('prepareProfessionalContext') || !ai.includes('liveHeartbeat.tick()') || !ai.includes('AI_WORKSPACE_DRAFT_KEY')) throw new Error('AI workspace must synchronize professional access and preserve drafts');",
+    "if(ai.includes('templateCatalog.listTemplates()')) throw new Error('AI workspace must not issue a delayed fallback template request');",
+    "if(!client.includes(\"responseCode !== 'AUTH_REQUIRED'\") || !client.includes('getToken() !== expectedToken')) throw new Error('401 handling must reject stale or non-auth responses');",
+    "if(!app.includes('previousBleLinkReady') || !app.includes('bleLink.markBleLinkReady(previousBleDeviceId)')) throw new Error('Login must preserve an existing BLE link');"
+  ].join(' '));
   runNodeEval('AI_STREAM_DEVICE_PROOF_HEADER', [
     "const fs=require('fs');",
     "const source=fs.readFileSync('services/agent/chat.js','utf8');",

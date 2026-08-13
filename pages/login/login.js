@@ -218,7 +218,9 @@ Page({
   },
 
   routeAfterLogin() {
-    wx.reLaunch({ url: '/pages/home/home' });
+    const returnUrl = wx.getStorageSync('postLoginReturnUrl') || '';
+    if (returnUrl) wx.removeStorageSync('postLoginReturnUrl');
+    wx.reLaunch({ url: returnUrl || '/pages/home/home' });
   },
 
   goToAgreement(e) {

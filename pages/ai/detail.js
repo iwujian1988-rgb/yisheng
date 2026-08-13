@@ -1,12 +1,15 @@
 var agentChat = require('../../services/agent/chat');
 var agentText = require('../../services/agent/text');
-var templateCatalog = require('../../services/templates/catalog');
+var deviceSession = require('../../services/device/session');
+var bleLink = require('../../services/device/ble-link');
+var liveHeartbeat = require('../../services/device/live-heartbeat');
 var featureEntitlements = require('../../services/entitlements/features');
 var draftService = require('../../services/content/draft');
 var tabBarNav = require('../../services/navigation/tab-bar');
 var ocrRecognizer = require('../../services/ocr/recognizer');
 
 var AI_MEDIA_INPUT_DRAFT_KEY = 'aiMediaInputDraft';
+var AI_WORKSPACE_DRAFT_KEY = 'aiWorkspaceDraftV1';
 var MAX_PENDING_IMAGES = 3;
 var COMPRESS_QUALITY = 70;
 var COMPRESS_MAX_WIDTH = 1280;
@@ -335,6 +338,8 @@ Page({
     templatePickerVisible: false,
     templateSearchKeyword: '',
     templatePickerItems: [],
+    templatesLoading: false,
+    templatesLoadError: '',
     confirmEditorVisible: false,
     confirmEditorMessageId: '',
     confirmEditorIndex: -1,
@@ -362,8 +367,11 @@ Page({
         return;
       }
       var initialText = options && options.text ? decodeURIComponent(options.text) : '';
-      that.setData({ inputText: initialText });
+      var workspaceDraft = wx.getStorageSync(AI_WORKSPACE_DRAFT_KEY) || {};
+      that.setData({ inputText: initialText || workspaceDraft.inputText || '' });
+      if (workspaceDraft.templateId) wx.setStorageSync('selectedTemplateId', workspaceDraft.templateId);
       that.consumeMediaInputDraft();
+      that._workspaceAuthorized = true;
       that.prepareWorkspace();
     });
   },
@@ -371,7 +379,7 @@ Page({
   onShow: function () {
     tabBarNav.syncTabBar(this, 'pages/ai/detail');
     this.consumeMediaInputDraft();
-    this.prepareWorkspace();
+    if (this._workspaceAuthorized && this._workspaceReady) this.prepareWorkspace();
   },
 
   scrollChatToBottom: function () {
@@ -390,30 +398,44 @@ Page({
 
   prepareWorkspace: function () {
     var that = this;
-    this.setData({ isProfessionalWorkspace: featureEntitlements.hasDeviceSession() });
+    var loadId = (this._templateLoadId || 0) + 1;
+    this._templateLoadId = loadId;
+    this.setData({ templatesLoading: true, templatesLoadError: '' });
 
-    agentText.listTemplates().then(function (templates) {
+    this.prepareProfessionalContext().then(function (professional) {
+      if (loadId !== that._templateLoadId) return null;
+      that.setData({ isProfessionalWorkspace: professional });
+      return agentText.listTemplates();
+    }).then(function (templates) {
+      if (!templates || loadId !== that._templateLoadId) return;
       if (!that.data.isProfessionalWorkspace) {
         templates = templates.filter(function (item) {
           return !(item.audience === 'professional' && item.tag === 'official');
         });
       }
       that.applyTemplateList(templates);
-    }).catch(function () {
-      templateCatalog.listTemplates().then(function (result) {
-        var templates = (result && result.templates) || [];
-        if (!that.data.isProfessionalWorkspace) {
-          templates = templates.filter(function (item) {
-            return !(item.audience === 'professional' && item.tag === 'official');
-          });
-        }
-        that.applyTemplateList(templates);
-      }).catch(function () {
-        that.applyTemplateList([]);
+      that._workspaceReady = true;
+      that.setData({ templatesLoading: false, templatesLoadError: '' });
+    }).catch(function (error) {
+      if (loadId !== that._templateLoadId) return;
+      that._workspaceReady = true;
+      that.setData({
+        templatesLoading: false,
+        templatesLoadError: (error && error.message) || '模板加载失败，请重试'
       });
     });
 
     this.refreshSendState();
+  },
+
+  prepareProfessionalContext: function () {
+    if (!bleLink.isBleLinkReady()) return Promise.resolve(false);
+    return deviceSession.ensureActiveSession()
+      .then(function () { return liveHeartbeat.tick(); })
+      .then(function () {
+        return Boolean(deviceSession.getDeviceSessionToken() && wx.getStorageSync('deviceLiveProof'));
+      })
+      .catch(function () { return false; });
   },
 
   applyTemplateList: function (templates) {
@@ -452,7 +474,7 @@ Page({
       templateGuideAfterMessageId: keepExistingGuideAnchor
         ? this.data.templateGuideAfterMessageId
         : (((this.data.messages || []).slice(-1)[0] || {}).id || '')
-    }, buildTemplateGuideState(selectedTemplate, false)));
+    }, buildTemplateGuideState(selectedTemplate, false)), this.persistWorkspaceDraft.bind(this));
   },
 
   buildTemplatePickerItems: function (templates, keyword) {
@@ -549,7 +571,10 @@ Page({
       selectedTemplateName: selected ? selected.name : '',
       templateLabel: selected ? ('已选：' + selected.name) : '选择模板（可选）',
       templateGuideAfterMessageId: (((this.data.messages || []).slice(-1)[0] || {}).id || '')
-    }, buildTemplateGuideState(selected, false)), this.scrollChatToBottom.bind(this));
+    }, buildTemplateGuideState(selected, false)), function () {
+      this.persistWorkspaceDraft();
+      this.scrollChatToBottom();
+    }.bind(this));
   },
 
   clearTemplateSelection: function () {
@@ -563,7 +588,7 @@ Page({
       templateConfirmVisible: false,
       templateConfirmPreview: '',
       templateGuideAfterMessageId: ''
-    }, buildTemplateGuideState(null, false)));
+    }, buildTemplateGuideState(null, false)), this.persistWorkspaceDraft.bind(this));
   },
 
   toggleTemplateGuide: function () {
@@ -577,7 +602,10 @@ Page({
     if (!label) return;
     var current = String(this.data.inputText || '');
     var prefix = current && !/\n$/.test(current) ? '\n' : '';
-    this.setData({ inputText: current + prefix + label + '：' }, this.refreshSendState.bind(this));
+    this.setData({ inputText: current + prefix + label + '：' }, function () {
+      this.persistWorkspaceDraft();
+      this.refreshSendState();
+    }.bind(this));
   },
 
   insertTemplateOutline: function () {
@@ -585,7 +613,10 @@ Page({
     if (!fields.length) return;
     var outline = fields.map(function (item) { return item.label + '：'; }).join('\n');
     var current = String(this.data.inputText || '').trim();
-    this.setData({ inputText: current ? current + '\n' + outline : outline }, this.refreshSendState.bind(this));
+    this.setData({ inputText: current ? current + '\n' + outline : outline }, function () {
+      this.persistWorkspaceDraft();
+      this.refreshSendState();
+    }.bind(this));
   },
 
   closeTemplateConfirm: function () {
@@ -611,7 +642,24 @@ Page({
 
   onInput: function (e) {
     var text = (e.detail && e.detail.value !== undefined) ? e.detail.value : '';
-    this.setData({ inputText: text }, this.refreshSendState.bind(this));
+    this.setData({ inputText: text }, function () {
+      this.persistWorkspaceDraft();
+      this.refreshSendState();
+    }.bind(this));
+  },
+
+  persistWorkspaceDraft: function () {
+    var inputText = String(this.data.inputText || '');
+    var templateId = this.data.selectedTemplateId || '';
+    if (!inputText && !templateId) {
+      wx.removeStorageSync(AI_WORKSPACE_DRAFT_KEY);
+      return;
+    }
+    wx.setStorageSync(AI_WORKSPACE_DRAFT_KEY, {
+      inputText: inputText,
+      templateId: templateId,
+      updatedAt: Date.now()
+    });
   },
 
   refreshSendState: function () {
@@ -686,7 +734,10 @@ Page({
       sendingStageLabel: needsServerOcr ? '识别图片并生成中…' : '正在生成回复…',
       canSend: false,
       sendDisabled: true
-    }, this.scrollChatToBottom.bind(this));
+    }, function () {
+      this.persistWorkspaceDraft();
+      this.scrollChatToBottom();
+    }.bind(this));
 
     var that = this;
     var streamText = '';
@@ -1082,7 +1133,10 @@ Page({
       inputText: request.restoreMessage !== undefined ? request.restoreMessage : (request.message || ''),
       pendingAttachments: request.attachments || [],
       pendingPreviewItems: attachmentsToPreviewItems(request.attachments || [])
-    }, this.refreshSendState.bind(this));
+    }, function () {
+      this.persistWorkspaceDraft();
+      this.refreshSendState();
+    }.bind(this));
   },
 
   stopGeneration: function () {
@@ -1186,7 +1240,10 @@ Page({
       activeStreamTask: null,
       cancelledMessageId: '',
       templateGuideAfterMessageId: ''
-    }, this.refreshSendState.bind(this));
+    }, function () {
+      this.persistWorkspaceDraft();
+      this.refreshSendState();
+    }.bind(this));
   },
 
   onUnload: function () {
