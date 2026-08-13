@@ -107,11 +107,10 @@ Page({
 
   resumePendingBleConnection() {
     const pendingDeviceId = wx.getStorageSync('pendingBleConnect');
-    if (this.data.connected || this.reconnecting) return;
     if (pendingDeviceId) wx.removeStorageSync('pendingBleConnect');
-    if (!pendingDeviceId && !bleLink.shouldAutoReconnect()) return;
+    if (!pendingDeviceId && !bleLink.shouldAutoReconnect() && !bleLink.isBleLinkReady()) return;
     this.manualDisconnect = false;
-    this.tryReconnectBoundDevice();
+    this.resumeBleConnection();
   },
 
   updateInputText(inputText) {

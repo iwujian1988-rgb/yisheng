@@ -183,14 +183,14 @@ Page({
       var app = typeof getApp === 'function' ? getApp() : null;
       if (app && app.restoreDeviceStatus) app.restoreDeviceStatus();
 
-      // The transfer page owns its own BLE characteristics, so reconnect there.
+      // Keep the verified link alive; the transfer page can discover
+      // characteristics on this existing connection.
       wx.setStorageSync('pendingBleConnect', deviceId);
-      wx.closeBLEConnection({ deviceId: deviceId });
+      that.setData({ connectedDeviceId: '' });
       that.setData({ status: 'connected', statusText: '连接成功', connectedDeviceName: deviceName });
       wx.showToast({ title: '连接成功', icon: 'success' });
 
       setTimeout(function () {
-        that.setData({ connectedDeviceId: '' });
         wx.navigateBack();
       }, 1500);
     }).catch(function (err) {

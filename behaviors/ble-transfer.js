@@ -18,8 +18,15 @@ module.exports = Behavior({
   lifetimes: {
     detached() {
       this.cancelPendingAck();
+      this.cancelScheduledReconnect();
       if (this._bleConnectionStateListener && wx.offBLEConnectionStateChange) {
         wx.offBLEConnectionStateChange(this._bleConnectionStateListener);
+      }
+      if (this._bleNotifyListener && wx.offBLECharacteristicValueChange) {
+        wx.offBLECharacteristicValueChange(this._bleNotifyListener);
+      }
+      if (this._bleDeviceFoundListener && wx.offBluetoothDeviceFound) {
+        wx.offBluetoothDeviceFound(this._bleDeviceFoundListener);
       }
       if (this.closeBluetoothOnDetach) {
         this.closeBluetooth();
@@ -27,6 +34,23 @@ module.exports = Behavior({
     }
   },
   methods: {
+    cancelScheduledReconnect() {
+      if (!this._bleReconnectTimer) return;
+      clearTimeout(this._bleReconnectTimer);
+      this._bleReconnectTimer = null;
+    },
+
+    scheduleReconnect() {
+      if (this.manualDisconnect || !bleLink.shouldAutoReconnect() || this._bleReconnectTimer) return;
+      const delays = [800, 1600, 3200, 5000, 8000];
+      const attempt = Math.min(this._bleReconnectAttempt || 0, delays.length - 1);
+      this._bleReconnectTimer = setTimeout(() => {
+        this._bleReconnectTimer = null;
+        this._bleReconnectAttempt = attempt + 1;
+        this.tryReconnectBoundDevice();
+      }, delays[attempt]);
+    },
+
     setGlobalDeviceStatus(connected, deviceId) {
       const app = typeof getApp === 'function' ? getApp() : null;
       if (app && app.globalData) {
@@ -49,6 +73,37 @@ module.exports = Behavior({
       this.manualDisconnect = false;
       this.initBluetooth(() => {
         this.connectDevice(deviceId);
+      });
+    },
+
+    resumeBleConnection() {
+      const deviceId = bleLink.getStoredBleDeviceId();
+      if (!deviceId || this.reconnecting || (this.data.connected && this.writeCharacteristic)) return;
+      this.manualDisconnect = false;
+      this.initBluetooth(() => {
+        if (typeof wx.getConnectedBluetoothDevices !== 'function') {
+          this.tryReconnectBoundDevice();
+          return;
+        }
+        wx.getConnectedBluetoothDevices({
+          services: [bleProtocol.SERVICE_ID],
+          success: (res) => {
+            const connected = (res.devices || []).some((item) => item.deviceId === deviceId);
+            if (!connected) {
+              this.setData({ connected: false });
+              this.tryReconnectBoundDevice();
+              return;
+            }
+            this.setData({ deviceId });
+            this.bindConnectionStateListener();
+            this.requestBleMtu(deviceId);
+            this.getServices(deviceId);
+          },
+          fail: () => {
+            this.setData({ connected: false });
+            this.tryReconnectBoundDevice();
+          }
+        });
       });
     },
 
@@ -80,7 +135,10 @@ module.exports = Behavior({
     },
 
     onDeviceFound() {
-      wx.onBluetoothDeviceFound((res) => {
+      if (this._bleDeviceFoundListener && wx.offBluetoothDeviceFound) {
+        wx.offBluetoothDeviceFound(this._bleDeviceFoundListener);
+      }
+      this._bleDeviceFoundListener = (res) => {
         const devices = res.devices || [];
         for (let i = 0; i < devices.length; i++) {
           const device = devices[i];
@@ -91,7 +149,8 @@ module.exports = Behavior({
             return;
           }
         }
-      });
+      };
+      wx.onBluetoothDeviceFound(this._bleDeviceFoundListener);
 
       setTimeout(() => {
         if (this.data.statusText === '搜索中...') {
@@ -117,6 +176,7 @@ module.exports = Behavior({
         },
         fail: () => {
           this.reconnecting = false;
+          this.scheduleReconnect();
           this.setData({ statusText: '连接失败' });
         }
       });
@@ -141,9 +201,7 @@ module.exports = Behavior({
         if (typeof this.refreshDeviceStatus === 'function') {
           this.refreshDeviceStatus();
         }
-        if (!this.manualDisconnect && bleLink.shouldAutoReconnect()) {
-          setTimeout(() => this.tryReconnectBoundDevice(), 800);
-        }
+        this.scheduleReconnect();
       };
       wx.onBLEConnectionStateChange(this._bleConnectionStateListener);
     },
@@ -189,6 +247,8 @@ module.exports = Behavior({
 
           if (this.writeCharacteristic && !this.data.connected) {
             this.reconnecting = false;
+            this._bleReconnectAttempt = 0;
+            this.cancelScheduledReconnect();
             this.setGlobalDeviceStatus(true, deviceId);
             this.setData({ connected: true, statusText: '已连接' });
             if (typeof this.refreshDeviceStatus === 'function') {
@@ -234,9 +294,10 @@ module.exports = Behavior({
         success: () => {
           if (!that._bleNotifyListenerBound) {
             that._bleNotifyListenerBound = true;
-            wx.onBLECharacteristicValueChange((res) => {
+            that._bleNotifyListener = (res) => {
               that.handleBleCharacteristicValueChange(res);
-            });
+            };
+            wx.onBLECharacteristicValueChange(that._bleNotifyListener);
           }
         }
       });
@@ -339,6 +400,7 @@ module.exports = Behavior({
     disconnect(options) {
       const isManual = !options || options.manual !== false;
       this.manualDisconnect = isManual;
+      this.cancelScheduledReconnect();
       if (isManual) {
         bleLink.setAutoReconnectEnabled(false);
       }

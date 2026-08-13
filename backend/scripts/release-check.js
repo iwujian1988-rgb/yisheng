@@ -28,6 +28,8 @@ function main() {
   run('NODE_CHECK_ADMIN_UI', process.execPath, ['--check', 'backend/public/admin/app.js']);
   run('NODE_CHECK_API_CLIENT', process.execPath, ['--check', 'services/api/client.js']);
   run('NODE_CHECK_AGENT_CHAT_CLIENT', process.execPath, ['--check', 'services/agent/chat.js']);
+  run('NODE_CHECK_BLE_TRANSFER', process.execPath, ['--check', 'behaviors/ble-transfer.js']);
+  run('NODE_CHECK_BLUETOOTH_PAGE', process.execPath, ['--check', 'pages/bluetooth/index.js']);
   run('NODE_CHECK_NETWORK_TEST', process.execPath, ['--check', 'services/diagnostics/network-test.js']);
   run('NODE_CHECK_BACKEND_HEALTH_PAGE', process.execPath, ['--check', 'pages/backend/health-check.js']);
   run('NODE_CHECK_DEVICE_PAGE', process.execPath, ['--check', 'pages/device/device.js']);

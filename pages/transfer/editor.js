@@ -27,7 +27,7 @@ Page({
   notifyCharacteristic: null,
   bluetoothInited: false,
   reconnecting: false,
-  closeBluetoothOnDetach: true,
+  closeBluetoothOnDetach: false,
 
   onLoad(options) {
     const source = options && options.source ? decodeURIComponent(options.source) : 'manual';
@@ -44,8 +44,8 @@ Page({
     });
   },
 
-  onUnload() {
-    this.closeBluetooth();
+  onShow() {
+    this.resumeBleConnection();
   },
 
   onConnectTap() {
