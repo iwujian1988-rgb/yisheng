@@ -73,9 +73,9 @@ function main() {
   runNodeEval('TDESIGN_ICON_LAYOUT', [
     "const fs=require('fs');",
     "const source=fs.readFileSync('miniprogram_npm/tdesign-miniprogram/icon/icon.wxss','utf8');",
-    "if(!source.includes('.t-icon-base{font-style:normal') || !source.includes('text-align:center;display:block')) throw new Error('TDesign icon base layout no longer matches upstream');",
+    "if(!source.includes('.t-icon-base{box-sizing:border-box;width:100%;height:100%') || !source.includes('text-align:center;display:flex;align-items:center;justify-content:center')) throw new Error('TDesign icon glyph no longer uses the centered square coordinate system');",
     "if(source.includes('.t-icon-base:before{') || source.includes('translateY(-.04em)')) throw new Error('TDesign icon glyph has an unsafe global vertical offset');",
-    "if(source.includes('.t-icon-base{box-sizing:border-box;width:1em;height:1em')) throw new Error('TDesign icon base was changed into a fixed flex box');"
+    "if(!source.includes('.t-icon{box-sizing:border-box;width:1em;height:1em;line-height:1;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle')) throw new Error('TDesign icon host no longer uses the centered 1em box');"
   ].join(' '));
   runNodeEval('AI_STREAM_DEVICE_PROOF_HEADER', [
     "const fs=require('fs');",
