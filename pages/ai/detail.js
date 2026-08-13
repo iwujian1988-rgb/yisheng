@@ -146,6 +146,27 @@ function stripEmptyTemplateFields(text, fields) {
   }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
+function buildMaterialSummary(inputText, attachments, voiceTextChars) {
+  var textLength = String(inputText || '').trim().length;
+  var voiceChars = Math.min(textLength, Math.max(0, Number(voiceTextChars || 0)));
+  var typedChars = Math.max(0, textLength - voiceChars);
+  var images = attachments || [];
+  var ocrChars = images.reduce(function (total, item) {
+    return total + String(item && item.ocrText || '').trim().length;
+  }, 0);
+  var recognizing = images.filter(function (item) { return item.ocrStatus === 'recognizing'; }).length;
+  var parts = [];
+  if (images.length) parts.push('OCR ' + images.length + '张' + (ocrChars ? '（' + ocrChars + '字）' : ''));
+  if (voiceChars) parts.push('录音转写 ' + voiceChars + '字');
+  if (typedChars) parts.push('输入文字 ' + typedChars + '字');
+  if (recognizing) parts.push('正在识别 ' + recognizing + '张');
+  return {
+    materialSummaryText: parts.length ? parts.join(' · ') : '还没有添加材料',
+    materialReady: Boolean(textLength || images.length),
+    materialRecognizing: recognizing > 0
+  };
+}
+
 function hasFailedAttachment(attachments) {
   return (attachments || []).some(function (item) {
     return item.ocrStatus === 'failed';
@@ -348,6 +369,7 @@ Page({
     templateGuideAfterMessageId: '',
     templateConfirmVisible: false,
     templateConfirmPreview: '',
+    templateConfirmSources: '',
     templatePickerVisible: false,
     templateSearchKeyword: '',
     templatePickerItems: [],
@@ -370,7 +392,12 @@ Page({
     recognizingAttachments: false,
     activeStreamTask: null,
     cancelledMessageId: '',
-    composerBottomStyle: ''
+    composerBottomStyle: '',
+    voiceTextChars: 0,
+    materialSummaryText: '还没有添加材料',
+    materialReady: false,
+    materialRecognizing: false,
+    materialFeedbackText: ''
   },
 
   onLoad: function (options) {
@@ -412,7 +439,18 @@ Page({
     this.setData({
       pendingAttachments: attachments,
       pendingPreviewItems: attachmentsToPreviewItems(attachments)
-    }, callback);
+    }, function () {
+      this.refreshMaterialSummary();
+      if (callback) callback();
+    }.bind(this));
+  },
+
+  refreshMaterialSummary: function () {
+    this.setData(buildMaterialSummary(
+      this.data.inputText,
+      this.data.pendingAttachments,
+      this.data.voiceTextChars
+    ));
   },
 
   prepareWorkspace: function () {
@@ -592,6 +630,14 @@ Page({
       templateGuideAfterMessageId: (((this.data.messages || []).slice(-1)[0] || {}).id || '')
     }, buildTemplateGuideState(selected, false)), function () {
       this.persistWorkspaceDraft();
+      this.refreshMaterialSummary();
+      this.setData({
+        materialFeedbackText: selected
+          ? (this.data.materialReady
+            ? '当前已有材料和后续添加内容都会用于生成“' + selected.name + '”'
+            : '接下来添加的文字、录音和 OCR 都会用于生成“' + selected.name + '”')
+          : ''
+      });
       this.scrollChatToBottom();
     }.bind(this));
   },
@@ -606,6 +652,7 @@ Page({
       templatePickerVisible: false,
       templateConfirmVisible: false,
       templateConfirmPreview: '',
+      templateConfirmSources: '',
       templateGuideAfterMessageId: ''
     }, buildTemplateGuideState(null, false)), this.persistWorkspaceDraft.bind(this));
   },
@@ -640,14 +687,14 @@ Page({
 
   closeTemplateConfirm: function () {
     this._pendingTemplateSend = null;
-    this.setData({ templateConfirmVisible: false, templateConfirmPreview: '' });
+    this.setData({ templateConfirmVisible: false, templateConfirmPreview: '', templateConfirmSources: '' });
   },
 
   confirmTemplateSubmission: function () {
     var pending = this._pendingTemplateSend;
     if (!pending) return;
     this._pendingTemplateSend = null;
-    this.setData({ templateConfirmVisible: false, templateConfirmPreview: '' });
+    this.setData({ templateConfirmVisible: false, templateConfirmPreview: '', templateConfirmSources: '' });
     this.sendMessage(Object.assign({}, pending, { skipTemplateConfirm: true }));
   },
 
@@ -663,6 +710,7 @@ Page({
     var text = (e.detail && e.detail.value !== undefined) ? e.detail.value : '';
     this.setData({ inputText: text }, function () {
       this.persistWorkspaceDraft();
+      this.refreshMaterialSummary();
       this.refreshSendState();
     }.bind(this));
   },
@@ -682,6 +730,7 @@ Page({
   },
 
   refreshSendState: function () {
+    this.refreshMaterialSummary();
     var materialText = stripEmptyTemplateFields(this.data.inputText, this.data.templateGuideFields);
     var hasText = materialText.length > 0;
     var attachments = this.data.pendingAttachments || [];
@@ -717,7 +766,8 @@ Page({
       this._pendingTemplateSend = { message: message, attachments: attachments, templateId: templateId };
       this.setData({
         templateConfirmVisible: true,
-        templateConfirmPreview: message || ('已添加 ' + attachments.length + ' 张图片')
+        templateConfirmPreview: message || ('已添加 ' + attachments.length + ' 张图片'),
+        templateConfirmSources: buildMaterialSummary(message, attachments, this.data.voiceTextChars).materialSummaryText
       });
       return;
     }
@@ -756,6 +806,11 @@ Page({
       inputText: isDocumentRevision ? this.data.inputText : '',
       pendingAttachments: isDocumentRevision ? this.data.pendingAttachments : [],
       pendingPreviewItems: isDocumentRevision ? this.data.pendingPreviewItems : [],
+      voiceTextChars: isDocumentRevision ? this.data.voiceTextChars : 0,
+      materialSummaryText: isDocumentRevision ? this.data.materialSummaryText : '还没有添加材料',
+      materialReady: isDocumentRevision ? this.data.materialReady : false,
+      materialRecognizing: false,
+      materialFeedbackText: '',
       sending: true,
       streamingMessageId: streamMessage.id,
       sendingStageLabel: needsServerOcr ? '识别图片并生成中…' : '正在生成回复…',
@@ -952,7 +1007,14 @@ Page({
     placeholders.forEach(function (placeholder) {
       buildAttachmentFromPath(placeholder.previewUrl, placeholder.id).then(function (ready) {
         var next = replaceAttachmentById(that.data.pendingAttachments, placeholder.id, ready);
-        that.setPendingAttachments(next, that.refreshSendState.bind(that));
+        that.setPendingAttachments(next, function () {
+          that.refreshSendState();
+          that.setData({
+            materialFeedbackText: that.data.selectedTemplateName
+              ? 'OCR 已加入“' + that.data.selectedTemplateName + '”，AI 会自动提取并归入对应章节'
+              : 'OCR 已加入本次对话材料'
+          });
+        });
       }).catch(function () {
         var next = replaceAttachmentById(that.data.pendingAttachments, placeholder.id, Object.assign({}, placeholder, {
           ocrStatus: 'failed',
@@ -1036,8 +1098,15 @@ Page({
     var current = String(this.data.inputText || '').trim();
     var incoming = String(draft.text || '').trim();
     this.setData({
-      inputText: current ? current + '\n' + incoming : incoming
-    }, this.refreshSendState.bind(this));
+      inputText: current ? current + '\n' + incoming : incoming,
+      voiceTextChars: this.data.voiceTextChars + incoming.length,
+      materialFeedbackText: this.data.selectedTemplateName
+        ? '录音转写已加入“' + this.data.selectedTemplateName + '”的生成材料'
+        : '录音转写已加入本次对话材料'
+    }, function () {
+      this.refreshMaterialSummary();
+      this.refreshSendState();
+    }.bind(this));
   },
 
   useResult: function (e) {
@@ -1261,6 +1330,11 @@ Page({
       inputText: '',
       pendingAttachments: [],
       pendingPreviewItems: [],
+      voiceTextChars: 0,
+      materialSummaryText: '还没有添加材料',
+      materialReady: false,
+      materialRecognizing: false,
+      materialFeedbackText: '',
       sending: false,
       sendingStageLabel: '',
       streamingMessageId: '',

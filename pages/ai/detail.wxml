@@ -22,7 +22,7 @@
 </template>
 
 <view class="detail-page">
-  <view class="detail-chat-wrap {{pendingPreviewItems.length ? 'detail-chat-wrap--tall-composer' : ''}}">
+  <view class="detail-chat-wrap {{selectedTemplateId ? 'detail-chat-wrap--workbench' : ''}} {{pendingPreviewItems.length ? 'detail-chat-wrap--tall-composer' : ''}}">
     <t-chat-list
       id="chatList"
       class="detail-chat-list"
@@ -144,12 +144,25 @@
   </view>
 
   <view class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}" style="{{composerBottomStyle}}">
-    <view wx:if="{{selectedTemplateName}}" class="composer-meta">
-      <view class="composer-meta__main">
-        <t-icon name="template" size="28rpx" color="#6F3DFF" />
-        <text class="composer-meta__text">{{selectedTemplateName}}</text>
+    <view wx:if="{{selectedTemplateName}}" class="document-workbench">
+      <view class="document-workbench__head">
+        <view class="document-workbench__title-wrap">
+          <view class="document-workbench__icon"><t-icon name="template" size="28rpx" color="#6F3DFF" /></view>
+          <view><text class="document-workbench__eyebrow">正在准备文书</text><text class="document-workbench__title">{{selectedTemplateName}}</text></view>
+        </view>
+        <text class="document-workbench__change" catchtap="openTemplatePicker">更换</text>
       </view>
-      <text class="composer-meta__action" catchtap="clearTemplateSelection">清除</text>
+      <view class="document-workbench__steps">
+        <text class="document-workbench__step is-done">1 选模板</text><text class="document-workbench__line"></text>
+        <text class="document-workbench__step {{materialReady ? 'is-done' : 'is-current'}}">2 加材料</text><text class="document-workbench__line"></text>
+        <text class="document-workbench__step {{materialReady && !materialRecognizing ? 'is-current' : ''}}">3 生成</text>
+      </view>
+      <view class="document-workbench__materials {{materialReady ? 'is-ready' : ''}}">
+        <t-icon name="{{materialReady ? 'check-circle' : 'info-circle'}}" size="26rpx" color="{{materialReady ? '#18A872' : '#64739A'}}" />
+        <text>{{materialSummaryText}}</text>
+      </view>
+      <text class="document-workbench__explain">输入、录音和 OCR 会合并为同一份材料，AI 自动提取并归入“{{selectedTemplateName}}”对应章节。</text>
+      <text wx:if="{{materialFeedbackText}}" class="document-workbench__feedback">{{materialFeedbackText}}</text>
     </view>
 
     <form class="composer-box" bindsubmit="sendMessage">
@@ -199,7 +212,7 @@
 
       <textarea
         class="composer-textarea {{pendingPreviewItems.length ? 'composer-textarea--with-thumbs' : ''}}"
-        placeholder="描述需求，可粘贴原始内容；图片将作为附件上传"
+        placeholder="粘贴或输入零散记录，AI 会按当前模板自动整理"
         placeholder-class="composer-placeholder"
         value="{{inputText}}"
         bindinput="onInput"
@@ -230,14 +243,15 @@
             /></view><text class="composer-tool__label">模板</text>
           </view>
         </view>
-        <button wx:if="{{sending}}" class="composer-stop" bindtap="stopGeneration"><t-icon name="pause" size="30rpx" color="#FFFFFF" /></button>
+        <button wx:if="{{sending}}" class="composer-stop {{selectedTemplateId ? 'composer-stop--wide' : ''}}" bindtap="stopGeneration"><t-icon name="pause" size="28rpx" color="#FFFFFF" /><text wx:if="{{selectedTemplateId}}">停止</text></button>
         <button
           wx:else
-          class="composer-send {{canSend ? 'composer-send--active' : ''}}"
+          class="composer-send {{selectedTemplateId ? 'composer-send--document' : ''}} {{canSend ? 'composer-send--active' : ''}}"
           form-type="submit"
           disabled="{{!canSend || sending}}"
         >
-          <t-icon name="send-filled" size="30rpx" color="{{canSend ? '#FFFFFF' : 'rgba(0,0,0,0.28)'}}" />
+          <t-icon name="send-filled" size="28rpx" color="{{canSend ? '#FFFFFF' : 'rgba(0,0,0,0.28)'}}" />
+          <text wx:if="{{selectedTemplateId}}">生成文书</text>
         </button>
       </view>
     </form>
@@ -264,6 +278,7 @@
       <view class="template-confirm__handle"></view>
       <text class="template-confirm__title">确认用于生成的材料</text>
       <text class="template-confirm__hint">AI 会先从下面的零散记录和附件中提取事实，再按“{{selectedTemplateName}}”组织成可直接核对的正式文书；不会只是复述字段。</text>
+      <view class="template-confirm__sources"><t-icon name="check-circle" size="26rpx" color="#18A872" /><text>{{templateConfirmSources}}</text></view>
       <scroll-view scroll-y class="template-confirm__preview"><text selectable>{{templateConfirmPreview}}</text></scroll-view>
       <view class="template-confirm__notice"><t-icon name="info-circle" size="28rpx" color="#8A5A00" /><text>请确认内容中没有需要删除或更正的信息</text></view>
       <view class="template-confirm__actions">

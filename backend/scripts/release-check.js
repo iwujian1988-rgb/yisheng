@@ -101,8 +101,15 @@ function main() {
     "const js=fs.readFileSync('pages/ai/detail.js','utf8'); const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8'); const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8'); const direct=fs.readFileSync('backend/src/modules/direct-ai-chat.js','utf8'); const agent=fs.readFileSync('agent-service/app/agents/text.py','utf8');",
     "if(!js.includes('stripEmptyTemplateFields') || !js.includes('wx.onKeyboardHeightChange')) throw new Error('AI composer must filter empty template labels and track keyboard height');",
     "if(!wxml.includes('style=\"{{composerBottomStyle}}\"') || !wxml.includes('adjust-position=\"{{false}}\"')) throw new Error('AI composer keyboard positioning regressed');",
-    "if(!wxss.includes('grid-template-columns: minmax(0, 1fr) 64rpx') || !wxss.includes('z-index: 10020')) throw new Error('AI send button or confirmation sheet layout regressed');",
+    "if(!wxss.includes('grid-template-columns: minmax(0, 1fr) auto') || !wxss.includes('z-index: 10020')) throw new Error('AI send button or confirmation sheet layout regressed');",
     "if(!direct.includes('Omit empty sections and field labels') || !agent.includes('正文只保留有事实内容的章节')) throw new Error('Template generation must produce a document instead of echoing empty fields');"
+  ].join(' '));
+  runNodeEval('AI_DOCUMENT_WORKBENCH', [
+    "const fs=require('fs');",
+    "const js=fs.readFileSync('pages/ai/detail.js','utf8'); const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8'); const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8');",
+    "if(!js.includes('buildMaterialSummary') || !js.includes('OCR 已加入') || !js.includes('录音转写已加入')) throw new Error('Document workbench must explain how sources join the selected template');",
+    "for(const text of ['1 选模板','2 加材料','3 生成','生成文书','templateConfirmSources']){if(!wxml.includes(text)) throw new Error('Document workbench missing: '+text);}",
+    "if(!wxss.includes('.document-workbench') || !wxss.includes('.document-workbench__materials.is-ready')) throw new Error('Document workbench states are missing');"
   ].join(' '));
   runNodeEval('AI_STREAM_DEVICE_PROOF_HEADER', [
     "const fs=require('fs');",

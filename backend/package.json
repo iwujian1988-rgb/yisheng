@@ -12,6 +12,7 @@
     "smoke:agent-fallback": "node scripts/agent-fallback-smoke.js",
     "smoke:trial-flow": "node scripts/trial-flow-smoke.js",
     "smoke:ocr-worker": "node scripts/ocr-worker-smoke.js",
+    "eval:template-quality": "node scripts/template-quality-eval.js",
     "release:check": "node scripts/release-check.js",
     "test:ocr-image": "node scripts/ocr-image-test.js",
     "worker:ocr": "node workers/ocr-worker.example.js",
