@@ -96,6 +96,14 @@ function main() {
     "if(!client.includes(\"responseCode !== 'AUTH_REQUIRED'\") || !client.includes('getToken() !== expectedToken')) throw new Error('401 handling must reject stale or non-auth responses');",
     "if(!app.includes('previousBleLinkReady') || !app.includes('bleLink.markBleLinkReady(previousBleDeviceId)')) throw new Error('Login must preserve an existing BLE link');"
   ].join(' '));
+  runNodeEval('AI_TEMPLATE_DOCUMENT_WORKFLOW', [
+    "const fs=require('fs');",
+    "const js=fs.readFileSync('pages/ai/detail.js','utf8'); const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8'); const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8'); const direct=fs.readFileSync('backend/src/modules/direct-ai-chat.js','utf8'); const agent=fs.readFileSync('agent-service/app/agents/text.py','utf8');",
+    "if(!js.includes('stripEmptyTemplateFields') || !js.includes('wx.onKeyboardHeightChange')) throw new Error('AI composer must filter empty template labels and track keyboard height');",
+    "if(!wxml.includes('style=\"{{composerBottomStyle}}\"') || !wxml.includes('adjust-position=\"{{false}}\"')) throw new Error('AI composer keyboard positioning regressed');",
+    "if(!wxss.includes('grid-template-columns: minmax(0, 1fr) 64rpx') || !wxss.includes('z-index: 10020')) throw new Error('AI send button or confirmation sheet layout regressed');",
+    "if(!direct.includes('Omit empty sections and field labels') || !agent.includes('正文只保留有事实内容的章节')) throw new Error('Template generation must produce a document instead of echoing empty fields');"
+  ].join(' '));
   runNodeEval('AI_STREAM_DEVICE_PROOF_HEADER', [
     "const fs=require('fs');",
     "const source=fs.readFileSync('services/agent/chat.js','utf8');",

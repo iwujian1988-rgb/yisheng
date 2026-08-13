@@ -129,8 +129,21 @@ function buildConfirmedTemplateMessage(message) {
     '【用户已确认的生成材料】',
     message || '用户本次仅提供了附件材料。',
     '',
-    '请严格依据以上文字和附件中可识别的内容生成当前模板文书。未提供、未知或不确定的信息不得猜测或补写；先完成可生成部分，并在结果的待确认项中列出仍建议补充的字段。'
+    '请把以上文字和附件视为零散原始记录：先抽取事实，再归入当前模板的对应章节，并改写成连贯、可直接核对和编辑的正式文书。不要逐行复述输入，不要输出空字段、空标题、“未提供”或“待补充”占位正文。未提供、未知或不确定的信息不得猜测；只在【待确认】中集中列出少量确实影响文书质量的补充项。'
   ].join('\n');
+}
+
+function stripEmptyTemplateFields(text, fields) {
+  var labels = (fields || []).map(function (item) {
+    return String(item && item.label || '').trim();
+  }).filter(Boolean);
+  return String(text || '').split(/\r?\n/).filter(function (line) {
+    var value = String(line || '').trim();
+    if (!value) return true;
+    return !labels.some(function (label) {
+      return value === label || value === label + '：' || value === label + ':';
+    });
+  }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 function hasFailedAttachment(attachments) {
@@ -356,11 +369,17 @@ Page({
     streamingMessageId: '',
     recognizingAttachments: false,
     activeStreamTask: null,
-    cancelledMessageId: ''
+    cancelledMessageId: '',
+    composerBottomStyle: ''
   },
 
   onLoad: function (options) {
     var that = this;
+    this._keyboardHeightHandler = function (res) {
+      var height = Math.max(0, Number(res && res.height || 0));
+      that.setData({ composerBottomStyle: height ? ('bottom:' + height + 'px;') : '' });
+    };
+    if (wx.onKeyboardHeightChange) wx.onKeyboardHeightChange(this._keyboardHeightHandler);
     featureEntitlements.guardAiFeature('aiWriting', '智能创作').then(function (ok) {
       if (!ok) {
         wx.navigateBack({ fail: function () { wx.reLaunch({ url: '/pages/home/home' }); } });
@@ -663,7 +682,8 @@ Page({
   },
 
   refreshSendState: function () {
-    var hasText = String(this.data.inputText || '').trim().length > 0;
+    var materialText = stripEmptyTemplateFields(this.data.inputText, this.data.templateGuideFields);
+    var hasText = materialText.length > 0;
     var attachments = this.data.pendingAttachments || [];
     var hasAttachment = attachments.length > 0;
     var recognizing = hasRecognizingAttachment(attachments);
@@ -683,9 +703,16 @@ Page({
 
     var message = String(options.message !== undefined ? options.message : this.data.inputText || '').trim();
     var attachments = options.attachments || (this.data.pendingAttachments || []).slice();
-    if (!message && !attachments.length) return;
     var isDocumentRevision = Boolean(options.applyToDocumentId);
     var templateId = options.templateId !== undefined ? options.templateId : (this.data.selectedTemplateId || '');
+    if (templateId && !isDocumentRevision) {
+      message = stripEmptyTemplateFields(message, this.data.templateGuideFields);
+    }
+    if (!message && !attachments.length) {
+      wx.showToast({ title: '请提供一段记录或至少填写一项', icon: 'none' });
+      this.refreshSendState();
+      return;
+    }
     if (templateId && !isDocumentRevision && !options.skipTemplateConfirm) {
       this._pendingTemplateSend = { message: message, attachments: attachments, templateId: templateId };
       this.setData({
@@ -1247,6 +1274,9 @@ Page({
   },
 
   onUnload: function () {
+    if (this._keyboardHeightHandler && wx.offKeyboardHeightChange) {
+      wx.offKeyboardHeightChange(this._keyboardHeightHandler);
+    }
     var task = this.data.activeStreamTask;
     if (task && typeof task.abort === 'function') {
       task.abort();

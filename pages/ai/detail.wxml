@@ -143,7 +143,7 @@
     </t-chat-list>
   </view>
 
-  <view class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}">
+  <view class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}" style="{{composerBottomStyle}}">
     <view wx:if="{{selectedTemplateName}}" class="composer-meta">
       <view class="composer-meta__main">
         <t-icon name="template" size="28rpx" color="#6F3DFF" />
@@ -208,8 +208,8 @@
         confirm-hold="false"
         maxlength="5000"
         show-confirm-bar="{{true}}"
-        adjust-position="{{true}}"
-        cursor-spacing="24"
+        adjust-position="{{false}}"
+        cursor-spacing="16"
         hold-keyboard="{{false}}"
       />
       <view class="composer-toolbar">
@@ -263,7 +263,7 @@
     <view class="template-confirm" catchtap="noop">
       <view class="template-confirm__handle"></view>
       <text class="template-confirm__title">确认用于生成的材料</text>
-      <text class="template-confirm__hint">AI 将只依据下面这份材料和附件生成“{{selectedTemplateName}}”。没有提供的字段不会猜测，生成后可继续补充。</text>
+      <text class="template-confirm__hint">AI 会先从下面的零散记录和附件中提取事实，再按“{{selectedTemplateName}}”组织成可直接核对的正式文书；不会只是复述字段。</text>
       <scroll-view scroll-y class="template-confirm__preview"><text selectable>{{templateConfirmPreview}}</text></scroll-view>
       <view class="template-confirm__notice"><t-icon name="info-circle" size="28rpx" color="#8A5A00" /><text>请确认内容中没有需要删除或更正的信息</text></view>
       <view class="template-confirm__actions">

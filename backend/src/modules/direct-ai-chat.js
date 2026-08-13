@@ -32,8 +32,11 @@ function buildMessages(data, agentType) {
   }
   if (data.template || data.baseline_fields) {
     system.push([
+      'Treat the user input as unstructured source notes: extract facts, map them into the matching template sections, and write a coherent professional document instead of echoing field labels or copying the notes line by line.',
       'For structured templates, draft from the information already provided instead of requiring every field before writing.',
-      'Do not invent facts. Mark unavailable values as "未提供" or "不详", or list them once under "待补充".',
+      'Omit empty sections and field labels from the document body. Never fill the body with "未提供", "不详", "待补充", blank placeholders, or a checklist of every template field.',
+      'Do not invent facts. Put only a few material omissions that genuinely affect usefulness under one concise "待确认" section.',
+      'Use the template sample as a style and organization reference, never as patient facts.',
       'If the user says "没有", "不清楚", "未知", or "未提供", treat that field as unavailable and do not ask for it again.',
       'Use the conversation history as the source of truth. Ask at most one concise clarification only when it is essential; otherwise provide the best editable partial draft.'
     ].join(' '));
