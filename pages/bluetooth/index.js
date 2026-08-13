@@ -1,4 +1,5 @@
 var binding = require('../../services/device/binding');
+var bleLink = require('../../services/device/ble-link');
 var bleProtocol = require('../../utils/ble/protocol');
 
 var DEVICE_NAME_KEYWORDS = ['BLE', 'VUC', 'HID', '舒克', 'DEV', 'YS-'];
@@ -46,6 +47,53 @@ Page({
       this.initBluetooth(() => this.startScan());
       return;
     }
+    var that = this;
+    this.recoverConnectedDevice(function (recovered) {
+      if (!recovered) that.startDiscovery();
+    });
+  },
+
+  recoverConnectedDevice: function (callback) {
+    var that = this;
+    if (typeof wx.getConnectedBluetoothDevices !== 'function') {
+      callback(false);
+      return;
+    }
+
+    wx.getConnectedBluetoothDevices({
+      services: [bleProtocol.SERVICE_ID],
+      success: function (res) {
+        var devices = res.devices || [];
+        var storedDeviceId = bleLink.getStoredBleDeviceId();
+        var matched = null;
+        for (var i = 0; i < devices.length; i++) {
+          var device = devices[i];
+          var name = device.name || device.localName || '';
+          if ((storedDeviceId && device.deviceId === storedDeviceId) || that.isTargetDevice(name)) {
+            matched = { deviceId: device.deviceId, name: name };
+            break;
+          }
+        }
+        if (!matched) {
+          callback(false);
+          return;
+        }
+
+        that.setData({
+          status: 'connecting',
+          statusText: '正在恢复已连接设备...',
+          connectedDeviceId: matched.deviceId
+        });
+        that.verifyServices(matched.deviceId, matched.name);
+        callback(true);
+      },
+      fail: function () {
+        callback(false);
+      }
+    });
+  },
+
+  startDiscovery: function () {
     var that = this;
     this.foundDevices = {};
     this.setData({ status: 'scanning', statusText: '扫描中...', devices: [] });
@@ -185,7 +233,9 @@ Page({
 
       // Keep the verified link alive; the transfer page can discover
       // characteristics on this existing connection.
-      wx.setStorageSync('pendingBleConnect', deviceId);
+      bleLink.markBleLinkReady(deviceId);
+      if (app && app.globalData) app.globalData.pendingBleConnect = deviceId;
+      wx.removeStorageSync('pendingBleConnect');
       that.setData({ connectedDeviceId: '' });
       that.setData({ status: 'connected', statusText: '连接成功', connectedDeviceName: deviceName });
       wx.showToast({ title: '连接成功', icon: 'success' });

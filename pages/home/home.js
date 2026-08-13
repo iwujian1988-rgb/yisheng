@@ -66,6 +66,7 @@ Page({
     this.refreshSpeedMode();
     this.refreshGreeting();
     this.refreshDeviceStatus();
+    this.resumePendingBleConnection();
     this.refreshMemberStatus();
     this.showGuidePosterOnce();
     const draft = draftService.consumeDraft();
@@ -157,6 +158,16 @@ Page({
 
   onClearTap() {
     this.updateInputText('');
+  },
+
+  resumePendingBleConnection() {
+    const app = typeof getApp === 'function' ? getApp() : null;
+    const pendingDeviceId = app && app.globalData && app.globalData.pendingBleConnect;
+    if (!pendingDeviceId) return;
+
+    app.globalData.pendingBleConnect = '';
+    this.manualDisconnect = false;
+    this.resumeBleConnection();
   },
 
   openFullscreen() {

@@ -88,7 +88,9 @@ function main() {
   runNodeEval('AI_WORKSPACE_STARTUP_SEQUENCE', [
     "const fs=require('fs');",
     "const home=fs.readFileSync('pages/home/home.js','utf8'); const ai=fs.readFileSync('pages/ai/detail.js','utf8'); const client=fs.readFileSync('services/api/client.js','utf8'); const app=fs.readFileSync('app.js','utf8');",
-    "if(home.includes('this.resumePendingBleConnection()')) throw new Error('Home startup must not request Bluetooth access');",
+    "if(!home.includes('this.resumePendingBleConnection()') || !home.includes('app.globalData.pendingBleConnect')) throw new Error('Home must adopt a user-initiated BLE connection handoff');",
+    "if(home.includes('bleLink.shouldAutoReconnect()')) throw new Error('Home cold startup must not automatically request Bluetooth access');",
+    "const bluetooth=fs.readFileSync('pages/bluetooth/index.js','utf8'); if(!bluetooth.includes('recoverConnectedDevice') || !bluetooth.includes('bleLink.markBleLinkReady(deviceId)')) throw new Error('Bluetooth page must recover and publish an existing verified link');",
     "if(!ai.includes('prepareProfessionalContext') || !ai.includes('liveHeartbeat.tick()') || !ai.includes('AI_WORKSPACE_DRAFT_KEY')) throw new Error('AI workspace must synchronize professional access and preserve drafts');",
     "if(ai.includes('templateCatalog.listTemplates()')) throw new Error('AI workspace must not issue a delayed fallback template request');",
     "if(!client.includes(\"responseCode !== 'AUTH_REQUIRED'\") || !client.includes('getToken() !== expectedToken')) throw new Error('401 handling must reject stale or non-auth responses');",

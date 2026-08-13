@@ -17,6 +17,7 @@ App({
     bleDeviceId: '',
     bleDeviceName: '',
     bleLinkReady: false,
+    pendingBleConnect: '',
     deviceSessionToken: '',
     deviceSessionExpiresAt: '',
     // 生产环境：替换为你的 HTTPS 域名（微信公众平台 request 合法域名要与此一致）
@@ -92,6 +93,7 @@ App({
     this.globalData.bleDeviceId = '';
     this.globalData.bleDeviceName = '';
     this.globalData.bleLinkReady = false;
+    this.globalData.pendingBleConnect = '';
     this.globalData.transferDemoActive = false;
     this.globalData.deviceSessionToken = '';
     this.globalData.deviceSessionExpiresAt = '';
