@@ -9,6 +9,7 @@
     >
       <view class="tab-bar-item__icon-box">
         <t-icon
+          t-class="tab-bar-item__icon"
           name="{{selected === index ? item.activeIcon : item.icon}}"
           size="44rpx"
           color="{{selected === index ? selectedColor : color}}"

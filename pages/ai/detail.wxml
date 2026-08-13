@@ -206,16 +206,16 @@
       />
       <view class="composer-toolbar">
         <view class="composer-toolbar__left">
-          <view class="composer-tool" catchtap="goVoice"><view class="composer-tool__icon"><t-icon name="microphone" size="38rpx" color="#47516A" /></view>
+          <view class="composer-tool" catchtap="goVoice"><view class="composer-tool__icon"><t-icon t-class="composer-tool__glyph" name="microphone" size="38rpx" color="#47516A" /></view>
             <text class="composer-tool__label">录音</text>
           </view>
-          <view class="composer-tool" catchtap="goImage"><view class="composer-tool__icon"><t-icon name="camera" size="38rpx" color="#47516A" /></view>
+          <view class="composer-tool" catchtap="goImage"><view class="composer-tool__icon"><t-icon t-class="composer-tool__glyph" name="camera" size="38rpx" color="#47516A" /></view>
             <text class="composer-tool__label">拍照/OCR</text>
           </view>
           <view
             class="composer-tool {{selectedTemplateId ? 'composer-tool--active' : ''}}"
             catchtap="openTemplatePicker"
-          ><view class="composer-tool__icon"><t-icon
+          ><view class="composer-tool__icon"><t-icon t-class="composer-tool__glyph"
               name="template"
               size="38rpx"
               color="{{selectedTemplateId ? '#6F3DFF' : 'rgba(0,0,0,0.55)'}}"

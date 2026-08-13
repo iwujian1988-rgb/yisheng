@@ -20,8 +20,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4rpx;
+  justify-content: flex-start;
+  gap: 0;
   height: 100rpx;
   padding: 6rpx 0 4rpx;
   box-sizing: border-box;
@@ -35,14 +35,26 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 48rpx;
+  margin-top: 8rpx;
   line-height: 0;
+}
+
+.tab-bar-item__icon {
+  display: flex !important;
+  width: 44rpx !important;
+  height: 44rpx !important;
+  flex: 0 0 44rpx;
+  line-height: 1 !important;
+  vertical-align: top !important;
 }
 
 .tab-bar-item__text {
   display: block;
   width: 100%;
   font-size: 20rpx;
-  line-height: 26rpx;
+  height: 28rpx;
+  margin-top: 4rpx;
+  line-height: 28rpx;
   text-align: center;
   color: #8B94AC;
 }
