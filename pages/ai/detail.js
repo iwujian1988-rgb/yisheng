@@ -167,6 +167,20 @@ function buildMaterialSummary(inputText, attachments, voiceTextChars) {
   };
 }
 
+function buildTemplateConfirmPreview(inputText, attachments, voiceTextChars) {
+  var text = String(inputText || '').trim();
+  var voiceChars = Math.min(text.length, Math.max(0, Number(voiceTextChars || 0)));
+  var parts = [];
+  if (text) {
+    parts.push((voiceChars ? '【输入与录音转写】' : '【输入文字】') + '\n' + text);
+  }
+  (attachments || []).forEach(function (item, index) {
+    var ocrText = String(item && item.ocrText || '').trim();
+    parts.push('【图片 ' + (index + 1) + ' 识别文字】\n' + (ocrText || '尚未提取到文字，将在生成时处理图片内容'));
+  });
+  return parts.join('\n\n') || '还没有可用于生成的材料';
+}
+
 function hasFailedAttachment(attachments) {
   return (attachments || []).some(function (item) {
     return item.ocrStatus === 'failed';
@@ -366,10 +380,11 @@ Page({
     visibleTemplateGuideFields: [],
     templateGuideExpanded: false,
     templateGuideHiddenCount: 0,
-    templateGuideAfterMessageId: '',
+    templateFieldsPanelVisible: false,
     templateConfirmVisible: false,
     templateConfirmPreview: '',
     templateConfirmSources: '',
+    templateConfirmImages: [],
     templatePickerVisible: false,
     templateSearchKeyword: '',
     templatePickerItems: [],
@@ -381,6 +396,7 @@ Page({
     confirmEditorTitle: '',
     confirmEditorHint: '',
     confirmEditorText: '',
+    confirmEditorMode: 'ai',
     pendingAttachments: [],
     pendingPreviewItems: [],
     maxPendingImages: MAX_PENDING_IMAGES,
@@ -397,7 +413,8 @@ Page({
     materialSummaryText: '还没有添加材料',
     materialReady: false,
     materialRecognizing: false,
-    materialFeedbackText: ''
+    materialFeedbackText: '',
+    documentTaskStartIndex: 0
   },
 
   onLoad: function (options) {
@@ -519,7 +536,6 @@ Page({
     }
 
     var selectedTemplate = selectedTemplateId ? templates[selectedIndex] : null;
-    var keepExistingGuideAnchor = selectedTemplateId && this.data.selectedTemplateId === selectedTemplateId;
     this.setData(Object.assign({
       templates: templates,
       templateNames: names,
@@ -527,10 +543,7 @@ Page({
       selectedTemplateId: selectedTemplateId,
       selectedTemplateName: selectedTemplateName,
       templateLabel: templateLabel,
-      templatePickerItems: this.buildTemplatePickerItems(templates, ''),
-      templateGuideAfterMessageId: keepExistingGuideAnchor
-        ? this.data.templateGuideAfterMessageId
-        : (((this.data.messages || []).slice(-1)[0] || {}).id || '')
+      templatePickerItems: this.buildTemplatePickerItems(templates, '')
     }, buildTemplateGuideState(selectedTemplate, false)), this.persistWorkspaceDraft.bind(this));
   },
 
@@ -627,7 +640,8 @@ Page({
       selectedTemplateId: selected ? selected.id : '',
       selectedTemplateName: selected ? selected.name : '',
       templateLabel: selected ? ('已选：' + selected.name) : '选择模板（可选）',
-      templateGuideAfterMessageId: (((this.data.messages || []).slice(-1)[0] || {}).id || '')
+      templateFieldsPanelVisible: false,
+      documentTaskStartIndex: (this.data.messages || []).length
     }, buildTemplateGuideState(selected, false)), function () {
       this.persistWorkspaceDraft();
       this.refreshMaterialSummary();
@@ -653,7 +667,9 @@ Page({
       templateConfirmVisible: false,
       templateConfirmPreview: '',
       templateConfirmSources: '',
-      templateGuideAfterMessageId: ''
+      templateConfirmImages: [],
+      templateFieldsPanelVisible: false,
+      documentTaskStartIndex: (this.data.messages || []).length
     }, buildTemplateGuideState(null, false)), this.persistWorkspaceDraft.bind(this));
   },
 
@@ -661,6 +677,10 @@ Page({
     var selected = this.data.selectedTemplate;
     if (!selected) return;
     this.setData(buildTemplateGuideState(selected, !this.data.templateGuideExpanded));
+  },
+
+  toggleTemplateFieldsPanel: function () {
+    this.setData({ templateFieldsPanelVisible: !this.data.templateFieldsPanelVisible });
   },
 
   insertTemplateField: function (e) {
@@ -687,14 +707,14 @@ Page({
 
   closeTemplateConfirm: function () {
     this._pendingTemplateSend = null;
-    this.setData({ templateConfirmVisible: false, templateConfirmPreview: '', templateConfirmSources: '' });
+    this.setData({ templateConfirmVisible: false, templateConfirmPreview: '', templateConfirmSources: '', templateConfirmImages: [] });
   },
 
   confirmTemplateSubmission: function () {
     var pending = this._pendingTemplateSend;
     if (!pending) return;
     this._pendingTemplateSend = null;
-    this.setData({ templateConfirmVisible: false, templateConfirmPreview: '', templateConfirmSources: '' });
+    this.setData({ templateConfirmVisible: false, templateConfirmPreview: '', templateConfirmSources: '', templateConfirmImages: [] });
     this.sendMessage(Object.assign({}, pending, { skipTemplateConfirm: true }));
   },
 
@@ -766,14 +786,21 @@ Page({
       this._pendingTemplateSend = { message: message, attachments: attachments, templateId: templateId };
       this.setData({
         templateConfirmVisible: true,
-        templateConfirmPreview: message || ('已添加 ' + attachments.length + ' 张图片'),
-        templateConfirmSources: buildMaterialSummary(message, attachments, this.data.voiceTextChars).materialSummaryText
+        templateConfirmPreview: buildTemplateConfirmPreview(message, attachments, this.data.voiceTextChars),
+        templateConfirmSources: buildMaterialSummary(message, attachments, this.data.voiceTextChars).materialSummaryText,
+        templateConfirmImages: attachmentsToPreviewItems(attachments)
       });
       return;
     }
     var apiMessage = templateId && !isDocumentRevision ? buildConfirmedTemplateMessage(message) : message;
     var visibleMessage = isDocumentRevision ? '正在按补充信息修订文书' : message;
-    var conversationHistory = buildConversationHistory(this.data.messages);
+    // A template generation is one independent document task. Never let a previous
+    // document silently become source material for the next one. Revisions include
+    // their target document explicitly in the request below.
+    var taskMessages = templateId
+      ? (this.data.messages || []).slice(Number(this.data.documentTaskStartIndex || 0))
+      : this.data.messages;
+    var conversationHistory = buildConversationHistory(taskMessages);
 
     var userMessage = createMessage('user', visibleMessage, {
       chatContent: buildUserChatContent(visibleMessage, attachments),
@@ -921,6 +948,7 @@ Page({
       sending: false,
       sendingStageLabel: '',
       streamingMessageId: '',
+      documentTaskStartIndex: request.templateId ? this.data.messages.length : this.data.documentTaskStartIndex,
       messages: updateMessageById(this.data.messages, messageId, {
         status: 'complete',
         resultText: finalResult.resultText || bodyText,
@@ -1143,7 +1171,15 @@ Page({
     var latest = this.data.messages.find(function (message) { return message.id === e.currentTarget.dataset.id; });
     var text = String(latest && latest.bodyText || '').trim();
     if (!text) return;
-    this.setData({ inputText: text }, this.refreshSendState.bind(this));
+    this.setData({
+      confirmEditorVisible: true,
+      confirmEditorMode: 'direct',
+      confirmEditorMessageId: latest.id,
+      confirmEditorIndex: -1,
+      confirmEditorTitle: '编辑正文',
+      confirmEditorHint: '直接修改文字并保存，不会再次调用 AI。',
+      confirmEditorText: text
+    });
   },
 
   openConfirmEditor: function (e) {
@@ -1154,6 +1190,7 @@ Page({
     if (!confirm) return;
     this.setData({
       confirmEditorVisible: true,
+      confirmEditorMode: 'ai',
       confirmEditorMessageId: messageId,
       confirmEditorIndex: itemIndex,
       confirmEditorTitle: '核实并修订',
@@ -1165,6 +1202,7 @@ Page({
   openDocumentRevision: function (e) {
     this.setData({
       confirmEditorVisible: true,
+      confirmEditorMode: 'ai',
       confirmEditorMessageId: e.currentTarget.dataset.id,
       confirmEditorIndex: -1,
       confirmEditorTitle: '修订当前文书',
@@ -1174,11 +1212,37 @@ Page({
   },
 
   closeConfirmEditor: function () {
-    this.setData({ confirmEditorVisible: false, confirmEditorText: '' });
+    this.setData({ confirmEditorVisible: false, confirmEditorText: '', confirmEditorMode: 'ai' });
   },
 
   onConfirmEditorInput: function (e) {
     this.setData({ confirmEditorText: e.detail.value || '' });
+  },
+
+  applyDocumentChange: function () {
+    if (this.data.confirmEditorMode !== 'direct') {
+      this.applyDocumentRevision();
+      return;
+    }
+    var messageId = this.data.confirmEditorMessageId;
+    var text = String(this.data.confirmEditorText || '').trim();
+    if (!text) {
+      wx.showToast({ title: '正文不能为空', icon: 'none' });
+      return;
+    }
+    this.setData({
+      confirmEditorVisible: false,
+      confirmEditorText: '',
+      confirmEditorMode: 'ai',
+      messages: updateMessageById(this.data.messages, messageId, {
+        bodyText: text,
+        resultText: text,
+        content: text,
+        revisedAt: Date.now()
+      })
+    }, function () {
+      wx.showToast({ title: '修改已保存', icon: 'success' });
+    });
   },
 
   applyDocumentRevision: function () {
@@ -1277,7 +1341,24 @@ Page({
   },
 
   fillQuickPrompt: function (e) {
+    if (e.currentTarget.dataset.action === 'template') {
+      this.openTemplatePicker();
+      return;
+    }
     this.setData({ inputText: e.currentTarget.dataset.prompt || '' }, this.refreshSendState.bind(this));
+  },
+
+  startNewDocument: function () {
+    var hasCurrentWork = Boolean((this.data.messages || []).length || this.data.materialReady);
+    if (!hasCurrentWork) return;
+    wx.showModal({
+      title: '新建一份内容？',
+      content: '当前对话和未提交材料会从本页清除，已选模板会保留。',
+      confirmText: '确认新建',
+      success: function (res) {
+        if (res.confirm) this.clearSession();
+      }.bind(this)
+    });
   },
 
   saveTemplateDraft: function (e) {
@@ -1340,7 +1421,8 @@ Page({
       streamingMessageId: '',
       activeStreamTask: null,
       cancelledMessageId: '',
-      templateGuideAfterMessageId: ''
+      templateFieldsPanelVisible: false,
+      documentTaskStartIndex: 0
     }, function () {
       this.persistWorkspaceDraft();
       this.refreshSendState();

@@ -1,28 +1,5 @@
-<template name="templateGuideCard">
-  <view class="template-guide">
-    <view class="template-guide__head">
-      <view class="template-guide__title-wrap">
-        <view class="template-guide__icon"><t-icon name="template" size="30rpx" color="#6F3DFF" /></view>
-        <view><text class="template-guide__eyebrow">当前文书模板</text><text class="template-guide__title">{{selectedTemplateName}}</text></view>
-      </view>
-      <text class="template-guide__change" bindtap="openTemplatePicker">更换</text>
-    </view>
-    <text class="template-guide__desc">按你掌握的情况提供即可，所有字段都可以跳过。AI 只使用你确认过的材料生成，完成后再提示可补充项。</text>
-    <view wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__fields">
-      <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}}" data-label="{{item.label}}" bindtap="insertTemplateField">
-        <text class="template-field__label">{{item.label}}</text><text class="template-field__add">＋</text>
-      </view>
-    </view>
-    <text wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__legend">紫色字段建议优先提供，但不代表必填</text>
-    <view class="template-guide__actions">
-      <text wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__primary" bindtap="insertTemplateOutline">插入填写提纲</text>
-      <text wx:if="{{templateGuideFields.length > 8}}" class="template-guide__secondary" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起字段' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text>
-    </view>
-  </view>
-</template>
-
 <view class="detail-page">
-  <view class="detail-chat-wrap {{selectedTemplateId ? 'detail-chat-wrap--workbench' : ''}} {{pendingPreviewItems.length ? 'detail-chat-wrap--tall-composer' : ''}}">
+  <view class="detail-chat-wrap {{selectedTemplateId ? 'detail-chat-wrap--workbench' : ''}} {{pendingPreviewItems.length ? 'detail-chat-wrap--tall-composer' : ''}} {{templateFieldsPanelVisible ? 'detail-chat-wrap--fields-open' : ''}}">
     <t-chat-list
       id="chatList"
       class="detail-chat-list"
@@ -36,7 +13,7 @@
           <text class="welcome-desc">输入、粘贴、拍照或录音后，AI 会整理为可核对的文书草稿。</text>
           <view class="quick-prompts">
             <text class="quick-prompt" data-prompt="请整理以下文本记录：" bindtap="fillQuickPrompt">整理文本记录</text>
-            <text class="quick-prompt" data-prompt="请按当前模板生成草稿：" bindtap="fillQuickPrompt">按模板生成</text>
+            <text class="quick-prompt" data-action="template" bindtap="fillQuickPrompt">选择模板整理</text>
             <text class="quick-prompt" data-prompt="请提取这段记录的重点：" bindtap="fillQuickPrompt">提取重点</text>
           </view>
         </view>
@@ -49,12 +26,6 @@
       <view wx:elif="{{templatesLoadError}}" class="template-load-state template-load-state--error" bindtap="prepareWorkspace">
         <text>{{templatesLoadError}}，点击重试</text>
       </view>
-
-      <template
-        wx:if="{{selectedTemplateId && !templateGuideAfterMessageId}}"
-        is="templateGuideCard"
-        data="{{selectedTemplateName, visibleTemplateGuideFields, templateGuideFields, templateGuideExpanded, templateGuideHiddenCount}}"
-      />
 
       <block wx:for="{{messages}}" wx:key="id">
         <view wx:if="{{item.role === 'user'}}" class="user-message-row">
@@ -80,9 +51,9 @@
               </view>
             </view>
             <view class="document-card__actions">
-              <text bindtap="openDocumentRevision" data-id="{{item.id}}">重新生成</text>
-              <text bindtap="editResult" data-id="{{item.id}}">继续修改</text>
-              <text bindtap="useResult" data-id="{{item.id}}">发送到电脑</text>
+              <text class="document-card__action-more" bindtap="openDocumentRevision" data-id="{{item.id}}">让 AI 修改</text>
+              <text bindtap="editResult" data-id="{{item.id}}">编辑正文</text>
+              <text class="document-card__action-primary" bindtap="useResult" data-id="{{item.id}}">核对并使用</text>
             </view>
           </view>
         </view>
@@ -122,11 +93,6 @@
             >保存为模板</text>
           </view>
         </t-chat-message>
-        <template
-          wx:if="{{selectedTemplateId && item.id === templateGuideAfterMessageId}}"
-          is="templateGuideCard"
-          data="{{selectedTemplateName, visibleTemplateGuideFields, templateGuideFields, templateGuideExpanded, templateGuideHiddenCount}}"
-        />
       </block>
 
       <view wx:if="{{sending && sendingStageLabel}}" class="sending-status">
@@ -150,19 +116,27 @@
           <view class="document-workbench__icon"><t-icon name="template" size="28rpx" color="#6F3DFF" /></view>
           <view><text class="document-workbench__eyebrow">正在准备文书</text><text class="document-workbench__title">{{selectedTemplateName}}</text></view>
         </view>
-        <text class="document-workbench__change" catchtap="openTemplatePicker">更换</text>
-      </view>
-      <view class="document-workbench__steps">
-        <text class="document-workbench__step is-done">1 选模板</text><text class="document-workbench__line"></text>
-        <text class="document-workbench__step {{materialReady ? 'is-done' : 'is-current'}}">2 加材料</text><text class="document-workbench__line"></text>
-        <text class="document-workbench__step {{materialReady && !materialRecognizing ? 'is-current' : ''}}">3 生成</text>
+        <view class="document-workbench__head-actions"><text catchtap="startNewDocument">新建</text><text class="document-workbench__change" catchtap="openTemplatePicker">更换</text></view>
       </view>
       <view class="document-workbench__materials {{materialReady ? 'is-ready' : ''}}">
         <t-icon name="{{materialReady ? 'check-circle' : 'info-circle'}}" size="26rpx" color="{{materialReady ? '#18A872' : '#64739A'}}" />
         <text>{{materialSummaryText}}</text>
       </view>
-      <text class="document-workbench__explain">输入、录音和 OCR 会合并为同一份材料，AI 自动提取并归入“{{selectedTemplateName}}”对应章节。</text>
+      <view class="document-workbench__links">
+        <text catchtap="toggleTemplateFieldsPanel">{{templateFieldsPanelVisible ? '收起参考字段' : '查看参考字段'}}</text>
+        <text>输入、录音和 OCR 将合并整理</text>
+      </view>
       <text wx:if="{{materialFeedbackText}}" class="document-workbench__feedback">{{materialFeedbackText}}</text>
+      <view wx:if="{{templateFieldsPanelVisible}}" class="document-workbench__fields">
+        <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}}" data-label="{{item.label}}" bindtap="insertTemplateField">
+          <text class="template-field__label">{{item.label}}</text><text class="template-field__add">＋</text>
+        </view>
+        <view class="document-workbench__field-actions">
+          <text bindtap="insertTemplateOutline">插入填写提纲</text>
+          <text wx:if="{{templateGuideFields.length > 8}}" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起字段' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text>
+        </view>
+        <text class="document-workbench__field-note">字段仅用于辅助整理，均可跳过。</text>
+      </view>
     </view>
 
     <form class="composer-box" bindsubmit="sendMessage">
@@ -277,8 +251,11 @@
     <view class="template-confirm" catchtap="noop">
       <view class="template-confirm__handle"></view>
       <text class="template-confirm__title">确认用于生成的材料</text>
-      <text class="template-confirm__hint">AI 会先从下面的零散记录和附件中提取事实，再按“{{selectedTemplateName}}”组织成可直接核对的正式文书；不会只是复述字段。</text>
+      <text class="template-confirm__hint">下面是本次真正用于生成的全部材料。请核对后，AI 将按“{{selectedTemplateName}}”重新组织内容。</text>
       <view class="template-confirm__sources"><t-icon name="check-circle" size="26rpx" color="#18A872" /><text>{{templateConfirmSources}}</text></view>
+      <scroll-view wx:if="{{templateConfirmImages.length}}" scroll-x class="template-confirm__images" enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view class="template-confirm__images-row"><image wx:for="{{templateConfirmImages}}" wx:key="id" class="template-confirm__image" src="{{item.url}}" mode="aspectFill" data-url="{{item.url}}" bindtap="previewPendingImage" /></view>
+      </scroll-view>
       <scroll-view scroll-y class="template-confirm__preview"><text selectable>{{templateConfirmPreview}}</text></scroll-view>
       <view class="template-confirm__notice"><t-icon name="info-circle" size="28rpx" color="#8A5A00" /><text>请确认内容中没有需要删除或更正的信息</text></view>
       <view class="template-confirm__actions">
@@ -288,12 +265,12 @@
     </view>
   </view>
 
-  <view wx:if="{{confirmEditorVisible}}" class="confirm-editor-mask" catchtap="closeConfirmEditor">
+  <view wx:if="{{confirmEditorVisible}}" class="confirm-editor-mask" style="{{composerBottomStyle}}" catchtap="closeConfirmEditor">
     <view class="confirm-editor" catchtap="noop">
       <text class="confirm-editor__title">{{confirmEditorTitle}}</text>
       <text class="confirm-editor__hint">{{confirmEditorHint}}</text>
-      <textarea class="confirm-editor__textarea" value="{{confirmEditorText}}" placeholder="例如：补充时间或结果；删除不准确表述" maxlength="1000" auto-focus="{{true}}" bindinput="onConfirmEditorInput" />
-      <view class="confirm-editor__actions"><text bindtap="closeConfirmEditor">取消</text><text class="confirm-editor__submit" bindtap="applyDocumentRevision">确认并更新</text></view>
+      <textarea class="confirm-editor__textarea {{confirmEditorMode === 'direct' ? 'confirm-editor__textarea--document' : ''}}" value="{{confirmEditorText}}" placeholder="例如：补充时间或结果；删除不准确表述" maxlength="10000" auto-focus="{{true}}" adjust-position="{{false}}" cursor-spacing="16" bindinput="onConfirmEditorInput" />
+      <view class="confirm-editor__actions"><text bindtap="closeConfirmEditor">取消</text><text class="confirm-editor__submit" bindtap="applyDocumentChange">{{confirmEditorMode === 'direct' ? '保存正文' : '确认并更新'}}</text></view>
     </view>
   </view>
 </view>

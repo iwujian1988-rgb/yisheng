@@ -109,8 +109,15 @@ function main() {
     "const fs=require('fs');",
     "const js=fs.readFileSync('pages/ai/detail.js','utf8'); const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8'); const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8');",
     "if(!js.includes('buildMaterialSummary') || !js.includes('OCR 已加入') || !js.includes('录音转写已加入')) throw new Error('Document workbench must explain how sources join the selected template');",
-    "for(const text of ['1 选模板','2 加材料','3 生成','生成文书','templateConfirmSources']){if(!wxml.includes(text)) throw new Error('Document workbench missing: '+text);}",
-    "if(!wxss.includes('.document-workbench') || !wxss.includes('.document-workbench__materials.is-ready')) throw new Error('Document workbench states are missing');"
+    "for(const text of ['查看参考字段','输入、录音和 OCR 将合并整理','生成文书','templateConfirmSources','编辑正文','让 AI 修改']){if(!wxml.includes(text)) throw new Error('Document workbench missing: '+text);}",
+    "if(!js.includes('buildTemplateConfirmPreview') || !js.includes('documentTaskStartIndex') || !js.includes(\"confirmEditorMode: 'direct'\")) throw new Error('Document isolation, material review, or direct editing regressed');",
+    "if(!wxss.includes('.document-workbench') || !wxss.includes('.document-workbench__materials.is-ready') || !wxss.includes('.confirm-editor__textarea--document')) throw new Error('Document workbench states are missing');"
+  ].join(' '));
+  runNodeEval('PUBLIC_AI_COPY_GUARD', [
+    "const fs=require('fs');",
+    "const home=fs.readFileSync('pages/home/home.wxml','utf8'); const detail=fs.readFileSync('pages/ai/detail.wxml','utf8'); const js=fs.readFileSync('pages/ai/detail.js','utf8');",
+    "for(const word of ['医疗诊断','在线问诊','治疗建议','医生服务']) if(home.includes(word)||detail.includes(word)) throw new Error('public AI copy exposes regulated positioning: '+word);",
+    "if(!js.includes(\"item.audience === 'professional' && item.tag === 'official'\")) throw new Error('professional templates must remain hidden outside verified workspace');"
   ].join(' '));
   runNodeEval('AI_STREAM_DEVICE_PROOF_HEADER', [
     "const fs=require('fs');",
