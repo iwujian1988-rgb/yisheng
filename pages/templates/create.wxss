@@ -1,5 +1,5 @@
 @import "../ai/template-import.wxss";
 
 .picker-value {
-  line-height: 44px;
+  line-height: 88rpx;
 }

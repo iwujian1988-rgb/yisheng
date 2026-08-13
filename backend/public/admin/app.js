@@ -161,6 +161,7 @@ var viewTitles = {
   templateGuide: ['模板创建指南', '发给 AI 助手，让它帮你写模板 JSON'],
   quickActions: ['快捷任务', '维护 AI 聊天的任务芯片和提示词'],
   activationCodes: ['激活码', '导入和查看服务激活码'],
+  orderEntitlements: ['电商会员权益', '导入订单收货手机号，并按客服申请改绑'],
   auditLogs: ['审计日志', '查看后台关键操作记录']
 };
 
@@ -183,6 +184,9 @@ function statusLabel(value) {
     expired: '已过期',
     disabled: '已停用',
     pending: '待处理',
+    claimed: '已领取',
+    completed: '已完成',
+    hardware_only: '仅硬件',
     unused: '未使用',
     used: '已使用',
     draft: '草稿',
@@ -462,6 +466,48 @@ async function renderActivationCodes() {
   ], data.list);
 }
 
+async function renderOrderEntitlements() {
+  var data = await api('/api/admin/order-entitlements');
+  $('orderEntitlementsView').innerHTML = [
+    '<div class="toolbar"><div class="inline-form">',
+    '<input id="presetEntitlementPhone" placeholder="领取手机号">',
+    '<select id="presetEntitlementDays"><option value="365">AI 套餐：1 年</option><option value="730">AI 套餐：2 年</option><option value="36500">AI 套餐：永久（100 年）</option></select>',
+    '<button id="presetEntitlementBtn">预设 AI 权益</button>',
+    '</div><p class="hint">同一手机号已有待领取权益时，重新预设会覆盖原时长，不会创建重复记录。</p></div>',
+    '<div class="toolbar"><div class="inline-form">',
+    '<textarea id="orderEntitlementsText" class="short-textarea" placeholder="CSV: orderNo,receiverPhone,skuType,memberDays"></textarea>',
+    '<button id="importOrderEntitlementsBtn">导入权益</button>',
+    '</div><p class="hint">订单号只用于后台去重，不会在领取页展示。skuType 填 hardware_member 或 hardware_only。</p></div>',
+    '<div id="orderEntitlementsTable"></div>'
+  ].join('');
+  $('presetEntitlementBtn').onclick = function () { presetOrderEntitlement().catch(function (error) { alert(error.message); }); };
+  $('importOrderEntitlementsBtn').onclick = function () { importOrderEntitlements().catch(function (error) { alert(error.message); }); };
+  renderTable($('orderEntitlementsTable'), [
+    { key: 'skuType', label: 'SKU' },
+    { key: 'memberDays', label: '会员天数' },
+    { key: 'status', label: '状态', render: function (row) { return badgeForStatus(row.status); } },
+    { key: 'claimedAt', label: '领取时间' },
+    { key: 'updatedAt', label: '更新时间' }
+  ], data.items, function (row) {
+    return row.status === 'claimed' ? '' : '<button class="small" data-entitlement-id="' + escapeHtml(row.id) + '">改绑手机号</button>';
+  });
+  document.querySelectorAll('[data-entitlement-id]').forEach(function (button) {
+    button.onclick = function () { reassignEntitlement(button.dataset.entitlementId).catch(function (error) { alert(error.message); }); };
+  });
+}
+
+async function presetOrderEntitlement() {
+  var phone = $('presetEntitlementPhone').value.trim();
+  if (!/^1[3-9]\d{9}$/.test(phone)) { alert('请输入正确的领取手机号'); return; }
+  var memberDays = Number($('presetEntitlementDays').value);
+  await api('/api/admin/order-entitlements/preset', {
+    method: 'POST',
+    body: JSON.stringify({ phone: phone, memberDays: memberDays })
+  });
+  await renderOrderEntitlements();
+  alert('AI 权益已预设');
+}
+
 async function renderAuditLogs() {
   var data = await api('/api/admin/audit-logs');
   renderTable($('auditLogsView'), [
@@ -487,6 +533,7 @@ async function renderCurrentView() {
   if (state.currentView === 'templateGuide') renderTemplateGuide();
   if (state.currentView === 'quickActions') await renderQuickActions();
   if (state.currentView === 'activationCodes') await renderActivationCodes();
+  if (state.currentView === 'orderEntitlements') await renderOrderEntitlements();
   if (state.currentView === 'auditLogs') await renderAuditLogs();
 }
 
@@ -510,6 +557,25 @@ async function importActivationCode() {
     body: JSON.stringify({ codesText: codesText, memberDays: Number($('memberDaysInput').value || 365) })
   });
   await renderActivationCodes();
+}
+
+async function importOrderEntitlements() {
+  var ordersText = $('orderEntitlementsText').value.trim();
+  if (!ordersText) { alert('请输入 CSV 订单数据'); return; }
+  var result = await api('/api/admin/order-entitlements/import', { method: 'POST', body: JSON.stringify({ ordersText: ordersText }) });
+  await renderOrderEntitlements();
+  alert('已导入 ' + result.importedCount + ' 条；未导入 ' + result.rejected.length + ' 条');
+}
+
+async function reassignEntitlement(id) {
+  var receiverPhone = window.prompt('请输入新的领取手机号');
+  if (receiverPhone === null) return;
+  var reason = window.prompt('请填写客服改绑原因') || '';
+  await api('/api/admin/order-entitlements/' + encodeURIComponent(id) + '/recipient-phone', {
+    method: 'PATCH',
+    body: JSON.stringify({ receiverPhone: receiverPhone.trim(), reason: reason })
+  });
+  await renderOrderEntitlements();
 }
 
 async function createDevice() {

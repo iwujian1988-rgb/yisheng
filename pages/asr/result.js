@@ -48,6 +48,11 @@ Page({
     });
   },
 
+  copyResult() {
+    if (!this.data.resultText) return;
+    wx.setClipboardData({ data: this.data.resultText, success: () => wx.showToast({ title: '已复制', icon: 'success' }) });
+  },
+
   reRecord() {
     wx.navigateBack();
   }

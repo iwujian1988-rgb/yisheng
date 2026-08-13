@@ -1,13 +1,16 @@
 /* pages/compliance/checklist.wxss */
-.checklist-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px 48px; }
-.check-card { background-color: #FFFFFF; border-radius: 8px; padding: 4px 20px; margin-bottom: 16px; }
-.check-item { padding: 14px 0; border-bottom: 1px solid #F0F0F0; }
+.checklist-container { min-height: 100vh; background-color: #FCFBFF; padding: 32rpx 64rpx 96rpx; }
+.check-card { background-color: #FFFFFF; border-radius: 20rpx; padding: 8rpx 40rpx; margin-bottom: 32rpx;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
+}
+.check-item { padding: 28rpx 0; border-bottom: 2rpx solid rgba(111, 61, 255, 0.08); }
 .check-item:last-child { border-bottom: none; }
 .check-label { display: flex; align-items: flex-start; }
-.check-info { margin-left: 10px; flex: 1; }
-.check-title { font-size: 15px; color: #333333; font-weight: 500; display: block; margin-bottom: 4px; }
-.check-desc { font-size: 13px; color: #999999; display: block; }
-.progress-section { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; }
-.progress-bar { height: 8px; background-color: #F0F0F0; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
-.progress-fill { height: 100%; background-color: #52C41A; border-radius: 4px; }
-.progress-text { font-size: 13px; color: #666666; }
+.check-info { margin-left: 20rpx; flex: 1; }
+.check-title { font-size: 30rpx; color: #101936; font-weight: 500; display: block; margin-bottom: 8rpx; }
+.check-desc { font-size: 26rpx; color: #98A1B8; display: block; }
+.progress-section { background-color: #FFFFFF; border-radius: 20rpx; padding: 32rpx 40rpx; }
+.progress-bar { height: 16rpx; background-color: rgba(111, 61, 255, 0.08); border-radius: 20rpx; overflow: hidden; margin-bottom: 16rpx; }
+.progress-fill { height: 100%; background-color: #52C41A; border-radius: 20rpx; }
+.progress-text { font-size: 26rpx; color: #64739A; }

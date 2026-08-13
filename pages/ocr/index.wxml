@@ -8,7 +8,7 @@
         mode="aspectFit"
       />
       <view wx:else class="image-placeholder">
-        <t-icon name="scan" size="64rpx" color="#1677FF" />
+        <t-icon name="scan" size="64rpx" color="#6F3DFF" />
         <text class="placeholder-title">拍照或选择图片</text>
         <text class="placeholder-desc">选图后进入裁剪页，可旋转并调整范围</text>
       </view>
@@ -75,7 +75,7 @@
       disabled="{{!canConfirm}}"
       bind:tap="confirmResult"
     >
-      确认使用
+      使用识别文本
     </t-button>
   </view>
 </view>

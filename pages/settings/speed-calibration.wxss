@@ -1,44 +1,47 @@
 /* pages/settings/speed-calibration.wxss */
 .calibration-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px 48px;
+  background-color: #FCFBFF;
+  padding: 32rpx 64rpx 96rpx;
 }
 
 /* 卡片 */
 .card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 12px;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 24rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .card-title {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
   display: block;
-  margin-bottom: 14px;
+  margin-bottom: 28rpx;
 }
 
 .card-desc {
-  font-size: 14px;
-  color: #666666;
+  font-size: 28rpx;
+  color: #64739A;
   line-height: 1.6;
   display: block;
-  margin-bottom: 16px;
+  margin-bottom: 32rpx;
 }
 
 /* 档位列表 */
 .tier-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 32rpx;
 }
 
 .tier-item {
-  padding-bottom: 16px;
-  border-bottom: 1px solid #F0F0F0;
+  padding-bottom: 32rpx;
+  border-bottom: 2rpx solid rgba(111, 61, 255, 0.08);
 }
 
 .tier-item:last-child {
@@ -49,20 +52,20 @@
 .tier-header {
   display: flex;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 12rpx;
 }
 
 .tier-badge {
-  font-size: 12px;
+  font-size: 24rpx;
   font-weight: 500;
   color: #FFFFFF;
-  padding: 4px 10px;
-  border-radius: 4px;
-  margin-right: 10px;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  margin-right: 20rpx;
 }
 
 .badge-safe {
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
 }
 
 .badge-balanced {
@@ -74,25 +77,25 @@
 }
 
 .tier-name {
-  font-size: 14px;
+  font-size: 28rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
 }
 
 .tier-desc {
-  font-size: 13px;
-  color: #999999;
+  font-size: 26rpx;
+  color: #98A1B8;
   line-height: 1.6;
 }
 
 /* 校准按钮 */
 .calibrate-btn {
   width: 100%;
-  height: 44px;
-  border-radius: 8px;
-  font-size: 15px;
+  height: 88rpx;
+  border-radius: 999rpx;
+  font-size: 30rpx;
   font-weight: 500;
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
   color: #FFFFFF;
 }
 
@@ -102,7 +105,7 @@
 
 /* 结果 */
 .result-text {
-  font-size: 14px;
-  color: #333333;
+  font-size: 28rpx;
+  color: #101936;
   line-height: 1.8;
 }

@@ -1,54 +1,57 @@
 /* pages/settings/notifications.wxss */
 .notifications-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px;
+  background-color: #FCFBFF;
+  padding: 24rpx 32rpx;
 }
 
 .setting-card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 0 20px;
-  margin-bottom: 32px;
+  border-radius: 20rpx;
+  padding: 0 40rpx;
+  margin-bottom: 64rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .setting-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
+  padding: 32rpx 0;
 }
 
 .setting-left {
   flex: 1;
-  margin-right: 12px;
+  margin-right: 24rpx;
 }
 
 .setting-label {
-  font-size: 15px;
-  color: #333333;
+  font-size: 30rpx;
+  color: #101936;
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: 4rpx;
 }
 
 .setting-desc {
-  font-size: 12px;
-  color: #999999;
+  font-size: 24rpx;
+  color: #98A1B8;
   display: block;
 }
 
 .setting-divider {
-  height: 1px;
-  background-color: #F0F0F0;
+  height: 2rpx;
+  background-color: rgba(111, 61, 255, 0.08);
 }
 
 .save-btn {
   width: 100%;
-  height: 52px;
-  border-radius: 12px;
-  font-size: 16px;
+  height: 104rpx;
+  border-radius: 999rpx;
+  font-size: 32rpx;
   font-weight: 500;
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
   color: #FFFFFF;
 }
 

@@ -1,78 +1,47 @@
-<view class="login-container">
-  <view class="logo-section">
-    <text class="app-name">小科打字猿</text>
-    <text class="app-desc">帮助你早点下班的ai助手</text>
+<view class="login-page">
+  <view class="hero">
+    <view class="hero__glow"></view>
+    <view class="hero__circuit hero__circuit--one"></view>
+    <view class="hero__circuit hero__circuit--two"></view>
+    <view class="hero__brand">
+      <view class="hero__title"><text>小科打字</text><text class="hero__title-accent">猿</text></view>
+      <view class="hero__motto"><t-icon name="heart-filled" size="30rpx" color="#6F3DFF" /><text>今天也要早点下班</text></view>
+      <view class="hero__progress"><view class="hero__progress-fill"></view></view>
+    </view>
+    <image class="hero__monkey" src="/assets/login/hero-monkey.png" mode="aspectFit" />
   </view>
 
-  <view class="form-section">
-    <input
-      class="native-input"
-      type="number"
-      placeholder="请输入手机号"
-      placeholder-class="native-input-placeholder"
-      value="{{phone}}"
-      bindinput="onPhoneInput"
-      maxlength="11"
-    />
-
-    <view class="code-row">
-      <input
-        class="native-input native-input--code"
-        type="number"
-        placeholder="请输入 6 位验证码"
-        placeholder-class="native-input-placeholder"
-        value="{{code}}"
-        bindinput="onCodeInput"
-        maxlength="6"
-      />
-      <t-button
-        variant="outline"
-        size="small"
-        disabled="{{!canSendCode || countingDown || isCodeLoading}}"
-        loading="{{isCodeLoading}}"
-        bind:tap="sendCode"
-        t-class="code-btn"
-      >
-        {{countingDown ? countdown + 's' : '获取验证码'}}
-      </t-button>
+  <view class="login-card">
+    <view class="login-card__head">
+      <view class="login-card__icon"><t-icon name="user" size="48rpx" color="#6F3DFF" /></view>
+      <view class="login-card__copy">
+        <text class="login-card__title">使用微信登录</text>
+        <text class="login-card__desc">首次登录将自动创建账号</text>
+      </view>
     </view>
 
-    <t-button
-      theme="primary"
-      block
-      loading="{{isLoading}}"
-      disabled="{{!canPhoneLogin || isLoading}}"
-      bind:tap="onPhoneLogin"
-      t-class="login-btn"
-    >
-      {{isLoading ? '登录中...' : '注册/登录'}}
-    </t-button>
+    <button class="wechat-login" loading="{{isWechatLoading}}" disabled="{{isWechatLoading}}" bindtap="onWechatLogin">
+      <t-icon name="chat" size="42rpx" color="#FFFFFF" />
+      <text>{{isWechatLoading ? '登录中...' : '微信一键登录'}}</text>
+    </button>
 
-    <t-divider content="或" />
+    <view class="login-divider"><view></view><text>其他登录方式</text><view></view></view>
 
-    <t-button
-      theme="primary"
-      block
-      loading="{{isWechatLoading}}"
-      disabled="{{isWechatLoading}}"
-      bind:tap="onWechatLogin"
-      t-class="login-btn wechat-btn"
-    >
-      {{isWechatLoading ? '登录中...' : '微信登录'}}
-    </t-button>
+    <view class="account-entry" bindtap="togglePasswordLogin">
+      <view class="account-entry__icon"><t-icon name="mobile" size="42rpx" color="#6F3DFF" /></view>
+      <text class="account-entry__label">已有账号登录</text>
+      <t-icon name="chevron-right" size="38rpx" color="#9098B4" />
+    </view>
 
-    <view class="login-note">
-      <text>微信登录仅支持已绑定手机号的账号，未绑定请先使用验证码登录。</text>
+    <view wx:if="{{showPasswordLogin}}" class="account-form">
+      <input class="account-input" type="number" placeholder="账号" placeholder-class="account-input-placeholder" value="{{account}}" bindinput="onAccountInput" maxlength="11" />
+      <input class="account-input" password="true" placeholder="密码" placeholder-class="account-input-placeholder" value="{{password}}" bindinput="onPasswordInput" />
+      <button class="account-login" loading="{{isLoading}}" disabled="{{!canLogin || isLoading}}" bindtap="onLogin">账号登录</button>
     </view>
   </view>
 
   <view class="agreement-section">
-    <t-checkbox
-      checked="{{agreed}}"
-      block="{{false}}"
-      bind:change="onAgreementChange"
-      t-class="agreement-checkbox"
-    >
+    <t-checkbox checked="{{agreed}}" block="{{false}}" bind:change="onAgreementChange" t-class="agreement-checkbox">
       <view class="agreement-text-wrap">
         <text class="agreement-text">我已阅读并同意</text>
         <text class="agreement-link" catchtap="goToAgreement" data-type="user">《用户协议》</text>
@@ -82,4 +51,3 @@
     </t-checkbox>
   </view>
 </view>
- 

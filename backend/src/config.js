@@ -67,6 +67,7 @@ const config = {
     process.env.ALLOW_UNKNOWN_DEVICE_BINDING,
     (process.env.NODE_ENV || 'development') !== 'production'
   ),
+  autoRegisterBleDevices: readBoolean(process.env.AUTO_REGISTER_BLE_DEVICES, false),
   ocrEngine: process.env.OCR_ENGINE || 'paddleocr',
   ocrWorkerUrl: process.env.OCR_WORKER_URL || '',
   ocrTimeoutMs: Number(process.env.OCR_TIMEOUT_MS || 30000),
@@ -92,6 +93,7 @@ const config = {
   aiTimeoutMs: Number(process.env.AI_TIMEOUT_MS || 30000),
   wechatAppId: process.env.WECHAT_APP_ID || '',
   wechatAppSecret: process.env.WECHAT_APP_SECRET || '',
+  orderEntitlementHashSecret: process.env.ORDER_ENTITLEMENT_HASH_SECRET || '',
   agentServiceEnabled: readBoolean(
     process.env.AGENT_SERVICE_ENABLED,
     (process.env.NODE_ENV || 'development') !== 'production'
@@ -100,6 +102,25 @@ const config = {
   agentServiceApiKey: process.env.AGENT_SERVICE_API_KEY || 'dev-agent-key',
   agentServiceTimeout: Number(process.env.AGENT_SERVICE_TIMEOUT || 120000)
 };
+
+if (config.env === 'production') {
+  var productionConfigErrors = [];
+  if (!process.env.ADMIN_PASSWORD || /change\s*me/i.test(process.env.ADMIN_PASSWORD)) {
+    productionConfigErrors.push('ADMIN_PASSWORD must be set to a non-default value');
+  }
+  if (!config.orderEntitlementHashSecret || config.orderEntitlementHashSecret.length < 32) {
+    productionConfigErrors.push('ORDER_ENTITLEMENT_HASH_SECRET must contain at least 32 characters');
+  }
+  if (!config.wechatAppId || !config.wechatAppSecret) {
+    productionConfigErrors.push('WECHAT_APP_ID and WECHAT_APP_SECRET are required');
+  }
+  if (!config.aiApiKey) {
+    productionConfigErrors.push('AI_API_KEY or DASHSCOPE_API_KEY is required');
+  }
+  if (productionConfigErrors.length) {
+    throw new Error('Invalid production configuration: ' + productionConfigErrors.join('; '));
+  }
+}
 
 module.exports = {
   config,

@@ -1,33 +1,36 @@
 .env-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px;
+  background-color: #FCFBFF;
+  padding: 24rpx 32rpx;
 }
 
 .card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 12px;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 24rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .env-header {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 20rpx;
 }
 
 .env-badge {
-  font-size: 11px;
+  font-size: 22rpx;
   font-weight: 600;
   color: #FFFFFF;
-  padding: 3px 8px;
-  border-radius: 4px;
-  margin-right: 10px;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  margin-right: 20rpx;
 }
 
 .badge-pc {
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
 }
 
 .badge-remote {
@@ -43,17 +46,17 @@
 }
 
 .badge-unknown {
-  background-color: #999999;
+  background-color: #98A1B8;
 }
 
 .env-title {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
 }
 
 .env-desc {
-  font-size: 14px;
-  color: #666666;
+  font-size: 28rpx;
+  color: #64739A;
   line-height: 1.8;
 }

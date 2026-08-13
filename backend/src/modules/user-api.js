@@ -14,6 +14,19 @@ function createUserApiModule(deps) {
     return contentAccess.isMemberActive(store, userId);
   }
 
+  function isSupportedBleDeviceName(value) {
+    var name = String(value || '').trim().toUpperCase();
+    return ['BLE', 'VUC', 'HID', 'DEV', 'YS-'].some((keyword) => name.indexOf(keyword) !== -1) ||
+      String(value || '').indexOf('\u8212\u514b') !== -1;
+  }
+
+  function ensureAutoRegisteredDeviceMode(device) {
+    if (device && !device.proofCodeHash && config.autoRegisterBleDevices) {
+      device.bindingMode = 'ble_auto';
+    }
+    return device;
+  }
+
   function publicQuickAction(item) {
     return {
       id: item.id,
@@ -326,6 +339,7 @@ function createUserApiModule(deps) {
       (item) => item.boundUserId === actor.id && item.bindStatus === 'bound'
     );
     if (existing) {
+      ensureAutoRegisteredDeviceMode(existing);
       ok(res, publicDevice(syncDeviceBleIdentity(existing, bleName, bleId, now)));
       return;
     }
@@ -333,7 +347,7 @@ function createUserApiModule(deps) {
       return (bleName && item.serialNo === bleName) || (bleId && item.mac === bleId);
     });
     if (!device) {
-      if (!config.allowUnknownDeviceBinding || config.env === 'production') {
+      if (!config.autoRegisterBleDevices || !isSupportedBleDeviceName(bleName)) {
         fail(res, 404, 'DEVICE_NOT_REGISTERED', 'device is not registered');
         return;
       }
@@ -345,6 +359,7 @@ function createUserApiModule(deps) {
         firmwareVersion: '',
         protocolVersion: '',
         proofCodeHash: '',
+        bindingMode: 'ble_auto',
         bindStatus: 'unbound',
         reservedUserId: '',
         boundUserId: '',

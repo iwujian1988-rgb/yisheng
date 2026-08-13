@@ -8,7 +8,7 @@ Page({
     });
   },
 
-  inputActivationCode() {
-    wx.navigateTo({ url: '/pages/purchase/activate' });
+  claimPurchasedMembership() {
+    wx.navigateTo({ url: '/pages/purchase/claim' });
   }
 });

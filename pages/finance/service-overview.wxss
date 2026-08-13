@@ -1,14 +1,20 @@
 /* pages/finance/service-overview.wxss */
-.overview-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
-.stat-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-.stat-card { background-color: #FFFFFF; border-radius: 8px; width: calc(50% - 5px); padding: 20px; display: flex; flex-direction: column; align-items: center; }
-.stat-value { font-size: 20px; color: #333333; font-weight: 600; }
-.stat-label { font-size: 12px; color: #999999; margin-top: 6px; }
-.section-title { padding: 20px 0 10px; }
-.section-text { font-size: 16px; color: #333333; font-weight: 500; }
-.empty-section { display: flex; justify-content: center; padding-top: 60px; }
-.empty-text { font-size: 14px; color: #999999; }
-.bill-list { display: flex; flex-direction: column; gap: 10px; }
-.bill-card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
-.bill-title { font-size: 15px; color: #333333; }
-.bill-amount { font-size: 15px; color: #4A90E2; font-weight: 500; }
+.overview-container { min-height: 100vh; background-color: #FCFBFF; padding: 24rpx 32rpx; }
+.stat-grid { display: flex; flex-wrap: wrap; gap: 20rpx; }
+.stat-card { background-color: #FFFFFF; border-radius: 20rpx; width: calc(50% - 10rpx); padding: 40rpx; display: flex; flex-direction: column; align-items: center;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
+}
+.stat-value { font-size: 40rpx; color: #101936; font-weight: 600; }
+.stat-label { font-size: 24rpx; color: #98A1B8; margin-top: 12rpx; }
+.section-title { padding: 40rpx 0 20rpx; }
+.section-text { font-size: 32rpx; color: #101936; font-weight: 500; }
+.empty-section { display: flex; justify-content: center; padding-top: 120rpx; }
+.empty-text { font-size: 28rpx; color: #98A1B8; }
+.bill-list { display: flex; flex-direction: column; gap: 20rpx; }
+.bill-card { background-color: #FFFFFF; border-radius: 20rpx; padding: 32rpx 40rpx; display: flex; justify-content: space-between; align-items: center;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
+}
+.bill-title { font-size: 30rpx; color: #101936; }
+.bill-amount { font-size: 30rpx; color: #6F3DFF; font-weight: 500; }

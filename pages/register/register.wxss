@@ -1,47 +1,47 @@
 /* pages/register/register.wxss */
 .register-container {
   min-height: 100vh;
-  padding: 0 32px;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F7FA 100%);
+  padding: 0 32rpx;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FCFBFF 100%);
   display: flex;
   flex-direction: column;
 }
 
 /* 标题区域 */
 .header-section {
-  margin-top: 80px;
-  margin-bottom: 40px;
+  margin-top: 160rpx;
+  margin-bottom: 80rpx;
 }
 
 .page-title {
-  font-size: 28px;
+  font-size: 56rpx;
   font-weight: bold;
-  color: #333333;
+  color: #101936;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 16rpx;
 }
 
 .page-desc {
-  font-size: 14px;
-  color: #999999;
+  font-size: 28rpx;
+  color: #98A1B8;
   display: block;
 }
 
 /* 表单 */
 .form-section {
   width: 100%;
-  margin-bottom: 32px;
+  margin-bottom: 64rpx;
 }
 
 .input-group {
-  margin-bottom: 24px;
+  margin-bottom: 48rpx;
 }
 
 .input-label {
-  font-size: 14px;
-  color: #333333;
+  font-size: 28rpx;
+  color: #101936;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 16rpx;
   display: block;
 }
 
@@ -53,41 +53,41 @@
 
 .input {
   flex: 1;
-  height: 52px;
-  padding: 0 16px;
+  height: 104rpx;
+  padding: 0 32rpx;
   background-color: #FFFFFF;
-  border: 1px solid #E5E5E5;
-  border-radius: 12px;
-  font-size: 15px;
-  color: #333333;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  border-radius: 24rpx;
+  font-size: 30rpx;
+  color: #101936;
   box-sizing: border-box;
 }
 
 .input:focus {
-  border-color: #4A90E2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  border-color: #6F3DFF;
+  box-shadow: 0 0 0 6rpx rgba(111, 61, 255, 0.1);
 }
 
 .input-placeholder {
-  color: #999999;
+  color: #98A1B8;
 }
 
 /* 清除按钮 */
 .clear-icon {
   position: absolute;
-  right: 16px;
-  width: 20px;
-  height: 20px;
-  font-size: 18px;
-  color: #999999;
+  right: 32rpx;
+  width: 40rpx;
+  height: 40rpx;
+  font-size: 36rpx;
+  color: #98A1B8;
   text-align: center;
-  line-height: 20px;
+  line-height: 40rpx;
 }
 
 /* 验证码 */
 .code-wrapper {
   display: flex;
-  gap: 12px;
+  gap: 24rpx;
 }
 
 .code-input {
@@ -95,15 +95,15 @@
 }
 
 .code-btn {
-  width: 120px;
-  height: 52px;
-  line-height: 52px;
+  width: 240rpx;
+  height: 104rpx;
+  line-height: 104rpx;
   padding: 0;
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
   color: #FFFFFF;
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: 999rpx;
+  font-size: 28rpx;
   text-align: center;
   flex-shrink: 0;
 }
@@ -119,31 +119,31 @@
 }
 
 .password-input {
-  padding-right: 48px;
+  padding-right: 96rpx;
 }
 
 .eye-icon {
   position: absolute;
-  right: 16px;
+  right: 32rpx;
   top: 50%;
   transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
+  width: 40rpx;
+  height: 40rpx;
 }
 
 /* 密码强度 */
 .strength-bar {
   display: flex;
   align-items: center;
-  margin-top: 8px;
-  gap: 6px;
+  margin-top: 16rpx;
+  gap: 12rpx;
 }
 
 .strength-segment {
   flex: 1;
-  height: 4px;
-  border-radius: 2px;
-  background-color: #E5E5E5;
+  height: 8rpx;
+  border-radius: 20rpx;
+  background-color: rgba(111, 61, 255, 0.12);
 }
 
 .strength-segment.strength-weak {
@@ -159,68 +159,68 @@
 }
 
 .strength-label {
-  font-size: 12px;
-  color: #999999;
-  margin-left: 4px;
-  width: 24px;
+  font-size: 24rpx;
+  color: #98A1B8;
+  margin-left: 8rpx;
+  width: 48rpx;
 }
 
 /* 错误提示 */
 .error-text {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #F5222D;
-  margin-top: 4px;
+  margin-top: 8rpx;
   display: block;
 }
 
 /* 注册按钮 */
 .register-btn {
   width: 100%;
-  height: 52px;
-  border-radius: 12px;
-  font-size: 16px;
+  height: 104rpx;
+  border-radius: 999rpx;
+  font-size: 32rpx;
   font-weight: 500;
 }
 
 /* 协议 */
 .agreement-section {
   width: 100%;
-  margin-top: 20px;
-  margin-bottom: 24px;
+  margin-top: 40rpx;
+  margin-bottom: 48rpx;
 }
 
 .agreement-label {
   display: flex;
   align-items: center;
-  font-size: 13px;
+  font-size: 26rpx;
 }
 
 .agreement-text {
-  color: #666666;
-  margin-left: 8px;
+  color: #64739A;
+  margin-left: 16rpx;
 }
 
 .agreement-link {
-  color: #4A90E2;
-  margin: 0 2px;
+  color: #6F3DFF;
+  margin: 0 4rpx;
 }
 
 /* 返回登录 */
 .login-section {
   margin-top: auto;
-  margin-bottom: 40px;
+  margin-bottom: 80rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .login-text {
-  font-size: 14px;
-  color: #666666;
+  font-size: 28rpx;
+  color: #64739A;
 }
 
 .login-link {
-  font-size: 14px;
-  color: #4A90E2;
-  margin-left: 4px;
+  font-size: 28rpx;
+  color: #6F3DFF;
+  margin-left: 8rpx;
 }

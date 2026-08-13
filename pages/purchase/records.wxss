@@ -1,7 +1,7 @@
 /* pages/purchase/records.wxss */
 .records-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
+  background-color: #FCFBFF;
 }
 
 /* 空状态 */
@@ -9,65 +9,68 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 120px;
+  padding-top: 240rpx;
 }
 
 .empty-icon {
-  width: 80px;
-  height: 80px;
+  width: 160rpx;
+  height: 160rpx;
   border-radius: 50%;
-  background-color: #E8E8E8;
+  background-color: #F2EDFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 48rpx;
 }
 
 .empty-icon-text {
-  font-size: 36px;
-  color: #999999;
+  font-size: 72rpx;
+  color: #6F3DFF;
 }
 
 .empty-title {
-  font-size: 16px;
-  color: #666666;
-  margin-bottom: 8px;
+  font-size: 32rpx;
+  color: #64739A;
+  margin-bottom: 16rpx;
 }
 
 .empty-desc {
-  font-size: 14px;
-  color: #999999;
+  font-size: 28rpx;
+  color: #98A1B8;
 }
 
 /* 记录列表 */
 .list-section {
-  padding: 16px 32px;
+  padding: 24rpx 32rpx;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20rpx;
 }
 
 .record-card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 16px 20px;
+  border-radius: 24rpx;
+  padding: 32rpx 40rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .record-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 12rpx;
 }
 
 .record-type {
-  font-size: 15px;
-  color: #333333;
+  font-size: 30rpx;
+  color: #101936;
   font-weight: 500;
 }
 
 .record-status {
-  font-size: 13px;
+  font-size: 26rpx;
 }
 
 .status-active {
@@ -83,6 +86,6 @@
 }
 
 .record-time {
-  font-size: 13px;
-  color: #999999;
+  font-size: 26rpx;
+  color: #98A1B8;
 }

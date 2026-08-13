@@ -1,27 +1,28 @@
 /* pages/settings/transfer.wxss */
 .settings-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px;
+  background-color: #FCFBFF;
+  padding: 24rpx 32rpx 48rpx;
+  box-sizing: border-box;
 }
 
 /* 区块 */
 .section {
-  margin-bottom: 32px;
+  margin-bottom: 64rpx;
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 500;
-  color: #333333;
-  margin-bottom: 8px;
+  color: #101936;
+  margin-bottom: 16rpx;
   display: block;
 }
 
 .section-hint {
-  font-size: 13px;
-  color: #999999;
-  margin-bottom: 12px;
+  font-size: 26rpx;
+  color: #98A1B8;
+  margin-bottom: 24rpx;
   display: block;
   line-height: 1.5;
 }
@@ -30,36 +31,37 @@
 .option-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20rpx;
 }
 
 .option-card {
   background-color: #FFFFFF;
-  border: 2px solid #E5E5E5;
-  border-radius: 8px;
-  padding: 16px;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  border-radius: 24rpx;
+  padding: 32rpx;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 4rpx 14rpx rgba(61, 42, 140, 0.03);
 }
 
 .option-card.option-active {
-  border-color: #4A90E2;
-  background-color: rgba(74, 144, 226, 0.04);
+  border-color: #6F3DFF;
+  background-color: #F2EDFF;
 }
 
 .option-name {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 500;
-  color: #333333;
-  margin-bottom: 4px;
+  color: #101936;
+  margin-bottom: 8rpx;
 }
 
 .option-active .option-name {
-  color: #4A90E2;
+  color: #6F3DFF;
 }
 
 .option-desc {
-  font-size: 13px;
-  color: #999999;
+  font-size: 26rpx;
+  color: #98A1B8;
 }
 

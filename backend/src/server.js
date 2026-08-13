@@ -14,6 +14,7 @@ const { createUserApiModule } = require('./modules/user-api');
 const { createProviderGatewayModule } = require('./modules/provider-gateway');
 const { createTemplatesModule } = require('./modules/templates');
 const { createAgentApiModule } = require('./modules/agent-api');
+const { createOrderEntitlementsModule } = require('./modules/order-entitlements');
 
 function serveAdminAsset(req, res) {
   var url = new URL(req.url, 'http://localhost');
@@ -33,8 +34,59 @@ function serveAdminAsset(req, res) {
   var ext = path.extname(filePath);
   var type = ext === '.js' ? 'application/javascript; charset=utf-8'
     : ext === '.css' ? 'text/css; charset=utf-8'
+      : ext === '.png' ? 'image/png'
+        : 'text/html; charset=utf-8';
+  res.writeHead(200, { 'Content-Type': type });
+  res.end(fs.readFileSync(filePath));
+  return true;
+}
+
+function serveClaimAsset(req, res) {
+  var url = new URL(req.url, 'http://localhost');
+  if (url.pathname !== '/claim' && url.pathname.indexOf('/claim/') !== 0) return false;
+  var relativePath = url.pathname === '/claim' || url.pathname === '/claim/'
+    ? 'index.html'
+    : url.pathname.replace('/claim/', '');
+  if (relativePath.indexOf('..') !== -1) {
+    fail(res, 400, 'INVALID_PATH', 'invalid path');
+    return true;
+  }
+  var filePath = path.join(__dirname, '..', 'public', 'claim', relativePath);
+  if (!fs.existsSync(filePath)) {
+    fail(res, 404, 'NOT_FOUND', 'asset not found');
+    return true;
+  }
+  var ext = path.extname(filePath);
+  var type = ext === '.js' ? 'application/javascript; charset=utf-8'
+    : ext === '.css' ? 'text/css; charset=utf-8'
       : 'text/html; charset=utf-8';
   res.writeHead(200, { 'Content-Type': type });
+  res.end(fs.readFileSync(filePath));
+  return true;
+}
+
+function serveGuideAsset(req, res) {
+  var url = new URL(req.url, 'http://localhost');
+  if (url.pathname !== '/guide' && url.pathname.indexOf('/guide/') !== 0) return false;
+  var relativePath = url.pathname === '/guide' || url.pathname === '/guide/'
+    ? 'index.html'
+    : url.pathname.replace('/guide/', '');
+  if (relativePath.indexOf('..') !== -1) {
+    fail(res, 400, 'INVALID_PATH', 'invalid path');
+    return true;
+  }
+  var filePath = path.join(__dirname, '..', 'public', 'guide', relativePath);
+  if (!fs.existsSync(filePath)) {
+    fail(res, 404, 'NOT_FOUND', 'asset not found');
+    return true;
+  }
+  var ext = path.extname(filePath);
+  var type = ext === '.js' ? 'application/javascript; charset=utf-8'
+    : ext === '.css' ? 'text/css; charset=utf-8'
+      : ext === '.png' ? 'image/png'
+        : 'text/html; charset=utf-8';
+  var cacheControl = ext === '.html' ? 'no-cache' : 'public, max-age=3600';
+  res.writeHead(200, { 'Content-Type': type, 'Cache-Control': cacheControl });
   res.end(fs.readFileSync(filePath));
   return true;
 }
@@ -43,33 +95,20 @@ const store = createStore();
 const storeReady = Promise.resolve(store.ready || null);
 health.register(store);
 storeReady.then(function () { store.__mysqlReady = true; }, function () { store.__mysqlReady = false; });
-const sessions = createSessionManager(config.sessionTtlSeconds);
+const sessions = createSessionManager(config.sessionTtlSeconds, store);
 const auth = createAuthModule({ store, sessions });
 const admin = createAdminModule({ store, auth });
 const userApi = createUserApiModule({ store, auth });
 const providers = createProviderGatewayModule({ auth, store });
 const templatesModule = createTemplatesModule({ store, auth, contentAccess: require('./security/content-access') });
 const agentApi = createAgentApiModule({ store, auth, templates: templatesModule });
+const orderEntitlements = createOrderEntitlementsModule({ store, auth });
 const router = createRouter();
 
 router.get('/api/health', (req, res) => {
-  var dashscopeReady = Boolean(config.dashscopeApiKey);
-  var ocrCloudReady = Boolean(config.ocrCloudEnabled && dashscopeReady);
   ok(res, {
-    service: 'yisheng-backend',
-    env: config.env,
-    storeMode: config.storeMode,
-    allowUnknownDeviceBinding: config.allowUnknownDeviceBinding,
-    ocrEngine: ocrCloudReady ? config.ocrCloudModel : config.ocrEngine,
-    ocrConfigured: ocrCloudReady || Boolean(config.ocrWorkerUrl),
-    asrEngine: config.asrEngine,
-    asrConfigured: dashscopeReady || Boolean(config.asrWorkerUrl),
-    aiProvider: config.aiProvider,
-    aiConfigured: Boolean(config.aiApiKey && (config.aiChatCompletionsUrl || config.aiBaseUrl)),
-    agentChatAvailable: config.agentServiceEnabled || Boolean(config.aiApiKey && (config.aiChatCompletionsUrl || config.aiBaseUrl)),
-    agentServiceEnabled: config.agentServiceEnabled,
-    agentServiceUrl: config.agentServiceUrl,
-    wechatConfigured: Boolean(config.wechatAppId && config.wechatAppSecret)
+    service: 'xiaoke-api',
+    status: 'ok'
   });
 });
 
@@ -116,6 +155,10 @@ router.get('/api/admin/feedbacks', admin.listFeedbacks);
 router.patch('/api/admin/feedbacks/:id', admin.updateFeedback);
 router.get('/api/admin/activation-codes', admin.listActivationCodes);
 router.post('/api/admin/activation-codes/import', admin.importActivationCodes);
+router.post('/api/admin/order-entitlements/import', orderEntitlements.importOrders);
+router.post('/api/admin/order-entitlements/preset', orderEntitlements.presetEntitlement);
+router.get('/api/admin/order-entitlements', orderEntitlements.listEntitlements);
+router.patch('/api/admin/order-entitlements/:id/recipient-phone', orderEntitlements.reassignRecipient);
 router.get('/api/admin/audit-logs', admin.listAuditLogs);
 router.get('/api/admin/admin-users', admin.listAdminUsers);
 router.post('/api/admin/admin-users', admin.createAdminUser);
@@ -132,6 +175,8 @@ router.post('/api/devices/unbind', userApi.unbindDevice);
 router.get('/api/devices/firmware', userApi.firmware);
 router.get('/api/purchase/entitlement', userApi.purchaseEntitlement);
 router.post('/api/purchase/activate', userApi.activatePurchase);
+router.post('/api/purchase/claim-order-entitlement', orderEntitlements.claim);
+router.post('/api/public/order-entitlements/requests', orderEntitlements.createClaimRequest);
 router.get('/api/purchase/records', userApi.purchaseRecords);
 
 router.post('/api/support/feedbacks', userApi.submitFeedback);
@@ -156,7 +201,7 @@ router.post('/api/asr/transcribe', providers.asrTranscribe);
 
 const server = http.createServer(async (req, res) => {
   try {
-    if (req.method === 'GET' && serveAdminAsset(req, res)) {
+    if (req.method === 'GET' && (serveAdminAsset(req, res) || serveClaimAsset(req, res) || serveGuideAsset(req, res))) {
       return;
     }
     requestLogger(req, res);

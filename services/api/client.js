@@ -82,6 +82,7 @@ function friendlyMessage(code, fallback) {
     ASR_WORKER_FAILED: '语音转写暂时不可用，请稍后重试',
     OCR_WORKER_FAILED: '图片识别暂时不可用，请稍后重试',
     AGENT_SERVICE_FAILED: 'AI 服务暂时不可用，请稍后重试',
+    AI_PROVIDER_FAILED: 'AI 服务暂时不可用，请稍后重试',
     MEMBER_REQUIRED: '当前账号暂未开通会员，请先开通服务'
   };
   return map[code] || fallback || '请求失败';
@@ -102,11 +103,17 @@ const DEVICE_SETUP_PATHS = [
   '/api/devices/unbind'
 ];
 
+const AUTH_SESSION_PATHS = [
+  '/api/auth/me',
+  '/api/auth/cancel-account'
+];
+
 function shouldRefreshDeviceSession(url, token) {
   return Boolean(
     token &&
     url !== '/api/auth/wechat-login' &&
     url !== '/api/auth/login' &&
+    AUTH_SESSION_PATHS.indexOf(url) === -1 &&
     DEVICE_SETUP_PATHS.indexOf(url) === -1
   );
 }

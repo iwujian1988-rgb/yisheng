@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ò½ÉùÐ¡³ÌÐò UX"
+  short_description: "Apply and audit the homepage-led mini program design"
+  brand_color: "#6F3DFF"
+  default_prompt: "Use $yisheng-miniapp-ux to redesign and audit this WeChat Mini Program page without changing business logic."

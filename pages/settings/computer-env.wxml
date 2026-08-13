@@ -4,7 +4,7 @@
     <text class="card-title">选择电脑输入环境</text>
     <radio-group bindchange="onEnvChange">
       <label class="env-item" wx:for="{{envOptions}}" wx:key="value">
-        <radio value="{{item.value}}" checked="{{selectedEnv === item.value}}" color="#4A90E2" />
+        <radio value="{{item.value}}" checked="{{selectedEnv === item.value}}" color="#6F3DFF" />
         <view class="env-info">
           <text class="env-name">{{item.label}}</text>
           <text class="env-desc">{{item.desc}}</text>

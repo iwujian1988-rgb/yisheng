@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>领取已购会员</title>
+  <link rel="stylesheet" href="/claim/styles.css">
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">已购服务</p>
+    <h1>领取已购会员</h1>
+    <p class="intro">请输入电商订单的收货手机号。无需填写订单号。</p>
+    <form id="claim-form">
+      <label for="phone">收货手机号</label>
+      <input id="phone" name="phone" inputmode="numeric" maxlength="11" autocomplete="tel" placeholder="请输入收货手机号" required>
+      <button type="submit">提交并前往小程序确认</button>
+    </form>
+    <p id="message" class="message" aria-live="polite"></p>
+    <p class="notice">提交后，请在小程序中用微信授权手机号完成确认。若下单手机号与领取手机号不同，请联系客服改绑后再领取。</p>
+  </main>
+  <script src="/claim/app.js"></script>
+</body>
+</html>

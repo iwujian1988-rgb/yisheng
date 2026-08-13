@@ -1,8 +1,8 @@
 /* pages/account-status/account-status.wxss */
 .status-container {
   min-height: 100vh;
-  padding: 0 32px;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F7FA 100%);
+  padding: 0 32rpx;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FCFBFF 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -11,29 +11,32 @@
 /* 状态卡片 */
 .status-card {
   width: 100%;
-  margin-top: 100px;
+  margin-top: 200rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 24px;
+  padding: 80rpx 48rpx;
   background-color: #FFFFFF;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.06);
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 /* 图标 */
 .icon-wrapper {
-  width: 72px;
-  height: 72px;
+  width: 144rpx;
+  height: 144rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 48rpx;
 }
 
 .status-icon-text {
-  font-size: 32px;
+  font-size: 64rpx;
   color: #FFFFFF;
 }
 
@@ -42,7 +45,7 @@
 }
 
 .icon-unbound {
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
 }
 
 .icon-expired {
@@ -54,93 +57,93 @@
 }
 
 .icon-disabled {
-  background-color: #999999;
+  background-color: #98A1B8;
 }
 
 /* 文案 */
 .status-title {
-  font-size: 20px;
+  font-size: 40rpx;
   font-weight: bold;
-  color: #333333;
-  margin-bottom: 12px;
+  color: #101936;
+  margin-bottom: 24rpx;
 }
 
 .status-desc {
-  font-size: 14px;
-  color: #666666;
+  font-size: 28rpx;
+  color: #64739A;
   text-align: center;
   line-height: 1.6;
-  margin-bottom: 32px;
-  padding: 0 16px;
+  margin-bottom: 64rpx;
+  padding: 0 32rpx;
 }
 
 /* 按钮 */
 .action-btn {
   width: 100%;
-  height: 52px;
-  border-radius: 12px;
-  font-size: 16px;
+  height: 104rpx;
+  border-radius: 999rpx;
+  font-size: 32rpx;
   font-weight: 500;
 }
 
 /* 辅助链接 */
 .help-link {
-  font-size: 14px;
-  color: #4A90E2;
-  margin-top: 16px;
+  font-size: 28rpx;
+  color: #6F3DFF;
+  margin-top: 32rpx;
 }
 
 .info-text {
-  font-size: 12px;
-  color: #999999;
-  margin-top: 12px;
+  font-size: 24rpx;
+  color: #98A1B8;
+  margin-top: 24rpx;
 }
 
 /* 调试区域 */
 .debug-section {
   width: 100%;
-  margin-top: 40px;
-  padding: 16px;
-  background-color: #F5F7FA;
-  border-radius: 8px;
+  margin-top: 80rpx;
+  padding: 32rpx;
+  background-color: #FCFBFF;
+  border-radius: 20rpx;
 }
 
 .debug-label {
-  font-size: 12px;
-  color: #999999;
+  font-size: 24rpx;
+  color: #98A1B8;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 16rpx;
 }
 
 .debug-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 16rpx;
 }
 
 .debug-btn {
-  font-size: 12px;
-  padding: 4px 12px;
-  border-radius: 4px;
+  font-size: 24rpx;
+  padding: 8rpx 24rpx;
+  border-radius: 999rpx;
   background-color: #FFFFFF;
-  color: #666666;
-  border: 1px solid #E5E5E5;
+  color: #64739A;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
 }
 
 .debug-btn.active {
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
   color: #FFFFFF;
-  border-color: #4A90E2;
+  border-color: #6F3DFF;
 }
 
 /* 底部 */
 .bottom-section {
   margin-top: auto;
-  margin-bottom: 40px;
-  padding-top: 24px;
+  margin-bottom: 80rpx;
+  padding-top: 48rpx;
 }
 
 .back-link {
-  font-size: 14px;
-  color: #4A90E2;
+  font-size: 28rpx;
+  color: #6F3DFF;
 }

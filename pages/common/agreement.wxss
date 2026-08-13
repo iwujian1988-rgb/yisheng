@@ -2,41 +2,41 @@
 .agreement-container {
   min-height: 100vh;
   background-color: #FFFFFF;
-  padding: 24px 32px 48px;
+  padding: 48rpx 64rpx 96rpx;
 }
 
 .agreement-meta {
-  padding: 8px 12px;
-  margin-bottom: 20px;
-  background-color: #F5F7FA;
-  border-radius: 6px;
+  padding: 16rpx 24rpx;
+  margin-bottom: 40rpx;
+  background-color: #FCFBFF;
+  border-radius: 20rpx;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8rpx;
 }
 
 .meta-text {
-  font-size: 12px;
-  color: #999999;
+  font-size: 24rpx;
+  color: #98A1B8;
   display: block;
 }
 
 /* 段落 */
 .section {
-  margin-bottom: 28px;
+  margin-bottom: 56rpx;
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 500;
-  color: #333333;
-  margin-bottom: 8px;
+  color: #101936;
+  margin-bottom: 16rpx;
   display: block;
 }
 
 .section-text {
-  font-size: 14px;
-  color: #666666;
+  font-size: 28rpx;
+  color: #64739A;
   line-height: 1.8;
   display: block;
 }

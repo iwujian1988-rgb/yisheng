@@ -1,66 +1,69 @@
 /* pages/common/release-note.wxss */
 .release-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px;
+  background-color: #FCFBFF;
+  padding: 24rpx 32rpx;
 }
 
 .card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 16px;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 32rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .version-label {
-  font-size: 13px;
-  color: #999999;
-  margin-bottom: 6px;
+  font-size: 26rpx;
+  color: #98A1B8;
+  margin-bottom: 12rpx;
 }
 
 .version-num {
-  font-size: 24px;
+  font-size: 48rpx;
   font-weight: 600;
-  color: #333333;
+  color: #101936;
 }
 
 .section {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 12px;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 24rpx;
 }
 
 .section-label {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
   display: block;
-  margin-bottom: 14px;
+  margin-bottom: 28rpx;
 }
 
 .update-item {
   display: flex;
   align-items: flex-start;
-  padding: 6px 0;
+  padding: 12rpx 0;
 }
 
 .update-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
-  background-color: #4A90E2;
-  margin-top: 8px;
-  margin-right: 10px;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 6rpx;
+  background-color: #6F3DFF;
+  margin-top: 16rpx;
+  margin-right: 20rpx;
   flex-shrink: 0;
 }
 
 .update-text {
-  font-size: 15px;
-  color: #333333;
+  font-size: 30rpx;
+  color: #101936;
   line-height: 1.6;
   flex: 1;
 }
@@ -68,22 +71,22 @@
 .notice-item {
   display: flex;
   align-items: flex-start;
-  padding: 6px 0;
+  padding: 12rpx 0;
 }
 
 .notice-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 6rpx;
   background-color: #FAAD14;
-  margin-top: 8px;
-  margin-right: 10px;
+  margin-top: 16rpx;
+  margin-right: 20rpx;
   flex-shrink: 0;
 }
 
 .notice-text {
-  font-size: 15px;
-  color: #666666;
+  font-size: 30rpx;
+  color: #64739A;
   line-height: 1.6;
   flex: 1;
 }

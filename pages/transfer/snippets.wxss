@@ -1,13 +1,13 @@
-.page { padding: 16rpx; background: #f5f6f8; min-height: 100vh; padding-bottom: 160rpx; }
+.page { padding: 24rpx 32rpx 160rpx; background: #FCFBFF; min-height: 100vh; box-sizing: border-box; }
 .toolbar { margin-bottom: 16rpx; }
-.search { background: #fff; border-radius: 12rpx; padding: 12rpx 24rpx; }
-.warn-bar { background: #fff7e6; color: #d46b08; padding: 16rpx 24rpx; border-radius: 8rpx; margin-bottom: 16rpx; font-size: 26rpx; }
+.search { background: #fff; border: 2rpx solid rgba(111, 61, 255, 0.12); border-radius: 999rpx; padding: 18rpx 28rpx; }
+.warn-bar { background: #fff7e6; color: #d46b08; padding: 16rpx 24rpx; border-radius: 20rpx; margin-bottom: 16rpx; font-size: 26rpx; }
 .empty { padding: 120rpx 0; }
 .list { display: flex; flex-direction: column; gap: 16rpx; }
-.item-card { background: #fff; border-radius: 12rpx; padding: 24rpx; }
-.item-title { font-size: 30rpx; color: #333; font-weight: 600; margin-bottom: 12rpx; }
-.item-text { font-size: 26rpx; color: #666; line-height: 1.6; margin-bottom: 16rpx; word-break: break-all; max-height: 200rpx; overflow: hidden; }
+.item-card { background: #fff; border: 2rpx solid rgba(111, 61, 255, 0.12); border-radius: 24rpx; padding: 28rpx; box-shadow: 0 4rpx 14rpx rgba(61, 42, 140, 0.04); }
+.item-title { font-size: 28rpx; color: #101936; font-weight: 700; margin-bottom: 12rpx; }
+.item-text { font-size: 25rpx; color: #64739A; line-height: 1.6; margin-bottom: 16rpx; word-break: break-all; max-height: 200rpx; overflow: hidden; }
 .item-foot { display: flex; justify-content: space-between; align-items: center; }
 .item-ops { display: flex; gap: 8rpx; flex-wrap: wrap; }
-.fab { position: fixed; right: 32rpx; bottom: 64rpx; width: 96rpx; height: 96rpx; border-radius: 50%; background: #1677ff; color: #fff; font-size: 60rpx; text-align: center; line-height: 96rpx; box-shadow: 0 8rpx 16rpx rgba(22,119,255,0.3); }
+.fab { position: fixed; right: 32rpx; bottom: 64rpx; width: 96rpx; height: 96rpx; border-radius: 50%; background: #6F3DFF; color: #fff; font-size: 60rpx; text-align: center; line-height: 96rpx; box-shadow: 0 12rpx 28rpx rgba(111,61,255,0.22); }
 .dialog-form { padding: 16rpx 0; }

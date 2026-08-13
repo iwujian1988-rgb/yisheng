@@ -25,7 +25,7 @@
 
   <view class="action-section">
     <button class="btn btn-primary action-btn" bindtap="sendToComputer">
-      使用这段
+      发送到电脑
     </button>
     <button class="btn btn-outline action-btn" bindtap="copyResult">
       复制正文

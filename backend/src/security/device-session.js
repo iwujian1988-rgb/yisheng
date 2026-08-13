@@ -128,6 +128,8 @@ function issueDeviceSession(store, userId, device, source) {
 }
 
 function verifyDeviceProof(device, proof) {
+  // Auto-bound devices use the explicit, user-initiated BLE connection flow.
+  if (device.bindingMode === 'ble_auto') return true;
   var value = String(proof || '').trim();
   if (device.proofCodeHash) {
     return Boolean(value && verifyPassword(value, device.proofCodeHash));

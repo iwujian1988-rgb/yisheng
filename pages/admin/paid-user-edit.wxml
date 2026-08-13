@@ -17,15 +17,15 @@
       <text class="field-label">服务状态</text>
       <radio-group bindchange="onStatusChange">
         <label class="radio-item">
-          <radio value="active" checked="{{serviceStatus === 'active'}}" color="#4A90E2" />
+          <radio value="active" checked="{{serviceStatus === 'active'}}" color="#6F3DFF" />
           <text class="radio-text">有效</text>
         </label>
         <label class="radio-item">
-          <radio value="expired" checked="{{serviceStatus === 'expired'}}" color="#4A90E2" />
+          <radio value="expired" checked="{{serviceStatus === 'expired'}}" color="#6F3DFF" />
           <text class="radio-text">已过期</text>
         </label>
         <label class="radio-item">
-          <radio value="disabled" checked="{{serviceStatus === 'disabled'}}" color="#4A90E2" />
+          <radio value="disabled" checked="{{serviceStatus === 'disabled'}}" color="#6F3DFF" />
           <text class="radio-text">已禁用</text>
         </label>
       </radio-group>

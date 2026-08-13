@@ -13,6 +13,8 @@ config.dashscopeApiKey = '';
 config.asrCloudApiKey = '';
 config.ocrCloudEnabled = false;
 config.agentServiceEnabled = false;
+config.orderEntitlementHashSecret = 'smoke-order-entitlement-secret';
+config.autoRegisterBleDevices = true;
 
 const BASE_URL = 'http://127.0.0.1:' + PORT;
 
@@ -48,18 +50,81 @@ async function run() {
   await new Promise((resolve) => server.listen(PORT, resolve));
 
   const health = await request('/api/health');
-  assert(health.service, 'health missing service');
-  assert(health.storeMode === 'memory', 'health should expose store mode');
-  assert(Object.prototype.hasOwnProperty.call(health, 'ocrConfigured'), 'health missing OCR config state');
-  assert(Object.prototype.hasOwnProperty.call(health, 'asrConfigured'), 'health missing ASR config state');
-  assert(Object.prototype.hasOwnProperty.call(health, 'aiConfigured'), 'health missing AI config state');
-  assert(Object.prototype.hasOwnProperty.call(health, 'agentChatAvailable'), 'health missing agent chat availability');
+  assert(health.service === 'xiaoke-api', 'health service mismatch');
+  assert(health.status === 'ok', 'health status missing');
 
   const adminLogin = await request('/api/admin/auth/login', {
     method: 'POST',
     body: JSON.stringify({ account: 'admin', password: 'ChangeMe123!' })
   });
   assert(adminLogin.token, 'admin token missing');
+
+  const demoLogin = await request('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ account: '13800000001', password: 'Test123456' })
+  });
+  assert(demoLogin.purchaseStatus === 'paid', 'demo account must use real member status');
+  assert(demoLogin.features && demoLogin.features.transferDemo === true, 'demo account missing transfer demo feature');
+
+  const demoTemplates = await request('/api/templates', {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + demoLogin.token
+    }
+  });
+  assert(demoTemplates.templates.every((item) => item.audience !== 'professional'), 'transfer demo must not grant professional content');
+
+  await requestExpectError('/api/templates', {}, 'AUTH_REQUIRED');
+
+  await requestExpectError('/api/templates/tpl_official_first_course?connected=true', {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + demoLogin.token
+    }
+  }, 'TEMPLATE_NOT_FOUND');
+
+  await requestExpectError('/api/agent/text', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + demoLogin.token
+    },
+    body: JSON.stringify({ text: '请整理这份病历', mode: 'professional' })
+  }, 'MEDICAL_CONTENT_NOT_SUPPORTED');
+
+  await requestExpectError('/api/agent/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + demoLogin.token
+    },
+    body: JSON.stringify({ message: '请根据处方给建议', mode: 'professional' })
+  }, 'MEDICAL_CONTENT_NOT_SUPPORTED');
+
+  await request('/api/admin/paid-users/' + demoLogin.user.id, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + adminLogin.token
+    },
+    body: JSON.stringify({ transferDemo: false })
+  });
+  const demoWithoutTransfer = await request('/api/auth/me', {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + demoLogin.token
+    }
+  });
+  assert(demoWithoutTransfer.features.transferDemo === false, 'admin must be able to disable transfer demo');
+
+  await request('/api/admin/paid-users/' + demoLogin.user.id, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + adminLogin.token
+    },
+    body: JSON.stringify({ transferDemo: true })
+  });
 
   const templates = await request('/api/admin/templates', {
     headers: {
@@ -69,10 +134,52 @@ async function run() {
   });
   assert(Array.isArray(templates.list), 'admin template list missing');
 
-  await requestExpectError('/api/auth/wechat-login', {
+  const wechatFirstLogin = await request('/api/auth/wechat-login', {
     method: 'POST',
     body: JSON.stringify({ code: 'smoke-unbound-wechat' })
-  }, 'WECHAT_NOT_BOUND');
+  });
+  assert(wechatFirstLogin.token, 'wechat login should create a basic account');
+
+  await request('/api/admin/order-entitlements/import', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + adminLogin.token
+    },
+    body: JSON.stringify({ orders: [{ orderNo: 'SMOKE-ORDER-001', receiverPhone: '13900001003', skuType: 'hardware_member', memberDays: 365 }] })
+  });
+  const claimRequest = await request('/api/public/order-entitlements/requests', {
+    method: 'POST',
+    body: JSON.stringify({ phone: '13900001003' })
+  });
+  assert(claimRequest.accepted === true, 'public claim request should be accepted');
+  const entitlements = await request('/api/admin/order-entitlements', {
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminLogin.token }
+  });
+  assert(entitlements.total === 1 && !Object.prototype.hasOwnProperty.call(entitlements.items[0], 'orderNo'), 'admin list must not expose order number in standard output');
+  await request('/api/admin/order-entitlements/' + entitlements.items[0].id + '/recipient-phone', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminLogin.token },
+    body: JSON.stringify({ receiverPhone: '13900001004', reason: 'customer service reassignment' })
+  });
+
+  const presetFirst = await request('/api/admin/order-entitlements/preset', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminLogin.token },
+    body: JSON.stringify({ phone: '13900001005', memberDays: 730 })
+  });
+  assert(presetFirst.status === 'pending' && presetFirst.memberDays === 730, 'two-year preset should create a pending entitlement');
+  const presetUpdated = await request('/api/admin/order-entitlements/preset', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminLogin.token },
+    body: JSON.stringify({ phone: '13900001005', memberDays: 36500 })
+  });
+  assert(presetUpdated.id === presetFirst.id && presetUpdated.memberDays === 36500, 'preset should update the pending entitlement for the same phone');
+  await requestExpectError('/api/admin/order-entitlements/preset', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminLogin.token },
+    body: JSON.stringify({ phone: '13900001006', memberDays: 366 })
+  }, 'INVALID_MEMBER_DAYS');
 
   const userLogin = await request('/api/auth/login', {
     method: 'POST',
@@ -94,6 +201,33 @@ async function run() {
     }
   });
   assert(Array.isArray(userTemplates.templates), 'user template list missing');
+
+  const autoBoundDevice = await request('/api/devices/auto-bind', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + userLogin.token
+    },
+    body: JSON.stringify({ bleDeviceName: 'YS-SMOKE-AUTO', bleDeviceId: 'ble-smoke-auto' })
+  });
+  assert(autoBoundDevice.id, 'automatic BLE binding should create a device');
+  const autoDeviceChallenge = await request('/api/devices/session/start', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + userLogin.token
+    },
+    body: JSON.stringify({ deviceId: autoBoundDevice.id, bleDeviceId: 'ble-smoke-auto' })
+  });
+  const autoDeviceSession = await request('/api/devices/session/verify', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + userLogin.token
+    },
+    body: JSON.stringify({ challengeId: autoDeviceChallenge.challengeId, deviceId: autoBoundDevice.id })
+  });
+  assert(autoDeviceSession.deviceSessionToken, 'automatic BLE device should not require a proof code');
 
   await request('/api/admin/activation-codes/import', {
     method: 'POST',
@@ -120,6 +254,15 @@ async function run() {
     body: JSON.stringify({ activationCode: 'SMOKE-ACTIVE-001' })
   });
 
+  await request('/api/admin/devices', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + adminLogin.token
+    },
+    body: JSON.stringify({ serialNo: 'PRO-SMOKE-001', proofCode: '0000' })
+  });
+  config.env = 'production';
   await request('/api/devices/bind', {
     method: 'POST',
     headers: {
@@ -143,6 +286,18 @@ async function run() {
     },
     body: JSON.stringify({ deviceId: session.device && session.device.id })
   });
+  await requestExpectError('/api/devices/session/verify', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + activatedUser.token
+    },
+    body: JSON.stringify({
+      challengeId: deviceSessionChallenge.challengeId,
+      deviceId: session.device && session.device.id,
+      response: 'invalid'
+    })
+  }, 'DEVICE_SESSION_PROOF_INVALID');
   const deviceSession = await request('/api/devices/session/verify', {
     method: 'POST',
     headers: {

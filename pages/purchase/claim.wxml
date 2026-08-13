@@ -1,0 +1,17 @@
+<view class="claim-page">
+  <view class="hero">
+    <text class="eyebrow">已购服务</text>
+    <text class="title">领取已购会员</text>
+    <text class="desc">使用订单收货手机号对应的微信授权确认，无需输入订单号或激活码。</text>
+  </view>
+  <view class="card">
+    <text class="card-title">确认收货手机号</text>
+    <text class="card-desc">仅用于核验是否存在已购会员权益，并将该权益绑定到当前微信账号。</text>
+    <button class="claim-button" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" loading="{{isLoading}}" disabled="{{isLoading}}">授权微信手机号并领取</button>
+    <text wx:if="{{resultText}}" class="success">{{resultText}}</text>
+  </view>
+  <view class="help">
+    <text>下单手机号和领取手机号不同？请联系客服改绑后再领取。</text>
+    <text class="help-link" bindtap="contactSupport">联系客服</text>
+  </view>
+</view>

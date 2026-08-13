@@ -8,7 +8,7 @@ function getAppGlobalData() {
 
 function isDevtoolsEnvironment() {
   try {
-    const info = wx.getSystemInfoSync();
+    const info = wx.getDeviceInfo ? wx.getDeviceInfo() : wx.getSystemInfoSync();
     return info.platform === 'devtools';
   } catch (error) {
     return false;
@@ -28,11 +28,11 @@ function usesLocalhost(url) {
 }
 
 function resolveApiBaseUrl() {
-  const override = wx.getStorageSync(STORAGE_KEY);
-  if (override) return override;
+  const override = String(wx.getStorageSync(STORAGE_KEY) || '').trim();
+  if (/^https?:\/\//i.test(override)) return override;
 
   const gd = getAppGlobalData();
-  const configured = gd.baseUrl || '';
+  const configured = String(gd.baseUrl || '').trim();
   if (!configured) return '';
 
   // 生产域名（https）直接使用，不做局域网替换

@@ -1,8 +1,8 @@
-.page { padding: 32rpx; background: #f5f6f8; min-height: 100vh; }
+.page { padding: 32rpx; background: #FCFBFF; min-height: 100vh; }
 
 .header {
-  background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%);
-  border-radius: 18rpx;
+  background: linear-gradient(135deg, #6F3DFF 0%, #4096ff 100%);
+  border-radius: 24rpx;
   padding: 40rpx 32rpx;
   display: flex;
   flex-direction: column;
@@ -19,13 +19,13 @@
 
 .section-label {
   padding: 0 8rpx 16rpx;
-  color: #888;
+  color: #64739A;
   font-size: 26rpx;
 }
 
 .feature-list {
   background: #fff;
-  border-radius: 18rpx;
+  border-radius: 24rpx;
   margin-bottom: 32rpx;
   overflow: hidden;
 }
@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   padding: 32rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid rgba(111, 61, 255, 0.08);
 }
 
 .feature-item:last-child { border-bottom: none; }
@@ -43,7 +43,7 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: #e6f4ff;
+  background: #F2EDFF;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -53,22 +53,25 @@
 }
 
 .feature-body { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
-.feature-title { font-size: 30rpx; color: #333; }
-.feature-desc { font-size: 24rpx; color: #999; }
+.feature-title { font-size: 30rpx; color: #101936; }
+.feature-desc { font-size: 24rpx; color: #98A1B8; }
 .feature-arrow { color: #ccc; font-size: 40rpx; }
 
 .upgrade-card {
   background: #fff;
-  border-radius: 18rpx;
+  border-radius: 24rpx;
   padding: 32rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
-.upgrade-title { font-size: 30rpx; font-weight: bold; margin-bottom: 16rpx; color: #333; }
-.upgrade-desc { font-size: 26rpx; color: #666; line-height: 1.6; margin-bottom: 32rpx; }
+.upgrade-title { font-size: 30rpx; font-weight: bold; margin-bottom: 16rpx; color: #101936; }
+.upgrade-desc { font-size: 26rpx; color: #64739A; line-height: 1.6; margin-bottom: 32rpx; }
 
 .tips-card {
   background: #fff7e6;
-  border-radius: 18rpx;
+  border-radius: 24rpx;
   padding: 24rpx 32rpx;
 }
 

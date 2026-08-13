@@ -1,54 +1,57 @@
 /* pages/transfer/queue.wxss */
 .queue-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px 48px;
+  background-color: #FCFBFF;
+  padding: 32rpx 64rpx 96rpx;
 }
 
 /* 空状态 */
 .empty-section {
   display: flex;
   justify-content: center;
-  padding-top: 120px;
+  padding-top: 240rpx;
 }
 
 .empty-text {
-  font-size: 14px;
-  color: #999999;
+  font-size: 28rpx;
+  color: #98A1B8;
 }
 
 /* 队列列表 */
 .queue-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24rpx;
 }
 
 .queue-card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: 20rpx;
+  padding: 40rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .queue-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 24rpx;
 }
 
 .queue-label {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
 }
 
 .queue-status {
-  font-size: 13px;
+  font-size: 26rpx;
 }
 
 .status-active {
-  color: #4A90E2;
+  color: #6F3DFF;
 }
 
 .status-done {
@@ -61,39 +64,39 @@
 
 /* 进度条 */
 .progress-bar {
-  height: 8px;
-  background-color: #F0F0F0;
-  border-radius: 4px;
+  height: 16rpx;
+  background-color: rgba(111, 61, 255, 0.08);
+  border-radius: 20rpx;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 16rpx;
 }
 
 .progress-fill {
   height: 100%;
-  background-color: #4A90E2;
-  border-radius: 4px;
+  background-color: #6F3DFF;
+  border-radius: 20rpx;
 }
 
 .progress-text {
-  font-size: 12px;
-  color: #999999;
+  font-size: 24rpx;
+  color: #98A1B8;
 }
 
 /* 取消按钮 */
 .action-section {
-  margin-top: 32px;
+  margin-top: 64rpx;
 }
 
 .cancel-btn {
   width: 100%;
-  height: 52px;
-  border-radius: 12px;
-  font-size: 16px;
+  height: 104rpx;
+  border-radius: 999rpx;
+  font-size: 32rpx;
   font-weight: 500;
 }
 
 .btn-outline {
   background-color: transparent;
   color: #F5222D;
-  border: 1px solid #F5222D;
+  border: 2rpx solid #F5222D;
 }

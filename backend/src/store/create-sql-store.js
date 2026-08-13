@@ -7,6 +7,8 @@ const TABLE_TO_COLLECTION = {
   users: 'users',
   devices: 'devices',
   orders: 'orders',
+  order_entitlements: 'orderEntitlements',
+  order_entitlement_requests: 'orderEntitlementRequests',
   activation_codes: 'activationCodes',
   token_usage_records: 'tokenUsageRecords',
   templates: 'templates',
@@ -23,7 +25,8 @@ const TABLE_TO_COLLECTION = {
   device_session_challenges: 'deviceSessionChallenges',
   device_sessions: 'deviceSessions',
   device_live_proofs: 'deviceLiveProofs',
-  wechat_session_keys: 'wechatSessionKeys'
+  wechat_session_keys: 'wechatSessionKeys',
+  auth_sessions: 'authSessions'
 };
 
 const COLLECTION_TO_TABLE = Object.keys(TABLE_TO_COLLECTION).reduce(function (acc, table) {
@@ -32,6 +35,7 @@ const COLLECTION_TO_TABLE = Object.keys(TABLE_TO_COLLECTION).reduce(function (ac
 }, {});
 
 const JSON_COLUMNS_BY_TABLE = {
+  users: ['features'],
   templates: ['variable_defs', 'output_structure', 'quality_rules', 'missing_info_rules', 'forbidden_rules'],
   user_templates: ['fields'],
   agent_templates: ['fields'],

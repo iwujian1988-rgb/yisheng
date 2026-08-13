@@ -1,14 +1,17 @@
 /* pages/release/version-list.wxss */
-.version-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
-.section-title { padding: 8px 0 16px; }
-.section-text { font-size: 16px; color: #333333; font-weight: 500; }
-.empty-section { display: flex; justify-content: center; padding-top: 120px; }
-.empty-text { font-size: 14px; color: #999999; }
-.version-list { display: flex; flex-direction: column; gap: 10px; }
-.version-card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; }
+.version-container { min-height: 100vh; background-color: #FCFBFF; padding: 24rpx 32rpx; }
+.section-title { padding: 16rpx 0 32rpx; }
+.section-text { font-size: 32rpx; color: #101936; font-weight: 500; }
+.empty-section { display: flex; justify-content: center; padding-top: 240rpx; }
+.empty-text { font-size: 28rpx; color: #98A1B8; }
+.version-list { display: flex; flex-direction: column; gap: 20rpx; }
+.version-card { background-color: #FFFFFF; border-radius: 20rpx; padding: 32rpx 40rpx; display: flex; flex-direction: column;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
+}
 .version-header { display: flex; justify-content: space-between; align-items: center; }
-.version-name { font-size: 15px; color: #333333; font-weight: 500; }
-.version-tag { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
-.tag-current { background-color: #E3F2FD; color: #4A90E2; }
-.tag-old { background-color: #F5F5F5; color: #999999; }
-.version-date { font-size: 12px; color: #CCCCCC; margin-top: 6px; }
+.version-name { font-size: 30rpx; color: #101936; font-weight: 500; }
+.version-tag { font-size: 24rpx; padding: 4rpx 16rpx; border-radius: 20rpx; }
+.tag-current { background-color: #F2EDFF; color: #6F3DFF; }
+.tag-old { background-color: #F5F5F5; color: #98A1B8; }
+.version-date { font-size: 24rpx; color: #CCCCCC; margin-top: 12rpx; }

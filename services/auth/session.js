@@ -15,7 +15,8 @@ function normalizeSessionPayload(payload) {
     purchaseStatus: data.purchaseStatus || 'none',
     deviceBindingStatus: data.deviceBindingStatus || 'not_bound',
     serviceStatus: data.serviceStatus || 'active',
-    device: data.device || null
+    device: data.device || null,
+    features: data.features || {}
   };
 
   profile.accountStatus = resolveAccountStatus(profile);
@@ -34,6 +35,7 @@ function persistSession(profile) {
   wx.setStorageSync('purchaseStatus', profile.purchaseStatus);
   wx.setStorageSync('deviceBindingStatus', profile.deviceBindingStatus);
   wx.setStorageSync('serviceStatus', profile.serviceStatus);
+  wx.setStorageSync('features', profile.features || {});
   if (profile.device) {
     wx.setStorageSync('boundDevice', profile.device);
   }
@@ -49,6 +51,7 @@ function clearSession() {
   wx.removeStorageSync('purchaseStatus');
   wx.removeStorageSync('deviceBindingStatus');
   wx.removeStorageSync('serviceStatus');
+  wx.removeStorageSync('features');
   wx.removeStorageSync('boundDevice');
   deviceSession.clearDeviceSession();
 }
@@ -113,7 +116,8 @@ function getStoredSessionSummary() {
     purchaseStatus: wx.getStorageSync('purchaseStatus') || '',
     deviceBindingStatus: wx.getStorageSync('deviceBindingStatus') || '',
     serviceStatus: wx.getStorageSync('serviceStatus') || '',
-    device: wx.getStorageSync('boundDevice') || null
+    device: wx.getStorageSync('boundDevice') || null,
+    features: wx.getStorageSync('features') || {}
   };
 }
 

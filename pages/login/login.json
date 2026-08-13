@@ -2,7 +2,8 @@
   "usingComponents": {
     "t-button": "tdesign-miniprogram/button/button",
     "t-checkbox": "tdesign-miniprogram/checkbox/checkbox",
-    "t-divider": "tdesign-miniprogram/divider/divider"
+    "t-divider": "tdesign-miniprogram/divider/divider",
+    "t-icon": "tdesign-miniprogram/icon/icon"
   },
   "navigationBarTitleText": "登录",
   "navigationStyle": "custom"

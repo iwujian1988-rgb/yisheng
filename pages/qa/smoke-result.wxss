@@ -1,15 +1,18 @@
 /* pages/qa/smoke-result.wxss */
 .result-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px 48px;
+  background-color: #FCFBFF;
+  padding: 32rpx 64rpx 96rpx;
 }
 
 .card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 16px;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 32rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .summary-row {
@@ -24,9 +27,9 @@
 }
 
 .summary-num {
-  font-size: 28px;
+  font-size: 56rpx;
   font-weight: 600;
-  color: #333333;
+  color: #101936;
   display: block;
 }
 
@@ -39,52 +42,55 @@
 }
 
 .summary-label {
-  font-size: 13px;
-  color: #999999;
-  margin-top: 4px;
+  font-size: 26rpx;
+  color: #98A1B8;
+  margin-top: 8rpx;
 }
 
 .section-label {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 20rpx;
 }
 
 .empty-section {
   display: flex;
   justify-content: center;
-  padding-top: 40px;
+  padding-top: 80rpx;
 }
 
 .empty-text {
-  font-size: 14px;
-  color: #999999;
+  font-size: 28rpx;
+  color: #98A1B8;
 }
 
 .issue-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20rpx;
 }
 
 .issue-card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 16px 20px;
-  border-left: 4px solid #F5222D;
+  border-radius: 20rpx;
+  padding: 32rpx 40rpx;
+  border-left: 8rpx solid #F5222D;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .issue-title {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 8rpx;
 }
 
 .issue-desc {
-  font-size: 13px;
-  color: #999999;
+  font-size: 26rpx;
+  color: #98A1B8;
 }

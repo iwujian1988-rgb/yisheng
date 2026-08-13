@@ -1,5 +1,7 @@
 var liveHeartbeat = require('./live-heartbeat');
 
+var AUTO_RECONNECT_KEY = 'bleAutoReconnectEnabled';
+
 function getAppGlobalData() {
   const app = typeof getApp === 'function' ? getApp() : null;
   return (app && app.globalData) || {};
@@ -36,9 +38,18 @@ function markBleLinkReady(deviceId) {
   gd.bleDeviceId = deviceId || gd.bleDeviceId || '';
   gd.bleLinkReady = Boolean(gd.bleDeviceId);
   if (gd.bleLinkReady) {
+    wx.setStorageSync(AUTO_RECONNECT_KEY, true);
     gd.deviceConnected = true;
     liveHeartbeat.start();
   }
+}
+
+function setAutoReconnectEnabled(enabled) {
+  wx.setStorageSync(AUTO_RECONNECT_KEY, Boolean(enabled));
+}
+
+function shouldAutoReconnect() {
+  return Boolean(wx.getStorageSync(AUTO_RECONNECT_KEY) && getStoredBleDeviceId());
 }
 
 function clearBleLink() {
@@ -66,5 +77,7 @@ module.exports = {
   isAccountBound,
   isBleLinkReady,
   markBleLinkReady,
-  rememberBleDevice
+  rememberBleDevice,
+  setAutoReconnectEnabled,
+  shouldAutoReconnect
 };

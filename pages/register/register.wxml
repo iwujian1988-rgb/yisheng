@@ -97,7 +97,7 @@
   <view class="agreement-section">
     <checkbox-group bindchange="onAgreementChange">
       <label class="agreement-label">
-        <checkbox value="agree" checked="{{agreed}}" color="#4A90E2" />
+        <checkbox value="agree" checked="{{agreed}}" color="#6F3DFF" />
         <text class="agreement-text">我已阅读并同意</text>
         <text class="agreement-link" bindtap="goToAgreement" data-type="user">《用户协议》</text>
         <text class="agreement-text">和</text>

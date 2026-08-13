@@ -74,14 +74,15 @@
 
 .brand {
   display: flex;
-  align-items: center;
-  gap: 16rpx;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6rpx;
 }
 
 .brand__logo {
   width: 64rpx;
   height: 64rpx;
-  border-radius: 18rpx;
+  border-radius: 24rpx;
   background: #6F3DFF;
   display: flex;
   align-items: center;
@@ -93,6 +94,21 @@
   font-weight: 800;
   color: #101936;
   letter-spacing: -0.5rpx;
+  line-height: 1;
+}
+
+.brand__greeting {
+  color: #101936;
+  font-size: 38rpx;
+  font-weight: 800;
+  letter-spacing: -0.5rpx;
+  line-height: 1.05;
+}
+
+.brand__greeting-note {
+  color: #64739A;
+  font-size: 20rpx;
+  font-weight: 500;
   line-height: 1;
 }
 
@@ -145,15 +161,27 @@
 
 .conn-text {
   flex: 1;
+  display: flex;
+  align-items: center;
   font-size: 26rpx;
   font-weight: 500;
   color: #101936;
-  line-height: 1;
+  line-height: 36rpx;
 }
 
 .conn-capsule .t-icon {
   line-height: 1;
 }
+
+.guide-modal { position: fixed; z-index: 1000; inset: 0; display: flex; align-items: center; justify-content: center; padding: 48rpx; background: rgba(16, 18, 39, .56); box-sizing: border-box; }
+.guide-poster { position: relative; width: 100%; overflow: hidden; border-radius: 34rpx; background: #FFFFFF; box-shadow: 0 28rpx 80rpx rgba(8, 8, 28, .30); }
+.guide-poster__close { position: absolute; z-index: 2; top: 18rpx; right: 18rpx; display: flex; align-items: center; justify-content: center; width: 56rpx; height: 56rpx; border-radius: 50%; background: rgba(255,255,255,.78); }
+.guide-poster__hero { position: relative; min-height: 330rpx; padding: 48rpx 42rpx; overflow: hidden; background: linear-gradient(135deg, #FFFFFF 6%, #EEE7FF 100%); }
+.guide-poster__eyebrow { display: block; margin-bottom: 16rpx; color: #907BDD; font-size: 18rpx; font-weight: 700; letter-spacing: 3rpx; }
+.guide-poster__title { position: relative; z-index: 1; display: block; color: #121B39; font-size: 48rpx; font-weight: 800; line-height: 1.18; }
+.guide-poster__title--accent { color: #6F3DFF; }
+.guide-poster__art { position: absolute; right: -4rpx; bottom: 0; width: 58%; height: 100%; }
+.guide-poster__body { padding: 34rpx 42rpx 42rpx; }.guide-poster__body > text:first-child { display: block; color: #17203D; font-size: 32rpx; font-weight: 800; }.guide-poster__body > view:first-of-type { display: flex; justify-content: space-between; margin: 24rpx 0; color: #6653B9; font-size: 22rpx; }.guide-poster__wish { display: block; margin: 12rpx 0 30rpx; color: #64739A; font-size: 22rpx; text-align: center; }.guide-poster__button { display: flex; align-items: center; justify-content: center; gap: 8rpx; height: 86rpx; border-radius: 999rpx; background: linear-gradient(90deg, #6338F4, #8B5BFF); color: #FFFFFF; font-size: 28rpx; font-weight: 700; }
 
 /* === Composer（无外层卡片） === */
 .composer {
@@ -173,6 +201,9 @@
   font-weight: 700;
   color: #101936;
 }
+
+.composer__title-row { display: flex; align-items: center; justify-content: space-between; }
+.composer__guide-link { color: #6F3DFF; font-size: 24rpx; font-weight: 600; }
 
 .composer__subtitle {
   font-size: 22rpx;
@@ -245,16 +276,44 @@
   gap: 12rpx;
 }
 
-.composer__cancel {
+.composer__tool {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 64rpx;
   height: 64rpx;
-  padding: 0 20rpx;
-  font-size: 24rpx;
-  color: #64739A;
-  background: transparent;
+  border-radius: 16rpx;
+  background: #f5f6f8;
 }
+
+.fullscreen-composer {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: calc(env(safe-area-inset-top) + 32rpx) 32rpx calc(env(safe-area-inset-bottom) + 32rpx);
+  box-sizing: border-box;
+  background: #fcfbff;
+}
+.fullscreen-composer__header { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 28rpx; }
+.fullscreen-composer__title { display: block; color: #101936; font-size: 40rpx; font-weight: 800; }
+.fullscreen-composer__hint { display: block; margin-top: 10rpx; color: #64739a; font-size: 24rpx; }
+.fullscreen-composer__editor { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 28rpx; border: 2rpx solid var(--brand-border); border-radius: 28rpx; background: #fff; overflow: hidden; }
+.fullscreen-composer__textarea-wrap { flex: 1; min-height: 0; }
+.fullscreen-composer__textarea-wrap .t-textarea,
+.fullscreen-composer__editor .t-textarea__wrapper { height: 100%; padding: 0 !important; background: transparent !important; border: 0 !important; }
+.fullscreen-composer__textarea-wrap .t-textarea__wrapper-inner,
+.fullscreen-composer__editor .fullscreen-composer__textarea-inner { min-height: 100% !important; padding: 0 !important; color: #101936 !important; font-size: 32rpx; line-height: 1.65; }
+.fullscreen-composer__tools { position: absolute; right: 28rpx; bottom: 28rpx; left: 28rpx; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+.fullscreen-composer__count { color: #8b95aa; font-size: 24rpx; }
+.fullscreen-composer__toolset { display: flex; align-items: center; gap: 14rpx; pointer-events: auto; }
+.fullscreen-composer__tool { display: flex; align-items: center; justify-content: center; width: 76rpx; height: 76rpx; border-radius: 20rpx; background: #f5f6f8; }
+.fullscreen-composer__tool--send { background: #eef0f4; }
+.fullscreen-composer__tool--send.is-disabled { opacity: .42; }
 
 /* 发送按钮：禁用态尺寸不变 */
 .composer__send {
@@ -274,6 +333,11 @@
 .composer__send.is-disabled {
   background: #C9BCF0;
   color: #FFFFFF;
+}
+
+.composer__send--stop,
+.fullscreen-composer__tool--stop {
+  background: #EF5B66;
 }
 
 .composer__send text {

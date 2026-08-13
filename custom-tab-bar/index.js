@@ -1,8 +1,10 @@
+const featureEntitlements = require('../services/entitlements/features');
+
 Component({
   data: {
     selected: 0,
-    color: '#8A94A6',
-    selectedColor: '#1677FF',
+    color: '#64739A',
+    selectedColor: '#6F3DFF',
     list: [
       {
         pagePath: 'pages/home/home',
@@ -13,12 +15,14 @@ Component({
       {
         pagePath: 'pages/ai/detail',
         text: 'AI创作',
+        featureKey: 'aiWriting',
         icon: 'edit-1',
         activeIcon: 'edit-1'
       },
       {
         pagePath: 'pages/templates/index',
         text: '场景模板',
+        featureKey: 'templates',
         icon: 'view-module',
         activeIcon: 'view-module'
       },
@@ -65,8 +69,18 @@ Component({
       const index = e.currentTarget.dataset.index;
       const item = this.data.list[index];
       if (!item || index === this.data.selected) return;
-      wx.switchTab({ url: '/' + item.pagePath });
-      this.setData({ selected: index });
+      const that = this;
+      const navigate = function () {
+        wx.switchTab({ url: '/' + item.pagePath });
+        that.setData({ selected: index });
+      };
+      if (!item.featureKey) {
+        navigate();
+        return;
+      }
+      featureEntitlements.guardAiFeature(item.featureKey, item.text).then(function (ok) {
+        if (ok) navigate();
+      });
     }
   }
 });

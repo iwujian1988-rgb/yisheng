@@ -3,13 +3,14 @@ const bleProtocol = require('../utils/ble/protocol');
 const sendProfile = require('../utils/ble/send-profile');
 const bleLink = require('../services/device/ble-link');
 const transferSettings = require('../services/settings/transfer-settings');
-const reviewerMock = require('../services/dev/reviewer-mock');
+const transferDemo = require('../services/device/transfer-demo');
 module.exports = Behavior({
   data: {
     connected: false,
     statusText: '未连接',
     deviceId: '',
     sending: false,
+    sendPaused: false,
     sendProgress: 0,
     stayOnPageAfterSend: false
   },
@@ -17,6 +18,9 @@ module.exports = Behavior({
   lifetimes: {
     detached() {
       this.cancelPendingAck();
+      if (this._bleConnectionStateListener && wx.offBLEConnectionStateChange) {
+        wx.offBLEConnectionStateChange(this._bleConnectionStateListener);
+      }
       if (this.closeBluetoothOnDetach) {
         this.closeBluetooth();
       }
@@ -37,11 +41,12 @@ module.exports = Behavior({
 
     tryReconnectBoundDevice() {
       const deviceId = bleLink.getStoredBleDeviceId();
-      if (!deviceId) {
+      if (!deviceId || this.reconnecting || this.data.connected) {
         return;
       }
 
       this.reconnecting = true;
+      this.manualDisconnect = false;
       this.initBluetooth(() => {
         this.connectDevice(deviceId);
       });
@@ -106,6 +111,7 @@ module.exports = Behavior({
         deviceId,
         success: () => {
           this.setData({ deviceId });
+          this.bindConnectionStateListener();
           this.requestBleMtu(deviceId);
           this.getServices(deviceId);
         },
@@ -114,6 +120,32 @@ module.exports = Behavior({
           this.setData({ statusText: '连接失败' });
         }
       });
+    },
+
+    bindConnectionStateListener() {
+      if (!wx.onBLEConnectionStateChange || this._bleConnectionStateListener) return;
+
+      this._bleConnectionStateListener = (res) => {
+        const currentDeviceId = this.data.deviceId || bleLink.getStoredBleDeviceId();
+        if (!res || res.connected || !currentDeviceId || res.deviceId !== currentDeviceId) return;
+
+        this.reconnecting = false;
+        this.writeCharacteristic = null;
+        this.notifyCharacteristic = null;
+        this.setGlobalDeviceStatus(false, '');
+        this.setData({
+          connected: false,
+          statusText: '连接已断开',
+          deviceId: ''
+        });
+        if (typeof this.refreshDeviceStatus === 'function') {
+          this.refreshDeviceStatus();
+        }
+        if (!this.manualDisconnect && bleLink.shouldAutoReconnect()) {
+          setTimeout(() => this.tryReconnectBoundDevice(), 800);
+        }
+      };
+      wx.onBLEConnectionStateChange(this._bleConnectionStateListener);
     },
 
     getServices(deviceId) {
@@ -297,13 +329,19 @@ module.exports = Behavior({
             this.finishCancelledSend();
             return;
           }
-          this.setData({ sending: false });
+          this._resumeSend = null;
+          this.setData({ sending: false, sendPaused: false });
           wx.setKeepScreenOn({ keepScreenOn: false });
           wx.showToast({ title: '设备响应超时', icon: 'none' });
         }
       );
     },
-    disconnect() {
+    disconnect(options) {
+      const isManual = !options || options.manual !== false;
+      this.manualDisconnect = isManual;
+      if (isManual) {
+        bleLink.setAutoReconnectEnabled(false);
+      }
       const deviceId = this.data.deviceId || bleLink.getStoredBleDeviceId();
       if (!deviceId) {
         this.setGlobalDeviceStatus(false, '');
@@ -342,22 +380,22 @@ module.exports = Behavior({
 
     closeBluetooth() {
       this.stopSearch();
-      this.disconnect();
+      this.disconnect({ manual: this.manualDisconnect });
       wx.closeBluetoothAdapter({});
       this.bluetoothInited = false;
     },
 
     sendTokens(tokens, text, source) {
-      // 审核员 mock 模式：审核员没有真实硬件，在最底层蓝牙写入前拦截。
-      // 上层编码/历史/UI 全跑真实逻辑——finishSuccessfulSend 会写历史并提示完成。
-      if (reviewerMock.isMockBleMode()) {
+      // 演示设备只替换底层蓝牙写入；编码、历史和 UI 仍走正式流程。
+      if (transferDemo.isActive()) {
         this.cancelSend = false;
-        this.setData({ sending: true, sendProgress: 0 });
+        this.setData({ sending: true, sendPaused: false, sendProgress: 0 });
         wx.setKeepScreenOn({ keepScreenOn: true });
         const total = (tokens && tokens.length) || 1;
         let i = 0;
         const step = () => {
           if (this.cancelSend) { this.finishCancelledSend(); return; }
+          if (this.data.sendPaused) { this._resumeSend = step; return; }
           if (i >= total) { this.finishSuccessfulSend(text, source); return; }
           i += 1;
           this.setData({ sendProgress: Math.floor((i / total) * 100) });
@@ -373,13 +411,18 @@ module.exports = Behavior({
       }
 
       this.cancelSend = false;
-      this.setData({ sending: true, sendProgress: 0 });
+      this._resumeSend = null;
+      this.setData({ sending: true, sendPaused: false, sendProgress: 0 });
       wx.setKeepScreenOn({ keepScreenOn: true });
 
       let tokenIndex = 0;
       const sendNextToken = () => {
         if (this.cancelSend) {
           this.finishCancelledSend();
+          return;
+        }
+        if (this.data.sendPaused) {
+          this._resumeSend = sendNextToken;
           return;
         }
         if (tokenIndex >= tokens.length) {
@@ -415,6 +458,10 @@ module.exports = Behavior({
     sendPackets(packets, callback) {
       let packetIndex = 0;
       const sendNextPacket = () => {
+        if (this.data.sendPaused) {
+          this._resumeSend = sendNextPacket;
+          return;
+        }
         if (packetIndex >= packets.length) {
           callback && callback();
           return;
@@ -438,6 +485,10 @@ module.exports = Behavior({
           this.finishCancelledSend();
           return;
         }
+        if (this.data.sendPaused) {
+          this._resumeSend = sendNextChunk;
+          return;
+        }
         if (chunkIndex >= chunks.length) {
           this.finishPacketWithAck(callback);
           return;
@@ -452,7 +503,8 @@ module.exports = Behavior({
             setTimeout(sendNextChunk, bleProtocol.CHUNK_DELAY_MS);
           },
           fail: () => {
-            this.setData({ sending: false });
+            this._resumeSend = null;
+            this.setData({ sending: false, sendPaused: false });
             wx.setKeepScreenOn({ keepScreenOn: false });
             wx.showToast({ title: '发送失败', icon: 'none' });
           }
@@ -466,13 +518,19 @@ module.exports = Behavior({
       this.setData({ sendProgress: Math.floor((currentIndex / total) * 100) });
       const delay = this.shouldUseAckFlow() ? 0 : sendProfile.getTokenDelay(token);
       setTimeout(() => {
-        if (!this.cancelSend) next();
+        if (this.cancelSend) return;
+        if (this.data.sendPaused) {
+          this._resumeSend = next;
+          return;
+        }
+        next();
       }, delay);
     },
     finishSuccessfulSend(text, source) {
       const stayOnPage = this.data.stayOnPageAfterSend;
       this.setData({
         sending: false,
+        sendPaused: false,
         sendProgress: 100,
         inputText: stayOnPage ? '' : this.data.inputText
       });
@@ -489,8 +547,21 @@ module.exports = Behavior({
 
     finishCancelledSend() {
       this.cancelPendingAck();
-      this.setData({ sending: false, sendProgress: 0 });
+      this._resumeSend = null;
+      this.setData({ sending: false, sendPaused: false, sendProgress: 0 });
       wx.setKeepScreenOn({ keepScreenOn: false });
+    },
+    onPauseSendTap() {
+      if (!this.data.sending) return;
+      if (!this.data.sendPaused) {
+        this.setData({ sendPaused: true });
+        return;
+      }
+      const resume = this._resumeSend;
+      this._resumeSend = null;
+      this.setData({ sendPaused: false }, () => {
+        if (resume) resume();
+      });
     },
     onCancelSendTap() {
       if (!this.data.sending) return;

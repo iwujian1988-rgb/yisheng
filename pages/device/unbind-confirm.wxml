@@ -18,7 +18,7 @@
     <text class="card-title">请选择解绑原因</text>
     <radio-group bindchange="onReasonChange">
       <label class="reason-item" wx:for="{{reasons}}" wx:key="value">
-        <radio value="{{item.value}}" checked="{{selectedReason === item.value}}" color="#4A90E2" />
+        <radio value="{{item.value}}" checked="{{selectedReason === item.value}}" color="#6F3DFF" />
         <text class="reason-text">{{item.label}}</text>
       </label>
     </radio-group>

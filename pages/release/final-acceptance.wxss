@@ -1,14 +1,17 @@
 /* pages/release/final-acceptance.wxss */
-.acceptance-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; display: flex; flex-direction: column; }
-.header-section { display: flex; flex-direction: column; padding: 16px 0; }
-.header-title { font-size: 18px; color: #333333; font-weight: 600; }
-.header-desc { font-size: 13px; color: #999999; margin-top: 6px; }
-.checklist { display: flex; flex-direction: column; gap: 10px; }
-.check-card { background-color: #FFFFFF; border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
-.check-name { font-size: 15px; color: #333333; }
-.check-status { font-size: 14px; }
+.acceptance-container { min-height: 100vh; background-color: #FCFBFF; padding: 24rpx 32rpx; display: flex; flex-direction: column; }
+.header-section { display: flex; flex-direction: column; padding: 32rpx 0; }
+.header-title { font-size: 36rpx; color: #101936; font-weight: 600; }
+.header-desc { font-size: 26rpx; color: #98A1B8; margin-top: 12rpx; }
+.checklist { display: flex; flex-direction: column; gap: 20rpx; }
+.check-card { background-color: #FFFFFF; border-radius: 20rpx; padding: 32rpx 40rpx; display: flex; justify-content: space-between; align-items: center;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
+}
+.check-name { font-size: 30rpx; color: #101936; }
+.check-status { font-size: 28rpx; }
 .status-pass { color: #4CAF50; }
 .status-pending { color: #FF9800; }
-.bottom-actions { margin-top: auto; padding: 24px 0; }
-.btn-primary { background-color: #4A90E2; border-radius: 12px; padding: 14px 0; text-align: center; }
-.btn-text { font-size: 16px; color: #FFFFFF; }
+.bottom-actions { margin-top: auto; padding: 48rpx 0; }
+.btn-primary { background-color: #6F3DFF; border-radius: 999rpx; padding: 28rpx 0; text-align: center; }
+.btn-text { font-size: 32rpx; color: #FFFFFF; }

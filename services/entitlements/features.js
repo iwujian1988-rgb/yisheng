@@ -25,8 +25,8 @@ function isPaidMember() {
 function guardAiFeature(featureKey, featureName) {
   if (!isPaidMember()) {
     wx.showModal({
-      title: '需要开通会员',
-      content: (featureName || '该功能') + '为会员能力，请联系管理员开通后使用。',
+      title: '会员服务未开通',
+      content: 'AI创作仅支持已开通会员服务的账号使用。购买AI套餐的用户可在“我的”领取。',
       showCancel: false,
       confirmText: '知道了'
     });

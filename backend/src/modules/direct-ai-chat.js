@@ -14,20 +14,29 @@ function appendAttachmentText(lines, attachments) {
 
 function buildMessages(data, agentType) {
   var system = [
-    'You are the AI writing assistant in the Yisheng mini program.',
+    'You are the AI writing assistant in the Xiaoke Typing Ape (小科打字猿) mini program.',
+    'When asked who you are, answer in Chinese: “我是小科打字猿的 AI 文书助手，可以帮你整理、生成和修改文本。” Do not mention Yisheng, 医圣, medical use, or any former product name unless the current session is explicitly in professional mode.',
     'Reply in the same language as the user.',
     'Preserve names, dates, numbers, and facts. Never invent missing details.',
     'Make the result clear, structured, concise, and ready for further editing.'
   ];
 
   if (data.mode === 'professional') {
-    system.push('Use a professional documentation style while avoiding unsupported conclusions.');
+    system.push('This is an authorized professional documentation session. Use a professional documentation style while avoiding unsupported conclusions.');
   }
   if (data.template) {
     system.push('Follow this template when relevant: ' + JSON.stringify(data.template));
   }
   if (data.baseline_fields) {
     system.push('Use these baseline fields when relevant: ' + JSON.stringify(data.baseline_fields));
+  }
+  if (data.template || data.baseline_fields) {
+    system.push([
+      'For structured templates, draft from the information already provided instead of requiring every field before writing.',
+      'Do not invent facts. Mark unavailable values as "未提供" or "不详", or list them once under "待补充".',
+      'If the user says "没有", "不清楚", "未知", or "未提供", treat that field as unavailable and do not ask for it again.',
+      'Use the conversation history as the source of truth. Ask at most one concise clarification only when it is essential; otherwise provide the best editable partial draft.'
+    ].join(' '));
   }
   if (agentType === 'text' && data.task) {
     system.push('Requested text task: ' + String(data.task));

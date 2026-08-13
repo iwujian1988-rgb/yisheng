@@ -98,6 +98,28 @@ function createAuthModule(deps) {
     };
   }
 
+  function createWechatUser(identity, body, now) {
+    return {
+      id: createId('user'),
+      openid: identity.openid,
+      unionid: identity.unionid || '',
+      phone: '',
+      nickname: (body.userInfo && body.userInfo.nickName) || '',
+      passwordHash: '',
+      status: 'active',
+      memberStatus: 'none',
+      memberStart: '',
+      memberEnd: '',
+      disabledAt: '',
+      disabledReason: '',
+      lastLogin: '',
+      registerSource: 'wechat',
+      features: {},
+      createdAt: now,
+      updatedAt: now
+    };
+  }
+
   function issueUserSession(user) {
     var actor = {
       kind: 'user',
@@ -253,8 +275,8 @@ function createAuthModule(deps) {
     var user = findUserByWechat(wxIdentity);
     var now = nowIso();
     if (!user) {
-      fail(res, 404, 'WECHAT_NOT_BOUND', '微信未绑定账号，请用手机号验证码登录');
-      return;
+      user = createWechatUser(wxIdentity, body, now);
+      store.users.push(user);
     }
     if (user.status === 'cancelled') {
       fail(res, 410, 'ACCOUNT_CANCELLED', '账号已注销，如需恢复请联系客服');
@@ -270,6 +292,10 @@ function createAuthModule(deps) {
   }
 
   async function requestRegisterCode(req, res) {
+    if (config.env === 'production') {
+      fail(res, 410, 'PHONE_CODE_LOGIN_DISABLED', 'phone code login is not available');
+      return;
+    }
     var body = await parseBody(req);
     var phone = normalizePhone(body.phone);
     if (!isValidPhone(phone)) {
@@ -284,6 +310,10 @@ function createAuthModule(deps) {
   }
 
   async function phoneCodeLogin(req, res) {
+    if (config.env === 'production') {
+      fail(res, 410, 'PHONE_CODE_LOGIN_DISABLED', 'phone code login is not available');
+      return;
+    }
     var body = await parseBody(req);
     var phone = normalizePhone(body.phone || body.account);
     var code = String(body.code || body.verificationCode || '').trim();
@@ -308,7 +338,7 @@ function createAuthModule(deps) {
       store.users.push(user);
     } else {
       if (!bindWechatIdentity(user, wxIdentity, body, res)) return;
-      if (body.password && !user.passwordHash) {
+      if (body.password) {
         user.passwordHash = hashPassword(String(body.password));
       }
     }
@@ -319,12 +349,17 @@ function createAuthModule(deps) {
     }
     user.lastLogin = now;
     user.updatedAt = now;
+    if (body.password && typeof store.persist === 'function') await store.persist();
     ok(res, issueUserSession(user));
   }
 
   async function login(req, res) {
     var body = await parseBody(req);
     if (body.phone || body.code || body.verificationCode) {
+      if (config.env === 'production') {
+        fail(res, 410, 'PHONE_CODE_LOGIN_DISABLED', 'phone code login is not available');
+        return;
+      }
       req.__body = body;
       return phoneCodeLoginWithBody(body, res);
     }
@@ -340,12 +375,20 @@ function createAuthModule(deps) {
       fail(res, 410, 'ACCOUNT_CANCELLED', '账号已注销，如需恢复请联系客服');
       return;
     }
+    if (!user.features || !user.features.transferDemo) {
+      fail(res, 403, 'PASSWORD_LOGIN_NOT_AVAILABLE', 'password login is restricted');
+      return;
+    }
     user.lastLogin = nowIso();
     user.updatedAt = user.lastLogin;
     ok(res, issueUserSession(user));
   }
 
   async function phoneCodeLoginWithBody(body, res) {
+    if (config.env === 'production') {
+      fail(res, 410, 'PHONE_CODE_LOGIN_DISABLED', 'phone code login is not available');
+      return;
+    }
     var phone = normalizePhone(body.phone || body.account);
     var code = String(body.code || body.verificationCode || '').trim();
     if (!validatePhoneCode(phone, code, res)) return;
@@ -369,7 +412,7 @@ function createAuthModule(deps) {
       store.users.push(user);
     } else {
       if (!bindWechatIdentity(user, wxIdentity, body, res)) return;
-      if (body.password && !user.passwordHash) {
+      if (body.password) {
         user.passwordHash = hashPassword(String(body.password));
       }
     }
@@ -380,6 +423,7 @@ function createAuthModule(deps) {
     }
     user.lastLogin = now;
     user.updatedAt = now;
+    if (body.password && typeof store.persist === 'function') await store.persist();
     ok(res, issueUserSession(user));
   }
 

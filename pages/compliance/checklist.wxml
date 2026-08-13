@@ -2,7 +2,7 @@
   <checkbox-group class="check-card" bindchange="onCheckChange">
     <view class="check-item" wx:for="{{items}}" wx:key="id">
       <label class="check-label">
-        <checkbox value="{{item.id}}" checked="{{item.checked}}" color="#4A90E2" />
+        <checkbox value="{{item.id}}" checked="{{item.checked}}" color="#6F3DFF" />
         <view class="check-info">
           <text class="check-title">{{item.title}}</text>
           <text class="check-desc">{{item.desc}}</text>

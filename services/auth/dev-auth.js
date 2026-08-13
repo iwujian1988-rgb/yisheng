@@ -18,7 +18,8 @@ function toSessionPayload(testUser) {
     purchaseStatus: testUser.purchaseStatus,
     deviceBindingStatus: testUser.deviceBindingStatus,
     serviceStatus: testUser.serviceStatus,
-    device: testUser.device
+    device: testUser.device,
+    features: testUser.features || {}
   };
 }
 

@@ -1,12 +1,15 @@
 /* pages/customer/data-export-note.wxss */
-.export-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px 48px; }
-.card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; margin-bottom: 12px; }
-.card-title { font-size: 16px; font-weight: 500; color: #333333; display: block; margin-bottom: 14px; }
-.list-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #F0F0F0; }
+.export-container { min-height: 100vh; background-color: #FCFBFF; padding: 32rpx 64rpx 96rpx; }
+.card { background-color: #FFFFFF; border-radius: 20rpx; padding: 40rpx; margin-bottom: 24rpx;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
+}
+.card-title { font-size: 32rpx; font-weight: 500; color: #101936; display: block; margin-bottom: 28rpx; }
+.list-item { display: flex; align-items: center; padding: 20rpx 0; border-bottom: 2rpx solid rgba(111, 61, 255, 0.08); }
 .list-item:last-child { border-bottom: none; }
-.list-dot { width: 8px; height: 8px; border-radius: 4px; margin-right: 10px; flex-shrink: 0; }
+.list-dot { width: 16rpx; height: 16rpx; border-radius: 20rpx; margin-right: 20rpx; flex-shrink: 0; }
 .dot-green { background-color: #52C41A; }
 .dot-gray { background-color: #D9D9D9; }
-.list-text { font-size: 15px; color: #333333; }
-.apply-btn { width: 100%; height: 52px; border-radius: 12px; font-size: 16px; font-weight: 500; margin-top: 24px; background-color: #4A90E2; color: #FFFFFF; }
+.list-text { font-size: 30rpx; color: #101936; }
+.apply-btn { width: 100%; height: 104rpx; border-radius: 999rpx; font-size: 32rpx; font-weight: 500; margin-top: 48rpx; background-color: #6F3DFF; color: #FFFFFF; }
 .apply-btn:active { opacity: 0.8; }

@@ -15,6 +15,15 @@ if [ ! -f "$ENV_FILE" ]; then
   exit 1
 fi
 
+required_vars="DB_ROOT_PASSWORD DB_PASSWORD ADMIN_PASSWORD DASHSCOPE_API_KEY WECHAT_APP_ID WECHAT_APP_SECRET ORDER_ENTITLEMENT_HASH_SECRET"
+for key in $required_vars; do
+  value=$(sed -n "s/^${key}=//p" "$ENV_FILE" | tail -n 1)
+  if [ -z "$value" ] || printf '%s' "$value" | grep -Eqi 'change[_-]?me|xxxxxxxx|replace-with|example'; then
+    echo "[deploy] invalid or missing production setting: $key"
+    exit 1
+  fi
+done
+
 # 解析参数
 RUN_MIGRATE=false
 RUN_SEED=false
@@ -36,8 +45,8 @@ if [ "$RUN_MIGRATE" = true ]; then
     sleep 2
   done
   echo "[deploy] running migrations..."
-  docker compose --env-file "$ENV_FILE" exec -T mysql \
-    sh -c 'for f in /migrations/*.sql; do echo "applying $f"; mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" < "$f"; done' || true
+  docker compose --env-file "$ENV_FILE" build api
+  docker compose --env-file "$ENV_FILE" run --rm api npm run migrate up
   echo "[deploy] migration done"
   exit 0
 fi
@@ -49,21 +58,30 @@ docker compose --env-file "$ENV_FILE" build api
 echo "[deploy] starting all services..."
 docker compose --env-file "$ENV_FILE" up -d
 
+echo "[deploy] applying pending migrations..."
+docker compose --env-file "$ENV_FILE" exec -T api npm run migrate up
+
 # 3. 等待 API 健康
 echo "[deploy] waiting for API healthy..."
 for i in $(seq 1 60); do
   if curl -fsS http://127.0.0.1/api/health >/dev/null 2>&1 || \
      docker compose --env-file "$ENV_FILE" exec -T api wget -qO- http://127.0.0.1:8080/api/health >/dev/null 2>&1; then
     echo "[deploy] API healthy"
+    API_HEALTHY=true
     break
   fi
   sleep 2
 done
+if [ "${API_HEALTHY:-false}" != true ]; then
+  echo "[deploy] API health check timed out"
+  docker compose --env-file "$ENV_FILE" ps
+  exit 1
+fi
 
 # 4. seed（可选）
 if [ "$RUN_SEED" = true ]; then
   echo "[deploy] running seed..."
-  docker compose --env-file "$ENV_FILE" exec -T api npm run seed || true
+  docker compose --env-file "$ENV_FILE" exec -T api npm run seed
 fi
 
 echo "[deploy] done. services:"

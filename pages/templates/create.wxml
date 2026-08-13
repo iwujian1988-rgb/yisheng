@@ -25,7 +25,8 @@
       value="{{content}}"
       bindinput="onContentInput"
       maxlength="20000"
-      show-confirm-bar="{{false}}"
+      show-confirm-bar="{{true}}"
+      hold-keyboard="{{false}}"
     />
     <view class="content-actions">
       <button class="content-btn" bindtap="goCamera">拍照识别</button>

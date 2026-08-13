@@ -2,38 +2,34 @@
 <view class="purchase-container">
   <view class="intro-section">
     <view class="intro-icon">
-      <text class="intro-icon-text">⚙</text>
+      <t-icon name="robot" size="72rpx" color="#FFFFFF" />
     </view>
-    <text class="intro-title">开通传输服务</text>
-    <text class="intro-desc">本产品为设备配套服务，购买传输设备后即可开通使用。</text>
+    <text class="intro-title">开通 AI 服务</text>
+    <text class="intro-desc">AI 创作与场景模板等能力，仅向已开通 AI 套餐的用户开放。</text>
   </view>
 
-  <view class="steps-card">
-    <text class="steps-title">使用流程</text>
-    <view class="step-item">
-      <text class="step-num">1</text>
-      <text class="step-text">购买传输设备</text>
+  <view class="abilities-card">
+    <text class="steps-title">AI 套餐包含</text>
+    <view class="ability-item">
+      <view class="ability-icon"><t-icon name="edit-1" size="36rpx" color="#6F3DFF" /></view>
+      <view><text class="ability-title">AI 创作</text><text class="ability-desc">辅助整理、改写和生成文字内容</text></view>
     </view>
-    <view class="step-item">
-      <text class="step-num">2</text>
-      <text class="step-text">获取激活码或联系服务人员开通</text>
+    <view class="ability-item">
+      <view class="ability-icon"><t-icon name="view-module" size="36rpx" color="#6F3DFF" /></view>
+      <view><text class="ability-title">场景模板</text><text class="ability-desc">按常用场景快速生成内容</text></view>
     </view>
-    <view class="step-item">
-      <text class="step-num">3</text>
-      <text class="step-text">将设备插入电脑 USB 口</text>
-    </view>
-    <view class="step-item">
-      <text class="step-num">4</text>
-      <text class="step-text">在首页通过蓝牙连接设备</text>
+    <view class="ability-item">
+      <view class="ability-icon"><t-icon name="image" size="36rpx" color="#6F3DFF" /></view>
+      <view><text class="ability-title">图片与语音转文字</text><text class="ability-desc">识别图片文字，转写语音内容</text></view>
     </view>
   </view>
 
   <view class="action-section">
     <button class="btn btn-primary action-btn" bindtap="contactSales">
-      联系客服
+      咨询 AI 套餐
     </button>
-    <button class="btn btn-outline action-btn" bindtap="inputActivationCode">
-      输入激活码
+    <button class="btn btn-outline action-btn" bindtap="claimPurchasedMembership">
+      领取已购 AI 服务
     </button>
   </view>
 </view>

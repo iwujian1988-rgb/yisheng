@@ -21,6 +21,7 @@
     "pages/asr/index",
     "pages/asr/result",
     "pages/purchase/index",
+    "pages/purchase/claim",
     "pages/purchase/activate",
     "pages/purchase/records",
     "pages/device/detail",
@@ -65,69 +66,6 @@
   ],
   "subPackages": [
     {
-      "root": "pages/admin",
-      "name": "admin",
-      "pages": [
-        "index",
-        "paid-user-create",
-        "paid-user-list",
-        "paid-user-detail",
-        "paid-user-edit",
-        "device-list",
-        "device-detail",
-        "service-records",
-        "service-record-detail",
-        "feedback-review",
-        "feedback-detail",
-        "audit-log",
-        "activation-import",
-        "activation-list",
-        "template-list",
-        "template-edit",
-        "quick-action-list",
-        "quick-action-edit",
-        "admin-user-list",
-        "admin-user-edit",
-        "token-usage"
-      ]
-    },
-    {
-      "root": "pages/qa",
-      "name": "qa",
-      "pages": [
-        "smoke-checklist",
-        "smoke-result",
-        "long-text-test",
-        "release-check",
-        "test-accounts",
-        "bug-report",
-        "hardware-test-guide",
-        "bluetooth-test-report",
-        "privacy-check"
-      ]
-    },
-    {
-      "root": "pages/ops",
-      "name": "ops",
-      "pages": [
-        "field-checklist",
-        "target-env-note",
-        "device-handover",
-        "ticket-list",
-        "ticket-detail"
-      ]
-    },
-    {
-      "root": "pages/sales",
-      "name": "sales",
-      "pages": ["leads", "lead-detail", "shipping-records"]
-    },
-    {
-      "root": "pages/finance",
-      "name": "finance",
-      "pages": ["service-overview", "invoice-info", "records"]
-    },
-    {
       "root": "pages/customer",
       "name": "customer",
       "pages": [
@@ -146,118 +84,25 @@
       ]
     },
     {
-      "root": "pages/metrics",
-      "name": "metrics",
-      "pages": [
-        "long-text-dashboard",
-        "transfer-performance",
-        "device-stability",
-        "ai-usage",
-        "ocr-asr-usage"
-      ]
-    },
-    {
-      "root": "pages/compliance",
-      "name": "compliance",
-      "pages": [
-        "encryption-status",
-        "redaction-rules",
-        "third-party-ai",
-        "checklist"
-      ]
-    },
-    {
-      "root": "pages/training",
-      "name": "training",
-      "pages": [
-        "admin-index",
-        "user-index",
-        "detail",
-        "done",
-        "feedback"
-      ]
-    },
-    {
       "root": "pages/legal",
       "name": "legal",
       "pages": ["index", "disclaimer", "data-processing"]
-    },
-    {
-      "root": "pages/analytics",
-      "name": "analytics",
-      "pages": ["index", "users", "devices", "transfers", "support"]
-    },
-    {
-      "root": "pages/integration",
-      "name": "integration",
-      "pages": [
-        "status",
-        "wechat-login-guide",
-        "ai-provider-guide",
-        "ocr-provider-guide",
-        "asr-provider-guide"
-      ]
-    },
-    {
-      "root": "pages/release",
-      "name": "release",
-      "pages": [
-        "version-list",
-        "version-detail",
-        "rollback-confirm",
-        "final-acceptance",
-        "project-done"
-      ]
-    },
-    {
-      "root": "pages/maintenance",
-      "name": "maintenance",
-      "pages": ["index", "logs", "config-check", "cleanup-confirm"]
-    },
-    {
-      "root": "pages/backend",
-      "name": "backend",
-      "pages": ["status", "health-check", "error-log", "config-guide"]
-    },
-    {
-      "root": "pages/manual",
-      "name": "manual",
-      "pages": ["index", "detail"]
-    },
-    {
-      "root": "pages/demo",
-      "name": "demo",
-      "pages": ["index", "scenario-select", "result"]
-    },
-    {
-      "root": "pages/dev",
-      "name": "dev",
-      "pages": ["index"]
     }
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#1677FF",
+    "navigationBarBackgroundColor": "#6F3DFF",
     "navigationBarTitleText": "小科打字猿",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#F5F7FA"
+    "backgroundColor": "#FCFBFF"
   },
-  "__usePrivacyProtocol__": true,
-  "requiredPrivateInfos": [
-    "chooseAddress",
-    "chooseLocation",
-    "getLocation",
-    "onLocationChange",
-    "startLocationUpdate",
-    "startLocationUpdateBackground"
-  ],
   "sitemapLocation": "sitemap.json",
   "componentFramework": "glass-easel",
   "lazyCodeLoading": "requiredComponents",
   "tabBar": {
     "custom": true,
-    "color": "#8A94A6",
-    "selectedColor": "#1677FF",
+    "color": "#64739A",
+    "selectedColor": "#6F3DFF",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "black",
     "list": [

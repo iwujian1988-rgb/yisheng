@@ -3,33 +3,30 @@
   <!-- ============ Status bar spacer (custom 导航避让状态栏 + 胶囊) ============ -->
   <view class="status-bar-spacer"></view>
 
-  <!-- ============ Top header: logo + brand + settings ============ -->
+  <!-- ============ Top greeting ============ -->
   <view class="top-header">
     <view class="brand">
-      <view class="brand__logo">
-        <t-icon name="bluetooth" size="36rpx" color="#FFFFFF" />
-      </view>
-      <text class="brand__name">小科打字猿</text>
-    </view>
-    <view class="icon-btn" bindtap="onConnectTap" hover-class="icon-btn--hover">
-      <t-icon name="setting" size="36rpx" color="#101936" />
+      <text class="brand__greeting">{{greeting}}</text>
+      <text class="brand__greeting-note">{{greetingNote}}</text>
     </view>
   </view>
 
   <!-- ============ Connection capsule ============ -->
   <view class="conn-capsule" bindtap="onConnectTap" hover-class="conn-capsule--hover">
     <view class="conn-dot {{connected ? 'is-on' : ''}}"></view>
-    <text class="conn-text">
+    <view class="conn-text">
       {{connected ? '已连接｜蓝牙设备已就绪' : (statusTitle || '未连接｜点击连接设备')}}
-    </text>
+    </view>
     <t-icon name="chevron-right" size="32rpx" color="#64739A" />
   </view>
 
   <!-- ============ Composer (无外层卡片，标题在输入框外) ============ -->
   <view class="composer">
     <view class="composer__head">
-      <text class="composer__title">发送内容</text>
-      <text class="composer__subtitle">输入或粘贴要发送到电脑的文字</text>
+      <view class="composer__title-row">
+        <text class="composer__title">发送内容</text>
+        <text class="composer__guide-link" bindtap="openGuidePoster">？如何使用</text>
+      </view>
     </view>
 
     <view class="composer__field">
@@ -47,15 +44,57 @@
       <view class="composer__bar">
         <text class="composer__count">{{inputText.length || 0}}/5000</text>
         <view class="composer__bar-right">
-          <view class="composer__cancel" wx:if="{{sending}}" bindtap="onCancelSendTap">取消</view>
+          <view class="composer__tool" bindtap="openFullscreen"><t-icon name="fullscreen" size="34rpx" color="#8B95AA" /></view>
+          <view class="composer__tool" wx:if="{{inputText}}" bindtap="onClearTap"><t-icon name="delete" size="34rpx" color="#8B95AA" /></view>
+          <view class="composer__tool" wx:if="{{sending}}" bindtap="onPauseSendTap"><t-icon name="{{sendPaused ? 'play' : 'pause'}}" size="34rpx" color="#8B95AA" /></view>
           <view
+            wx:if="{{sending}}"
+            class="composer__send composer__send--stop"
+            bindtap="onCancelSendTap"
+          >
+            <text>停止 {{sendProgress}}%</text>
+          </view>
+          <view
+            wx:else
             class="composer__send {{(!canSend || sending || !connected) ? 'is-disabled' : ''}}"
             bindtap="onSendTap"
           >
-            <text wx:if="{{sending}}">发送中 {{sendProgress}}%</text>
-            <text wx:elif="{{!connected}}">未连接</text>
+            <text wx:if="{{!connected}}">未连接</text>
             <text wx:else>发送</text>
           </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="fullscreen-composer" wx:if="{{isFullscreen}}">
+    <view class="fullscreen-composer__header">
+      <view>
+        <text class="fullscreen-composer__title">全屏输入</text>
+        <text class="fullscreen-composer__hint">文字将发送到电脑当前光标位置</text>
+      </view>
+    </view>
+    <view class="fullscreen-composer__editor">
+      <view class="fullscreen-composer__textarea-wrap">
+        <t-textarea
+          class="fullscreen-composer__textarea"
+          placeholder="输入或粘贴要发送的内容..."
+          value="{{inputText}}"
+          maxlength="5000"
+          autosize="{{ {minHeight: 360, maxHeight: 800} }}"
+          disable-default-padding
+          bind:change="onTextInput"
+          t-class="fullscreen-composer__textarea-inner"
+        />
+      </view>
+      <view class="fullscreen-composer__tools">
+        <text class="fullscreen-composer__count">{{inputText.length || 0}}/5000</text>
+        <view class="fullscreen-composer__toolset">
+          <view class="fullscreen-composer__tool" bindtap="closeFullscreen"><t-icon name="fullscreen-exit" size="38rpx" color="#8B95AA" /></view>
+          <view class="fullscreen-composer__tool" bindtap="onClearTap"><t-icon name="delete" size="38rpx" color="#8B95AA" /></view>
+          <view class="fullscreen-composer__tool" wx:if="{{sending}}" bindtap="onPauseSendTap"><t-icon name="{{sendPaused ? 'play' : 'pause'}}" size="38rpx" color="#8B95AA" /></view>
+          <view wx:if="{{sending}}" class="fullscreen-composer__tool fullscreen-composer__tool--stop" bindtap="onCancelSendTap"><t-icon name="close" size="38rpx" color="#FFFFFF" /></view>
+          <view wx:else class="fullscreen-composer__tool fullscreen-composer__tool--send {{(!canSend || !connected) ? 'is-disabled' : ''}}" bindtap="onSendTap"><t-icon name="send" size="38rpx" color="#8B95AA" /></view>
         </view>
       </view>
     </view>
@@ -168,4 +207,21 @@
     </view>
   </view>
 
+  <view class="guide-modal" wx:if="{{showGuidePoster}}" catchtap="closeGuidePoster">
+    <view class="guide-poster" catchtap="stopGuidePoster">
+      <view class="guide-poster__close" bindtap="closeGuidePoster"><t-icon name="close" size="32rpx" color="#6B7288" /></view>
+      <view class="guide-poster__hero">
+        <text class="guide-poster__eyebrow">XIAOKE TYPING APE</text>
+        <text class="guide-poster__title">小科打字猿</text>
+        <text class="guide-poster__title guide-poster__title--accent">使用指南</text>
+        <image class="guide-poster__art" src="/assets/guide/hero-art.png" mode="aspectFit" />
+      </view>
+      <view class="guide-poster__body">
+        <text>三步完成设置</text>
+        <view><text>01 输入法</text><text>02 连接设备</text><text>03 开始输入</text></view>
+        <text class="guide-poster__wish">♥ 主任，记得早点下班 ♥</text>
+        <view class="guide-poster__button" bindtap="openGuideH5"><text>查看完整指南</text><t-icon name="chevron-right" size="30rpx" color="#FFFFFF" /></view>
+      </view>
+    </view>
+  </view>
 </view>

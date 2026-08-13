@@ -36,8 +36,9 @@
 
   <view class="action-section">
     <button class="btn btn-primary action-btn" disabled="{{!resultText}}" bindtap="confirmResult">
-      确认使用
+      发送到电脑
     </button>
+    <button class="btn btn-outline action-btn" disabled="{{!resultText}}" bindtap="copyResult">复制文本</button>
     <button class="btn btn-outline action-btn" disabled="{{!resultText}}" bindtap="goSmartOrganize">
       智能整理
     </button>

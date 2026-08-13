@@ -1,32 +1,34 @@
 /* pages/transfer/result.wxss */
 .result-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
+  background-color: #FCFBFF;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0 32rpx 48rpx;
+  box-sizing: border-box;
 }
 
 .status-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 100px;
-  margin-bottom: 48px;
+  padding-top: 200rpx;
+  margin-bottom: 96rpx;
 }
 
 .icon-circle {
-  width: 80px;
-  height: 80px;
+  width: 160rpx;
+  height: 160rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 48rpx;
 }
 
 .icon-text {
-  font-size: 36px;
+  font-size: 72rpx;
   color: #FFFFFF;
 }
 
@@ -39,38 +41,38 @@
 }
 
 .status-title {
-  font-size: 20px;
+  font-size: 40rpx;
   font-weight: bold;
-  color: #333333;
-  margin-bottom: 8px;
+  color: #101936;
+  margin-bottom: 16rpx;
 }
 
 .status-desc {
-  font-size: 14px;
-  color: #666666;
+  font-size: 28rpx;
+  color: #64739A;
   text-align: center;
   line-height: 1.6;
-  padding: 0 32px;
+  padding: 0 32rpx;
 }
 
 /* 操作按钮 */
 .action-section {
-  width: calc(100% - 64px);
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24rpx;
 }
 
 .action-btn {
   width: 100%;
-  height: 52px;
-  border-radius: 12px;
-  font-size: 16px;
+  height: 104rpx;
+  border-radius: 999rpx;
+  font-size: 32rpx;
   font-weight: 500;
 }
 
 .btn-primary {
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
   color: #FFFFFF;
 }
 
@@ -80,6 +82,6 @@
 
 .btn-outline {
   background-color: transparent;
-  color: #4A90E2;
-  border: 1px solid #4A90E2;
+  color: #6F3DFF;
+  border: 2rpx solid rgba(111, 61, 255, 0.24);
 }

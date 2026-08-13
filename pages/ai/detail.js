@@ -74,6 +74,17 @@ function hasRecognizingAttachment(attachments) {
   });
 }
 
+function hasFailedAttachment(attachments) {
+  return (attachments || []).some(function (item) {
+    return item.ocrStatus === 'failed';
+  });
+}
+
+function shouldRenderDocument(message, selectedTemplateId) {
+  var text = String(message && (message.bodyText || message.streamingText || message.content) || '');
+  return Boolean(selectedTemplateId) || text.length >= 360 || /【正文】|主诉|现病史|既往史|体格检查/.test(text);
+}
+
 function attachmentsToUploadPayload(attachments) {
   return (attachments || []).map(function (item) {
     var upload = item.upload || {};
@@ -212,6 +223,24 @@ function createMessage(role, content, extra) {
   return message;
 }
 
+function buildConversationHistory(messages) {
+  return (messages || []).filter(function (item) {
+    return item
+      && (item.role === 'user' || item.role === 'assistant')
+      && item.status !== 'pending';
+  }).map(function (item) {
+    var content = item.role === 'assistant'
+      ? (item.bodyText || item.streamingText || item.content || '')
+      : (item.content || '');
+    return {
+      role: item.role,
+      content: String(content).trim()
+    };
+  }).filter(function (item) {
+    return item.content;
+  }).slice(-20);
+}
+
 function updateMessageById(messages, messageId, patch) {
   return (messages || []).map(function (item) {
     if (item.id !== messageId) return item;
@@ -239,6 +268,15 @@ Page({
     selectedTemplateIndex: 0,
     templateLabel: '选择模板（可选）',
     selectedTemplateName: '',
+    templatePickerVisible: false,
+    templateSearchKeyword: '',
+    templatePickerItems: [],
+    confirmEditorVisible: false,
+    confirmEditorMessageId: '',
+    confirmEditorIndex: -1,
+    confirmEditorTitle: '',
+    confirmEditorHint: '',
+    confirmEditorText: '',
     pendingAttachments: [],
     pendingPreviewItems: [],
     maxPendingImages: MAX_PENDING_IMAGES,
@@ -248,7 +286,8 @@ Page({
     sendingStageLabel: '',
     streamingMessageId: '',
     recognizingAttachments: false,
-    activeStreamTask: null
+    activeStreamTask: null,
+    cancelledMessageId: ''
   },
 
   onLoad: function (options) {
@@ -341,16 +380,58 @@ Page({
       selectedTemplateIndex: selectedIndex,
       selectedTemplateId: selectedTemplateId,
       selectedTemplateName: selectedTemplateName,
-      templateLabel: templateLabel
+      templateLabel: templateLabel,
+      templatePickerItems: this.buildTemplatePickerItems(templates, '')
     });
+  },
+
+  buildTemplatePickerItems: function (templates, keyword) {
+    var recentIds = wx.getStorageSync('aiRecentTemplateIds') || [];
+    var query = String(keyword || '').trim().toLowerCase();
+    return (templates || []).filter(function (item) {
+      return !query || [item.name, item.templateType, item.template_type].join(' ').toLowerCase().indexOf(query) >= 0;
+    }).map(function (item) {
+      return Object.assign({}, item, {
+        category: item.templateType || item.template_type || '其他',
+        isRecent: recentIds.indexOf(item.id) >= 0
+      });
+    }).sort(function (a, b) { return Number(b.isRecent) - Number(a.isRecent); });
   },
 
   openTemplatePicker: function () {
     var that = this;
     featureEntitlements.guardAiFeature('templates', '场景模板').then(function (ok) {
       if (!ok) return;
-      that._openTemplatePickerInner();
+      that.setData({
+        templatePickerVisible: true,
+        templateSearchKeyword: '',
+        templatePickerItems: that.buildTemplatePickerItems(that.data.templates, '')
+      });
     });
+  },
+
+  closeTemplatePicker: function () {
+    this.setData({ templatePickerVisible: false });
+  },
+
+  noop: function () {},
+
+  onTemplateSearch: function (e) {
+    var keyword = e.detail && e.detail.value || '';
+    this.setData({
+      templateSearchKeyword: keyword,
+      templatePickerItems: this.buildTemplatePickerItems(this.data.templates, keyword)
+    });
+  },
+
+  selectTemplateFromPicker: function (e) {
+    var id = e.currentTarget.dataset.id;
+    var index = (this.data.templates || []).findIndex(function (item) { return item.id === id; });
+    if (index < 0) return;
+    var recentIds = wx.getStorageSync('aiRecentTemplateIds') || [];
+    wx.setStorageSync('aiRecentTemplateIds', [id].concat(recentIds.filter(function (item) { return item !== id; })).slice(0, 5));
+    this.selectTemplateByIndex(index);
+    this.closeTemplatePicker();
   },
 
   _openTemplatePickerInner: function () {
@@ -405,15 +486,17 @@ Page({
       selectedTemplateIndex: 0,
       selectedTemplateId: '',
       selectedTemplateName: '',
-      templateLabel: '选择模板（可选）'
+      templateLabel: '选择模板（可选）',
+      templatePickerVisible: false
     });
   },
 
   goTemplateImport: function () {
     featureEntitlements.guardAiFeature('templates', '场景模板').then(function (ok) {
       if (!ok) return;
+      this.setData({ templatePickerVisible: false });
       wx.navigateTo({ url: '/pages/ai/template-import' });
-    });
+    }.bind(this));
   },
 
   onInput: function (e) {
@@ -426,27 +509,47 @@ Page({
     var attachments = this.data.pendingAttachments || [];
     var hasAttachment = attachments.length > 0;
     var recognizing = hasRecognizingAttachment(attachments);
-    var canSend = (hasText || hasAttachment) && !this.data.sending && !recognizing;
+    var failed = hasFailedAttachment(attachments);
+    var canSend = (hasText || hasAttachment) && !this.data.sending && !recognizing && !failed;
     this.setData({ canSend: canSend, sendDisabled: !canSend, recognizingAttachments: recognizing });
   },
 
-  sendMessage: function () {
-    if (!this.data.canSend || this.data.sending) return;
+  sendMessage: function (options) {
+    options = options || {};
+    if ((!this.data.canSend && !options.message) || this.data.sending) return;
 
-    var message = String(this.data.inputText || '').trim();
-    var attachments = (this.data.pendingAttachments || []).slice();
+    // Let users dismiss the keyboard before the response starts streaming.
+    if (wx.hideKeyboard) {
+      wx.hideKeyboard({ fail: function () {} });
+    }
+
+    var message = String(options.message !== undefined ? options.message : this.data.inputText || '').trim();
+    var attachments = options.attachments || (this.data.pendingAttachments || []).slice();
     if (!message && !attachments.length) return;
+    var isDocumentRevision = Boolean(options.applyToDocumentId);
+    var visibleMessage = isDocumentRevision ? '正在按补充信息修订文书' : message;
+    var conversationHistory = buildConversationHistory(this.data.messages);
 
-    var userMessage = createMessage('user', message, {
-      chatContent: buildUserChatContent(message, attachments),
-      rawAttachments: attachments
+    var userMessage = createMessage('user', visibleMessage, {
+      chatContent: buildUserChatContent(visibleMessage, attachments),
+      rawAttachments: attachments,
+      isRevisionRequest: isDocumentRevision,
+      revisionTargetId: options.applyToDocumentId || ''
     });
 
     var streamMessage = createMessage('assistant', '', {
       status: 'pending',
       streamingText: '',
       bodyText: '',
-      resultType: 'text'
+      resultType: 'text',
+      request: {
+        message: message,
+        restoreMessage: isDocumentRevision ? '' : message,
+        attachments: attachments,
+        templateId: options.templateId !== undefined ? options.templateId : (this.data.selectedTemplateId || ''),
+        applyToDocumentId: options.applyToDocumentId || '',
+        forceDocument: Boolean(options.forceDocument)
+      }
     });
 
     var needsServerOcr = attachments.some(function (item) {
@@ -455,9 +558,9 @@ Page({
 
     this.setData({
       messages: this.data.messages.concat(userMessage, streamMessage),
-      inputText: '',
-      pendingAttachments: [],
-      pendingPreviewItems: [],
+      inputText: isDocumentRevision ? this.data.inputText : '',
+      pendingAttachments: isDocumentRevision ? this.data.pendingAttachments : [],
+      pendingPreviewItems: isDocumentRevision ? this.data.pendingPreviewItems : [],
       sending: true,
       streamingMessageId: streamMessage.id,
       sendingStageLabel: needsServerOcr ? '识别图片并生成中…' : '正在生成回复…',
@@ -470,8 +573,8 @@ Page({
     var streamTask = agentChat.sendChatStream({
       message: message,
       attachments: attachmentsToUploadPayload(attachments),
-      messages: [],
-      templateId: this.data.selectedTemplateId || ''
+      messages: conversationHistory,
+      templateId: options.templateId !== undefined ? options.templateId : (this.data.selectedTemplateId || '')
     }, {
       onStatus: function (status) {
         if (!status || !status.label) return;
@@ -530,6 +633,37 @@ Page({
     }
 
     var bodyText = finalResult.bodyText || finalResult.resultText || '';
+    var streamingMessage = (this.data.messages || []).find(function (item) { return item.id === messageId; });
+    var request = streamingMessage && streamingMessage.request || {};
+    if (request.applyToDocumentId) {
+      var nextConfirmItems = Array.isArray(finalResult.confirmItems)
+        ? finalResult.confirmItems.map(function (text) { return { text: text, checked: false }; })
+        : [];
+      this.setData({
+        sending: false,
+        sendingStageLabel: '',
+        streamingMessageId: '',
+        messages: (this.data.messages || []).filter(function (item) {
+          return item.id !== messageId && !(item.isRevisionRequest && item.revisionTargetId === request.applyToDocumentId);
+        }).map(function (item) {
+          if (item.id !== request.applyToDocumentId) return item;
+          return Object.assign({}, item, {
+            bodyText: bodyText,
+            resultText: finalResult.resultText || bodyText,
+            content: bodyText,
+            chatContent: buildChatContentParts(bodyText, item.thinkingText || ''),
+            confirmItems: nextConfirmItems,
+            revisedAt: Date.now(),
+            isDocument: true
+          });
+        })
+      }, function () {
+        this.refreshSendState();
+        this.scrollChatToBottom();
+        wx.showToast({ title: '文书已更新', icon: 'success' });
+      }.bind(this));
+      return;
+    }
     this.setData({
       sending: false,
       sendingStageLabel: '',
@@ -539,7 +673,9 @@ Page({
         resultText: finalResult.resultText || bodyText,
         bodyText: bodyText,
         streamingText: '',
-        resultType: 'text'
+        resultType: 'text',
+        isDocument: Boolean(request.forceDocument) || shouldRenderDocument({ bodyText: bodyText }, request.templateId || this.data.selectedTemplateId),
+        confirmItems: Array.isArray(finalResult.confirmItems) ? finalResult.confirmItems.map(function (text) { return { text: text, checked: false }; }) : []
       })
     }, function () {
       this.refreshSendState();
@@ -548,12 +684,34 @@ Page({
   },
 
   handleStreamError: function (messageId, err) {
+    if (this.data.cancelledMessageId === messageId) {
+      this.setData({ cancelledMessageId: '' });
+      return;
+    }
     var errorMessage = (err && err.message) || '服务暂时不可用';
-    var messages = (this.data.messages || []).filter(function (item) {
-      return item.id !== messageId;
-    });
+    var failedMessage = (this.data.messages || []).find(function (item) { return item.id === messageId; });
+    var failedRequest = failedMessage && failedMessage.request || {};
+    if (failedRequest.applyToDocumentId) {
+      this.setData({
+        messages: (this.data.messages || []).filter(function (item) {
+          return item.id !== messageId && !(item.isRevisionRequest && item.revisionTargetId === failedRequest.applyToDocumentId);
+        }),
+        sending: false,
+        sendingStageLabel: '',
+        streamingMessageId: ''
+      }, function () {
+        this.refreshSendState();
+        wx.showToast({ title: '修订失败，原文书未变更', icon: 'none' });
+      }.bind(this));
+      return;
+    }
     this.setData({
-      messages: messages,
+      messages: updateMessageById(this.data.messages, messageId, {
+        status: 'error',
+        errorMessage: errorMessage,
+        content: '生成失败',
+        streamingText: ''
+      }),
       sending: false,
       sendingStageLabel: '',
       streamingMessageId: ''
@@ -599,15 +757,11 @@ Page({
         that.setPendingAttachments(next, that.refreshSendState.bind(that));
       }).catch(function () {
         var next = replaceAttachmentById(that.data.pendingAttachments, placeholder.id, Object.assign({}, placeholder, {
-          ocrStatus: 'done',
-          upload: {
-            type: 'image',
-            data: '',
-            mimeType: 'image/jpeg'
-          }
+          ocrStatus: 'failed',
+          upload: null
         }));
         that.setPendingAttachments(next, that.refreshSendState.bind(that));
-        wx.showToast({ title: '图片识别失败', icon: 'none' });
+        wx.showToast({ title: '图片处理失败，请重试', icon: 'none' });
       });
     });
   },
@@ -618,6 +772,23 @@ Page({
       return item.id !== id;
     });
     this.setPendingAttachments(next, this.refreshSendState.bind(this));
+  },
+
+  retryPendingImage: function (e) {
+    var id = e.currentTarget.dataset.id;
+    var target = (this.data.pendingAttachments || []).find(function (item) { return item.id === id; });
+    if (!target || !target.previewUrl) return;
+    var that = this;
+    that.setPendingAttachments(replaceAttachmentById(that.data.pendingAttachments, id, Object.assign({}, target, {
+      ocrStatus: 'recognizing', upload: null
+    })), that.refreshSendState.bind(that));
+    buildAttachmentFromPath(target.previewUrl, id).then(function (ready) {
+      that.setPendingAttachments(replaceAttachmentById(that.data.pendingAttachments, id, ready), that.refreshSendState.bind(that));
+    }).catch(function () {
+      that.setPendingAttachments(replaceAttachmentById(that.data.pendingAttachments, id, Object.assign({}, target, {
+        ocrStatus: 'failed', upload: null
+      })), that.refreshSendState.bind(that));
+    });
   },
 
   previewPendingImage: function (e) {
@@ -650,7 +821,7 @@ Page({
   goVoice: function () {
     featureEntitlements.guardAiFeature('asr', '语音转写').then(function (ok) {
       if (!ok) return;
-      wx.navigateTo({ url: '/pages/asr/index?returnTo=ai&auto=1' });
+      wx.navigateTo({ url: '/pages/asr/index?returnTo=ai' });
     });
   },
 
@@ -688,6 +859,151 @@ Page({
     wx.navigateTo({ url: '/pages/transfer/editor?source=ai' });
   },
 
+  copyResult: function (e) {
+    var latest = this.data.messages.find(function (message) { return message.id === e.currentTarget.dataset.id; });
+    var text = String(latest && latest.bodyText || '').trim();
+    if (!text) return;
+    wx.setClipboardData({ data: text, success: function () { wx.showToast({ title: '已复制', icon: 'success' }); } });
+  },
+
+  editResult: function (e) {
+    var latest = this.data.messages.find(function (message) { return message.id === e.currentTarget.dataset.id; });
+    var text = String(latest && latest.bodyText || '').trim();
+    if (!text) return;
+    this.setData({ inputText: text }, this.refreshSendState.bind(this));
+  },
+
+  openConfirmEditor: function (e) {
+    var messageId = e.currentTarget.dataset.id;
+    var itemIndex = Number(e.currentTarget.dataset.index);
+    var message = (this.data.messages || []).find(function (item) { return item.id === messageId; });
+    var confirm = message && (message.confirmItems || [])[itemIndex];
+    if (!confirm) return;
+    this.setData({
+      confirmEditorVisible: true,
+      confirmEditorMessageId: messageId,
+      confirmEditorIndex: itemIndex,
+      confirmEditorTitle: '核实并修订',
+      confirmEditorHint: confirm.text,
+      confirmEditorText: ''
+    });
+  },
+
+  openDocumentRevision: function (e) {
+    this.setData({
+      confirmEditorVisible: true,
+      confirmEditorMessageId: e.currentTarget.dataset.id,
+      confirmEditorIndex: -1,
+      confirmEditorTitle: '修订当前文书',
+      confirmEditorHint: '输入需要修改、补充或删除的内容',
+      confirmEditorText: ''
+    });
+  },
+
+  closeConfirmEditor: function () {
+    this.setData({ confirmEditorVisible: false, confirmEditorText: '' });
+  },
+
+  onConfirmEditorInput: function (e) {
+    this.setData({ confirmEditorText: e.detail.value || '' });
+  },
+
+  applyDocumentRevision: function () {
+    var messageId = this.data.confirmEditorMessageId;
+    var itemIndex = this.data.confirmEditorIndex;
+    var revision = String(this.data.confirmEditorText || '').trim();
+    var documentMessage = (this.data.messages || []).find(function (item) { return item.id === messageId; });
+    if (!documentMessage || !documentMessage.bodyText) return;
+    if (!revision) {
+      wx.showToast({ title: '请填写补充或修订内容', icon: 'none' });
+      return;
+    }
+    var confirm = itemIndex >= 0 ? (documentMessage.confirmItems || [])[itemIndex] : null;
+    var instruction = [
+      '请基于以下当前文书完成修订，只输出完整的修订后文书，不要解释过程。',
+      '',
+      '【当前文书】',
+      documentMessage.bodyText,
+      '',
+      confirm ? '【待确认项】' : '【修订要求】',
+      confirm ? confirm.text : '',
+      '【用户补充/修订】',
+      revision,
+      '',
+      '用户表示无、未知或未提供的信息，请在文书中如实标注或删除对应推断，不要再次追问。保留仍未核实的事项。'
+    ].filter(function (line, index) {
+      return line || index !== 6;
+    }).join('\n');
+    this.setData({ confirmEditorVisible: false, confirmEditorText: '' });
+    this.sendMessage({
+      message: instruction,
+      attachments: [],
+      applyToDocumentId: messageId,
+      forceDocument: true,
+      templateId: documentMessage.request && documentMessage.request.templateId || this.data.selectedTemplateId || ''
+    });
+  },
+
+  restoreFailedRequest: function (e) {
+    var latest = this.data.messages.find(function (message) { return message.id === e.currentTarget.dataset.id; });
+    var request = latest && latest.request;
+    if (!request) return;
+    if (request.applyToDocumentId) {
+      wx.showToast({ title: '原文书未变更，请重新提交修订', icon: 'none' });
+      return;
+    }
+    this.setData({
+      inputText: request.restoreMessage !== undefined ? request.restoreMessage : (request.message || ''),
+      pendingAttachments: request.attachments || [],
+      pendingPreviewItems: attachmentsToPreviewItems(request.attachments || [])
+    }, this.refreshSendState.bind(this));
+  },
+
+  stopGeneration: function () {
+    if (!this.data.sending) return;
+    var messageId = this.data.streamingMessageId;
+    var task = this.data.activeStreamTask;
+    // Mark the request as intentionally cancelled before aborting it, so its fail callback cannot render an error card.
+    this.setData({ cancelledMessageId: messageId });
+    if (task && typeof task.abort === 'function') task.abort();
+    var current = (this.data.messages || []).find(function (item) { return item.id === messageId; });
+    var request = current && current.request || {};
+    if (request.applyToDocumentId) {
+      this.setData({
+        activeStreamTask: null,
+        sending: false,
+        sendingStageLabel: '',
+        streamingMessageId: '',
+        messages: (this.data.messages || []).filter(function (item) {
+          return item.id !== messageId && !(item.isRevisionRequest && item.revisionTargetId === request.applyToDocumentId);
+        })
+      }, function () {
+        this.refreshSendState();
+        wx.showToast({ title: '已停止修订，原文书未变更', icon: 'none' });
+      }.bind(this));
+      return;
+    }
+    var partialText = String(current && current.streamingText || '').trim();
+    this.setData({
+      activeStreamTask: null,
+      sending: false,
+      sendingStageLabel: '',
+      streamingMessageId: '',
+      messages: updateMessageById(this.data.messages, messageId, {
+        status: partialText ? 'complete' : 'stopped',
+        bodyText: partialText,
+        streamingText: '',
+        content: partialText || '已停止生成',
+        isPartial: Boolean(partialText),
+        isDocument: shouldRenderDocument({ bodyText: partialText }, this.data.selectedTemplateId)
+      })
+    }, this.refreshSendState.bind(this));
+  },
+
+  fillQuickPrompt: function (e) {
+    this.setData({ inputText: e.currentTarget.dataset.prompt || '' }, this.refreshSendState.bind(this));
+  },
+
   saveTemplateDraft: function (e) {
     var id = e.currentTarget.dataset.id;
     var latest = this.data.messages.find(function (message) { return message.id === id; });
@@ -701,6 +1017,34 @@ Page({
   },
 
   resetSession: function () {
+    if (this.data.sending) {
+      wx.showModal({
+        title: '结束当前生成？',
+        content: '正在生成的内容会停止，本页对话将清除。',
+        confirmText: '结束并新建',
+        success: function (res) {
+          if (!res.confirm) return;
+          var task = this.data.activeStreamTask;
+          if (task && typeof task.abort === 'function') task.abort();
+          this.clearSession();
+        }.bind(this)
+      });
+      return;
+    }
+    if (this.data.messages.length) {
+      wx.showModal({
+        title: '新建对话',
+        content: '当前对话会从本页清除。',
+        success: function (res) {
+          if (res.confirm) this.clearSession();
+        }.bind(this)
+      });
+      return;
+    }
+    this.clearSession();
+  },
+
+  clearSession: function () {
     var task = this.data.activeStreamTask;
     if (task && typeof task.abort === 'function') {
       task.abort();
@@ -713,7 +1057,8 @@ Page({
       sending: false,
       sendingStageLabel: '',
       streamingMessageId: '',
-      activeStreamTask: null
+      activeStreamTask: null,
+      cancelledMessageId: ''
     }, this.refreshSendState.bind(this));
   },
 

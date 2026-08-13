@@ -7,15 +7,46 @@
       layout="both"
     >
       <view wx:if="{{messages.length === 0 && !sending}}" class="welcome-message">
-        <view class="bot-avatar">AI</view>
+        <view class="bot-avatar">智</view>
         <view class="welcome-bubble">
-          <text class="welcome-title">描述你的需求，可附带图片或语音转写内容</text>
-          <text class="welcome-desc">例如：识别这张图片并整理成结构化文本。系统会自动识别、整理并直接给出结果。</text>
+          <text class="welcome-title">从一段记录开始</text>
+          <text class="welcome-desc">输入、粘贴、拍照或录音后，AI 会整理为可核对的文书草稿。</text>
+          <view class="quick-prompts">
+            <text class="quick-prompt" data-prompt="请整理以下文本记录：" bindtap="fillQuickPrompt">整理文本记录</text>
+            <text class="quick-prompt" data-prompt="请按当前模板生成草稿：" bindtap="fillQuickPrompt">按模板生成</text>
+            <text class="quick-prompt" data-prompt="请提取这段记录的重点：" bindtap="fillQuickPrompt">提取重点</text>
+          </view>
         </view>
       </view>
 
       <block wx:for="{{messages}}" wx:key="id">
+        <view wx:if="{{item.role === 'assistant' && item.isDocument && item.status === 'complete'}}" class="document-message">
+          <view class="ai-msg-avatar">智</view>
+          <view class="document-card">
+            <view class="document-card__head">
+              <view><text class="document-card__title">{{item.isPartial ? '未完成草稿' : '文书草稿'}}</text><text class="document-card__sub">请核对后再使用</text></view>
+              <text class="document-card__copy" bindtap="copyResult" data-id="{{item.id}}">复制</text>
+            </view>
+            <text class="document-card__body">{{item.bodyText}}</text>
+            <view wx:if="{{item.confirmItems.length}}" class="document-confirm-list">
+              <text class="document-confirm-list__title">待确认 {{item.confirmItems.length}} 项</text>
+              <view wx:for="{{item.confirmItems}}" wx:for-item="confirm" wx:key="index" class="document-confirm-item" bindtap="openConfirmEditor" data-id="{{item.id}}" data-index="{{index}}">
+                <text class="document-confirm-item__check">需核实</text><text class="document-confirm-item__text">{{confirm.text}}</text><text class="document-confirm-item__edit">修订</text>
+              </view>
+            </view>
+            <view class="document-card__actions">
+              <text bindtap="openDocumentRevision" data-id="{{item.id}}">重新生成</text>
+              <text bindtap="editResult" data-id="{{item.id}}">继续修改</text>
+              <text bindtap="useResult" data-id="{{item.id}}">发送到电脑</text>
+            </view>
+          </view>
+        </view>
+        <view wx:elif="{{item.role === 'assistant' && item.status === 'error'}}" class="failed-message">
+          <view class="ai-msg-avatar">智</view>
+          <view class="failed-card"><text class="failed-card__title">生成未完成</text><text class="failed-card__desc">{{item.errorMessage}}</text><text class="failed-card__action" bindtap="restoreFailedRequest" data-id="{{item.id}}">恢复后重发</text></view>
+        </view>
         <t-chat-message
+          wx:else
           chatId="{{item.id}}"
           role="{{item.role}}"
           placement="{{item.role === 'user' ? 'right' : 'left'}}"
@@ -24,19 +55,20 @@
           status="{{item.status || ''}}"
           animation="{{item.status === 'streaming' ? 'moving' : (item.status === 'pending' ? 'moving' : 'skeleton')}}"
         >
-          <view slot="avatar" wx:if="{{item.role === 'assistant'}}" class="ai-msg-avatar">AI</view>
+          <view slot="avatar" wx:if="{{item.role === 'assistant'}}" class="ai-msg-avatar">智</view>
           <view
             slot="actionbar"
             wx:if="{{item.role === 'assistant' && (item.bodyText || item.templateDraft)}}"
             class="msg-actionbar"
           >
-            <text class="msg-ai-tag">AI 生成</text>
+            <text class="msg-ai-tag">{{item.isPartial ? '已停止，以下为已生成内容' : 'AI 生成'}}</text>
+            <text wx:if="{{item.bodyText}}" class="msg-actionbar__btn" bindtap="copyResult" data-id="{{item.id}}">复制</text>
             <text
               wx:if="{{item.bodyText}}"
               class="msg-actionbar__btn"
               bindtap="useResult"
               data-id="{{item.id}}"
-            >使用这段</text>
+            >发送到电脑</text>
             <text
               wx:if="{{item.templateDraft}}"
               class="msg-actionbar__btn"
@@ -64,13 +96,13 @@
   <view class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}">
     <view wx:if="{{selectedTemplateName}}" class="composer-meta">
       <view class="composer-meta__main">
-        <t-icon name="template" size="28rpx" color="#1677ff" />
+        <t-icon name="template" size="28rpx" color="#6F3DFF" />
         <text class="composer-meta__text">{{selectedTemplateName}}</text>
       </view>
       <text class="composer-meta__action" catchtap="clearTemplateSelection">清除</text>
     </view>
 
-    <view class="composer-box">
+    <form class="composer-box" bindsubmit="sendMessage">
       <scroll-view
         wx:if="{{pendingPreviewItems.length}}"
         class="composer-thumbs"
@@ -95,6 +127,7 @@
               <t-loading theme="circular" size="36rpx" />
               <text class="composer-thumb__mask-text">识别中</text>
             </view>
+            <view wx:if="{{item.ocrStatus === 'failed'}}" class="composer-thumb__mask composer-thumb__mask--failed" catchtap="retryPendingImage" data-id="{{item.id}}"><text class="composer-thumb__mask-text">处理失败</text><text class="composer-thumb__mask-text">点此重试</text></view>
             <view
               class="composer-thumb__remove"
               wx:if="{{item.ocrStatus !== 'recognizing'}}"
@@ -119,46 +152,69 @@
         placeholder="描述需求，可粘贴原始内容；图片将作为附件上传"
         placeholder-class="composer-placeholder"
         value="{{inputText}}"
-        disabled="{{sending}}"
         bindinput="onInput"
+        bindconfirm="sendMessage"
+        confirm-type="send"
+        confirm-hold="false"
         maxlength="5000"
-        show-confirm-bar="{{false}}"
+        show-confirm-bar="{{true}}"
         adjust-position="{{true}}"
         cursor-spacing="24"
-        hold-keyboard="{{true}}"
+        hold-keyboard="{{false}}"
       />
       <view class="composer-toolbar">
         <view class="composer-toolbar__left">
-          <view class="composer-tool" catchtap="goVoice">
+          <view class="composer-tool" catchtap="goVoice"><text class="composer-tool__label">录音</text>
             <t-icon name="microphone" size="44rpx" color="rgba(0,0,0,0.55)" />
           </view>
-          <view class="composer-tool" catchtap="goImage">
+          <view class="composer-tool" catchtap="goImage"><text class="composer-tool__label">图片</text>
             <t-icon name="camera" size="44rpx" color="rgba(0,0,0,0.55)" />
           </view>
           <view
             class="composer-tool {{selectedTemplateId ? 'composer-tool--active' : ''}}"
             catchtap="openTemplatePicker"
-          >
+          ><text class="composer-tool__label">模板</text>
             <t-icon
               name="template"
               size="44rpx"
-              color="{{selectedTemplateId ? '#1677ff' : 'rgba(0,0,0,0.55)'}}"
+              color="{{selectedTemplateId ? '#6F3DFF' : 'rgba(0,0,0,0.55)'}}"
             />
           </view>
         </view>
-        <view
+        <button wx:if="{{sending}}" class="composer-stop" bindtap="stopGeneration"><t-icon name="pause" size="30rpx" color="#FFFFFF" /></button>
+        <button
+          wx:else
           class="composer-send {{canSend ? 'composer-send--active' : ''}}"
-          catchtap="sendMessage"
+          form-type="submit"
+          disabled="{{!canSend || sending}}"
         >
-          <t-loading wx:if="{{sending}}" theme="circular" size="36rpx" />
-          <t-icon
-            wx:else
-            name="send-filled"
-            size="32rpx"
-            color="{{canSend ? '#ffffff' : 'rgba(0,0,0,0.35)'}}"
-          />
-        </view>
+          <t-icon name="send-filled" size="30rpx" color="{{canSend ? '#FFFFFF' : 'rgba(0,0,0,0.28)'}}" />
+        </button>
       </view>
+    </form>
+  </view>
+
+  <view wx:if="{{templatePickerVisible}}" class="template-picker-mask" catchtap="closeTemplatePicker">
+    <view class="template-picker" catchtap="noop">
+      <view class="template-picker__head"><text class="template-picker__title">选择文书模板</text><text class="template-picker__close" bindtap="closeTemplatePicker">关闭</text></view>
+      <input class="template-picker__search" placeholder="搜索模板名称或类型" value="{{templateSearchKeyword}}" bindinput="onTemplateSearch" />
+      <scroll-view scroll-y class="template-picker__list">
+        <view wx:if="{{!templatePickerItems.length}}" class="template-picker__empty">未找到匹配模板</view>
+        <view wx:for="{{templatePickerItems}}" wx:key="id" class="template-picker__item" bindtap="selectTemplateFromPicker" data-id="{{item.id}}">
+          <view><text class="template-picker__name">{{item.name}}</text><text class="template-picker__meta">{{item.category}}</text></view>
+          <text wx:if="{{item.isRecent}}" class="template-picker__recent">最近使用</text>
+        </view>
+      </scroll-view>
+      <view class="template-picker__footer"><text bindtap="clearTemplateSelection">不使用模板</text><text bindtap="goTemplateImport">新建模板</text></view>
+    </view>
+  </view>
+
+  <view wx:if="{{confirmEditorVisible}}" class="confirm-editor-mask" catchtap="closeConfirmEditor">
+    <view class="confirm-editor" catchtap="noop">
+      <text class="confirm-editor__title">{{confirmEditorTitle}}</text>
+      <text class="confirm-editor__hint">{{confirmEditorHint}}</text>
+      <textarea class="confirm-editor__textarea" value="{{confirmEditorText}}" placeholder="例如：补充时间或结果；删除不准确表述" maxlength="1000" auto-focus="{{true}}" bindinput="onConfirmEditorInput" />
+      <view class="confirm-editor__actions"><text bindtap="closeConfirmEditor">取消</text><text class="confirm-editor__submit" bindtap="applyDocumentRevision">确认并更新</text></view>
     </view>
   </view>
 </view>

@@ -1,30 +1,32 @@
 .asr-container {
   min-height: 100vh;
-  background-color: #F6F8FB;
-  padding: 28rpx;
+  background-color: #FCFBFF;
+  padding: 24rpx 32rpx 48rpx;
   box-sizing: border-box;
 }
 
 .record-panel {
   background-color: #FFFFFF;
-  border-radius: 16rpx;
+  border-radius: 28rpx;
   padding: 34rpx 28rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-bottom: 24rpx;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-shadow: 0 6rpx 20rpx rgba(61, 42, 140, 0.05);
 }
 
 .panel-title {
   font-size: 38rpx;
-  color: #18233C;
+  color: #101936;
   font-weight: 700;
   margin-bottom: 10rpx;
 }
 
 .panel-desc {
   font-size: 26rpx;
-  color: #626D7F;
+  color: #64739A;
   line-height: 1.55;
   text-align: center;
   margin-bottom: 34rpx;
@@ -34,7 +36,7 @@
   width: 184rpx;
   height: 184rpx;
   border-radius: 50%;
-  background-color: #1677FF;
+  background-color: #6F3DFF;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,7 +66,7 @@
 
 .record-status {
   font-size: 29rpx;
-  color: #18233C;
+  color: #101936;
   font-weight: 700;
   text-align: center;
   margin-bottom: 8rpx;
@@ -72,7 +74,7 @@
 
 .record-hint {
   font-size: 24rpx;
-  color: #8A94A6;
+  color: #64739A;
   text-align: center;
 }
 
@@ -89,21 +91,21 @@
 
 .result-label {
   font-size: 30rpx;
-  color: #18233C;
+  color: #101936;
   font-weight: 700;
 }
 
 .result-meta {
   font-size: 24rpx;
-  color: #7A8499;
+  color: #64739A;
 }
 
 .result-box {
   background-color: #FFFFFF;
-  border-radius: 14rpx;
+  border-radius: 24rpx;
   padding: 24rpx;
   min-height: 360rpx;
-  border: 2rpx solid #E6EBF2;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
   box-sizing: border-box;
 }
 
@@ -112,14 +114,14 @@
   min-height: 320rpx;
   font-size: 30rpx;
   line-height: 1.65;
-  color: #18233C;
+  color: #101936;
   box-sizing: border-box;
 }
 
 .result-empty {
   font-size: 30rpx;
   line-height: 1.7;
-  color: #8B95A7;
+  color: #64739A;
   white-space: pre-wrap;
   word-break: break-all;
 }
@@ -134,21 +136,21 @@
 .secondary-btn {
   height: 88rpx;
   line-height: 88rpx;
-  border-radius: 12rpx;
+  border-radius: 999rpx;
   font-size: 28rpx;
   font-weight: 600;
   padding: 0;
 }
 
 .primary-btn {
-  background-color: #1677FF;
+  background-color: #6F3DFF;
   color: #FFFFFF;
 }
 
 .secondary-btn {
   background-color: #FFFFFF;
-  color: #1677FF;
-  border: 2rpx solid #D9E8FA;
+  color: #6F3DFF;
+  border: 2rpx solid rgba(111, 61, 255, 0.20);
 }
 
 .primary-btn[disabled],
@@ -159,4 +161,10 @@
 .primary-btn::after,
 .secondary-btn::after {
   border: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .record-btn.recording {
+    animation: none;
+  }
 }

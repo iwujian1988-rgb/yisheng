@@ -2,31 +2,81 @@
 @import 'miniprogram_npm/tdesign-miniprogram/common/style/theme/_index.wxss';
 
 page {
-  background-color: #F5F7FA;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  background-color: #FCFBFF;
+  color: #101936;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --app-tab-bar-height: calc(100rpx + env(safe-area-inset-bottom));
-  --td-brand-color: #1677FF;
-  --td-brand-color-active: #0958D9;
-  --td-brand-color-light: #E6F4FF;
-  --td-brand-color-focus: #BAE0FF;
-  --primary-color: #1677FF;
-  --success-color: #52C41A;
+  --td-brand-color: #6F3DFF;
+  --td-brand-color-active: #4A2BB8;
+  --td-brand-color-light: #F2EDFF;
+  --td-brand-color-focus: #E4DAFF;
+  --td-brand-color-disabled: #C9BCF0;
+  --td-bg-color-page: #FCFBFF;
+  --td-bg-color-container: #FFFFFF;
+  --td-component-stroke: rgba(111, 61, 255, 0.12);
+  --td-component-border: rgba(111, 61, 255, 0.20);
+  --td-text-color-primary: #101936;
+  --td-text-color-secondary: #64739A;
+  --td-text-color-placeholder: #98A1B8;
+  --td-radius-large: 28rpx;
+  --primary-color: #6F3DFF;
+  --success-color: #18D28B;
   --warning-color: #FAAD14;
   --danger-color: #F5222D;
-  --text-primary: #333333;
-  --text-secondary: #666666;
-  --text-placeholder: #999999;
-  --border-color: #E5E5E5;
-  --bg-gray: #F5F7FA;
+  --text-primary: #101936;
+  --text-secondary: #64739A;
+  --text-placeholder: #98A1B8;
+  --border-color: rgba(111, 61, 255, 0.12);
+  --bg-gray: #FCFBFF;
   --bg-white: #FFFFFF;
 
-  /* 紫色单色系 token — 试点 home 页面使用，不动旧 token */
+  /* Homepage design tokens shared by all mini program pages. */
   --brand-900: #3D2A8C;
-  --brand-700: #5A3FCC;
-  --brand-500: #7B61FF;
-  --brand-300: #9D87FF;
-  --brand-100: #E8E1FF;
-  --brand-50: #F5F2FF;
+  --brand: #6F3DFF;
+  --brand-deep: #4A2BB8;
+  --brand-soft: #F2EDFF;
+  --brand-border: rgba(111, 61, 255, 0.12);
+  --brand-border-strong: rgba(111, 61, 255, 0.20);
+  --surface: #FFFFFF;
+  --fg: #101936;
+  --muted: #64739A;
+  --radius-sm: 12rpx;
+  --radius: 20rpx;
+  --radius-md: 24rpx;
+  --radius-lg: 28rpx;
+  --radius-pill: 999rpx;
+  --brand-700: #4A2BB8;
+  --brand-500: #6F3DFF;
+  --brand-300: #A58BFF;
+  --brand-100: #E4DAFF;
+  --brand-50: #F2EDFF;
   --accent-gold: #FFB400;
   --danger-strong: #FF5252;
+}
+
+button {
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+button::after {
+  border: 0;
+}
+
+button:active {
+  opacity: 0.88;
+  transform: scale(0.98);
+}
+
+button[disabled] {
+  opacity: 0.48;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+
+  button:active {
+    transform: none;
+  }
 }

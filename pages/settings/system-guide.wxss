@@ -1,35 +1,38 @@
 /* pages/settings/system-guide.wxss */
 .guide-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px 48px;
+  background-color: #FCFBFF;
+  padding: 32rpx 64rpx 96rpx;
 }
 
 /* 模式卡片 */
 .mode-card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 16px;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 32rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .mode-header {
   display: flex;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 24rpx;
 }
 
 .mode-badge {
-  font-size: 11px;
+  font-size: 22rpx;
   font-weight: 600;
   color: #FFFFFF;
-  padding: 4px 10px;
-  border-radius: 4px;
-  margin-right: 10px;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  margin-right: 20rpx;
 }
 
 .badge-win10 {
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
 }
 
 .badge-win11 {
@@ -41,37 +44,37 @@
 }
 
 .mode-name {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
 }
 
 .mode-body {
-  margin-bottom: 16px;
+  margin-bottom: 32rpx;
 }
 
 .mode-desc {
-  font-size: 14px;
-  color: #666666;
+  font-size: 28rpx;
+  color: #64739A;
   line-height: 1.8;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 16rpx;
 }
 
 .mode-hint {
-  font-size: 13px;
-  color: #4A90E2;
+  font-size: 26rpx;
+  color: #6F3DFF;
   display: block;
 }
 
 /* 按钮 */
 .mode-btn {
   width: 100%;
-  height: 44px;
-  border-radius: 8px;
-  font-size: 15px;
+  height: 88rpx;
+  border-radius: 999rpx;
+  font-size: 30rpx;
   font-weight: 500;
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
   color: #FFFFFF;
 }
 

@@ -1,32 +1,40 @@
-<!--pages/tutorials/index.wxml-->
 <view class="tutorials-container">
-  <!-- 分类 tab -->
-  <view class="tab-bar">
-    <view
-      class="tab-item {{activeTab === item.key ? 'tab-active' : ''}}"
-      wx:for="{{tabs}}"
-      wx:key="key"
-      bindtap="switchTab"
-      data-key="{{item.key}}"
-    >
-      <text class="tab-text">{{item.name}}</text>
-    </view>
+  <view class="page-hero">
+    <text class="page-title">小科打字猿使用指南</text>
   </view>
 
-  <!-- 空状态 -->
-  <view class="empty-section" wx:if="{{tutorials.length === 0}}">
-    <view class="empty-icon">
-      <text class="empty-icon-text">TXT</text>
-    </view>
-    <text class="empty-title">暂无教程</text>
-    <text class="empty-desc">教程内容正在准备中</text>
+  <view class="guide-card">
+    <text class="guide-title">一、电脑输入法设置</text>
+    <text class="step-text">电脑切换至“微软拼音”。</text>
+    <text class="step-text">打开“微软拼音设置”。</text>
+    <text class="step-text">在“高级”中开启“V 模式输入”。</text>
+    <text class="step-text">确认使用“全拼”，不支持双拼。</text>
   </view>
 
-  <!-- 教程列表 -->
-  <view class="list-section" wx:if="{{tutorials.length > 0}}">
-    <view class="tutorial-card" wx:for="{{tutorials}}" wx:key="id">
-      <text class="tutorial-title">{{item.title}}</text>
-      <text class="tutorial-desc">{{item.desc}}</text>
-    </view>
+  <view class="guide-card">
+    <text class="guide-title">二、连接设备</text>
+    <text class="step-text">将接收器插入电脑 USB 接口。</text>
+    <text class="step-text">打开手机蓝牙。</text>
+    <text class="step-text">在小程序首页点击“连接设备”。</text>
+    <text class="step-text">选择设备，等待连接成功。</text>
+  </view>
+
+  <view class="guide-card">
+    <text class="guide-title">三、开始输入</text>
+    <text class="step-text">电脑保持微软拼音中文状态。</text>
+    <text class="step-text">点击需要输入的位置。</text>
+    <text class="step-text">在小程序输入文字并发送。</text>
+  </view>
+
+  <view class="guide-card">
+    <text class="guide-title">四、激活会员</text>
+    <text class="step-text">打开“我的”。</text>
+    <text class="step-text">点击“领取已购会员”。</text>
+    <text class="step-text">授权微信手机号完成核验。</text>
+  </view>
+
+  <view class="guide-card">
+    <text class="guide-title">五、常见问题</text>
+    <text class="step-text">中文无法输入：检查是否为微软拼音、全拼模式，并已开启 V 模式。</text>
   </view>
 </view>

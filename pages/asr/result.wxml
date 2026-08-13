@@ -31,8 +31,9 @@
 
   <view class="action-section">
     <button class="btn btn-primary action-btn" disabled="{{!resultText}}" bindtap="confirmResult">
-      确认使用
+      发送到电脑
     </button>
+    <button class="btn btn-outline action-btn" disabled="{{!resultText}}" bindtap="copyResult">复制文本</button>
     <button class="btn btn-outline action-btn" bindtap="reRecord">
       重新录音
     </button>

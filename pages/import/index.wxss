@@ -1,42 +1,45 @@
 /* pages/import/index.wxss */
 .import-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px;
+  background-color: #FCFBFF;
+  padding: 24rpx 32rpx;
 }
 
 .entry-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20rpx;
 }
 
 .entry-card {
   display: flex;
   align-items: center;
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 16px 20px;
+  border-radius: 20rpx;
+  padding: 32rpx 40rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .entry-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 14px;
+  margin-right: 28rpx;
   flex-shrink: 0;
 }
 
 .icon-text {
-  font-size: 22px;
+  font-size: 44rpx;
 }
 
 .icon-manual {
-  background-color: rgba(74, 144, 226, 0.1);
-  color: #4A90E2;
+  background-color: rgba(111, 61, 255, 0.1);
+  color: #6F3DFF;
 }
 
 .icon-ocr {
@@ -64,21 +67,21 @@
 }
 
 .entry-title {
-  font-size: 16px;
-  color: #333333;
+  font-size: 32rpx;
+  color: #101936;
   font-weight: 500;
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: 4rpx;
 }
 
 .entry-desc {
-  font-size: 13px;
-  color: #999999;
+  font-size: 26rpx;
+  color: #98A1B8;
   display: block;
 }
 
 .entry-arrow {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #CCCCCC;
   flex-shrink: 0;
 }

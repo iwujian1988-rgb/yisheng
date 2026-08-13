@@ -17,9 +17,7 @@ Page({
   foundDevices: {},
   scanTimer: null,
 
-  onLoad: function () {
-    this.initBluetooth();
-  },
+  onLoad: function () {},
 
   onUnload: function () {
     this.stopScan();
@@ -28,12 +26,14 @@ Page({
     }
   },
 
-  initBluetooth: function () {
+  initBluetooth: function (callback) {
     var that = this;
     wx.openBluetoothAdapter({
       success: function () {
         that.bluetoothInited = true;
         that.setData({ statusText: '蓝牙已就绪，点击扫描' });
+        // Real devices may report adapter success before discovery is ready.
+        if (callback) setTimeout(callback, 300);
       },
       fail: function () {
         that.setData({ status: 'error', statusText: '请开启手机蓝牙' });
@@ -43,7 +43,7 @@ Page({
 
   startScan: function () {
     if (!this.bluetoothInited) {
-      this.initBluetooth();
+      this.initBluetooth(() => this.startScan());
       return;
     }
     var that = this;
@@ -70,6 +70,7 @@ Page({
   },
 
   onDeviceFound: function () {
+    if (wx.offBluetoothDeviceFound) wx.offBluetoothDeviceFound();
     var that = this;
     wx.onBluetoothDeviceFound(function (res) {
       var devices = res.devices || [];
@@ -182,18 +183,29 @@ Page({
       var app = typeof getApp === 'function' ? getApp() : null;
       if (app && app.restoreDeviceStatus) app.restoreDeviceStatus();
 
+      // The transfer page owns its own BLE characteristics, so reconnect there.
+      wx.setStorageSync('pendingBleConnect', deviceId);
+      wx.closeBLEConnection({ deviceId: deviceId });
       that.setData({ status: 'connected', statusText: '连接成功', connectedDeviceName: deviceName });
       wx.showToast({ title: '连接成功', icon: 'success' });
 
       setTimeout(function () {
+        that.setData({ connectedDeviceId: '' });
         wx.navigateBack();
       }, 1500);
     }).catch(function (err) {
+      if (that.data.connectedDeviceId) {
+        wx.closeBLEConnection({ deviceId: that.data.connectedDeviceId });
+      }
+      that.setData({ connectedDeviceId: '', connectedDeviceName: '' });
       that.setData({ status: 'error', statusText: err.message || '绑定失败' });
     });
   },
 
   retry: function () {
+    if (this.data.connectedDeviceId) {
+      wx.closeBLEConnection({ deviceId: this.data.connectedDeviceId });
+    }
     this.setData({ status: 'idle', statusText: '点击下方按钮开始扫描', devices: [], connectedDeviceId: '', connectedDeviceName: '' });
   }
 });

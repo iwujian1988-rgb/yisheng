@@ -1,7 +1,7 @@
 /* pages/about/index.wxss */
 .about-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
+  background-color: #FCFBFF;
 }
 
 /* 产品信息 */
@@ -9,73 +9,76 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60px 32px 40px;
+  padding: 120rpx 64rpx 80rpx;
 }
 
 .logo-circle {
-  width: 72px;
-  height: 72px;
-  border-radius: 16px;
-  background-color: #4A90E2;
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 32rpx;
+  background-color: #6F3DFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 32rpx;
 }
 
 .logo-text {
-  font-size: 32px;
+  font-size: 64rpx;
   color: #FFFFFF;
   font-weight: bold;
 }
 
 .product-name {
-  font-size: 20px;
+  font-size: 40rpx;
   font-weight: bold;
-  color: #333333;
-  margin-bottom: 4px;
+  color: #101936;
+  margin-bottom: 8rpx;
 }
 
 .product-desc {
-  font-size: 14px;
-  color: #666666;
-  margin-bottom: 8px;
+  font-size: 28rpx;
+  color: #64739A;
+  margin-bottom: 16rpx;
 }
 
 .version-text {
-  font-size: 13px;
-  color: #999999;
+  font-size: 26rpx;
+  color: #98A1B8;
 }
 
 /* 信息列表 */
 .info-section {
-  padding: 0 32px;
+  padding: 0 32rpx;
 }
 
 .info-card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 0 20px;
+  border-radius: 20rpx;
+  padding: 0 40rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .info-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 0;
+  padding: 36rpx 0;
 }
 
 .info-label {
-  font-size: 15px;
-  color: #333333;
+  font-size: 30rpx;
+  color: #101936;
 }
 
 .info-arrow {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #CCCCCC;
 }
 
 .info-divider {
-  height: 1px;
-  background-color: #F0F0F0;
+  height: 2rpx;
+  background-color: rgba(111, 61, 255, 0.08);
 }

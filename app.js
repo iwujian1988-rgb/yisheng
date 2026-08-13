@@ -3,6 +3,7 @@ const deviceSession = require('./services/device/session');
 const apiBase = require('./services/config/api-base');
 const bleLink = require('./services/device/ble-link');
 const liveHeartbeat = require('./services/device/live-heartbeat');
+const transferDemo = require('./services/device/transfer-demo');
 
 var _envInfo = wx.getAccountInfoSync();
 var _isDev = _envInfo.miniProgram.envVersion === 'develop';
@@ -27,14 +28,17 @@ App({
   },
 
   onLaunch() {
-    apiBase.applyResolvedBaseUrl();
-    const resolved = this.globalData.resolvedBaseUrl || apiBase.resolveApiBaseUrl();
+    // getApp() is not reliable during App.onLaunch in DevTools, so retain this instance's configured URL.
+    const resolved = apiBase.applyResolvedBaseUrl() || this.globalData.baseUrl;
+    this.globalData.resolvedBaseUrl = resolved;
     console.log('[app] api base url:', resolved);
     if (!apiBase.isDevtoolsEnvironment() && apiBase.usesLocalhost(this.globalData.baseUrl) && !this.globalData.lanBaseHost) {
       console.warn('[app] 真机调试请配置 globalData.lanBaseHost');
     }
+    const session = authSession.getStoredSessionSummary();
     this.restoreSession();
     this.restoreDeviceStatus();
+    transferDemo.applySessionFeatures(session.features);
   },
 
   restoreSession() {
@@ -69,6 +73,7 @@ App({
     this.globalData.token = profile.token || '';
     this.globalData.userInfo = profile.user || null;
     this.restoreDeviceStatus();
+    transferDemo.applySessionFeatures(profile.features);
   },
 
   logout() {
@@ -78,6 +83,10 @@ App({
     this.globalData.userInfo = null;
     this.globalData.deviceId = null;
     this.globalData.deviceConnected = false;
+    this.globalData.bleDeviceId = '';
+    this.globalData.bleDeviceName = '';
+    this.globalData.bleLinkReady = false;
+    this.globalData.transferDemoActive = false;
     this.globalData.deviceSessionToken = '';
     this.globalData.deviceSessionExpiresAt = '';
     wx.reLaunch({ url: '/pages/login/login' });

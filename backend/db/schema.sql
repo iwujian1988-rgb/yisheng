@@ -16,6 +16,7 @@ CREATE TABLE users (
   unionid VARCHAR(128),
   phone VARCHAR(32) UNIQUE,
   nickname VARCHAR(128),
+  password_hash VARCHAR(255),
   status VARCHAR(32) NOT NULL,
   member_status VARCHAR(32) NOT NULL,
   member_start DATETIME NULL,
@@ -24,6 +25,7 @@ CREATE TABLE users (
   disabled_reason VARCHAR(255),
   last_login DATETIME NULL,
   register_source VARCHAR(64),
+  features JSON,
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL
 );
@@ -37,6 +39,7 @@ CREATE TABLE devices (
   protocol_version VARCHAR(64),
   template_access VARCHAR(32) NOT NULL DEFAULT 'general',
   proof_code_hash VARCHAR(255),
+  binding_mode VARCHAR(32) NOT NULL DEFAULT 'registered',
   bind_status VARCHAR(32) NOT NULL,
   reserved_user_id VARCHAR(64),
   bound_user_id VARCHAR(64),
@@ -73,6 +76,35 @@ CREATE TABLE activation_codes (
   used_at DATETIME NULL,
   created_at DATETIME NOT NULL,
   INDEX idx_activation_codes_status (status)
+);
+
+CREATE TABLE order_entitlements (
+  id VARCHAR(64) PRIMARY KEY,
+  order_no VARCHAR(128) NOT NULL UNIQUE,
+  sku_type VARCHAR(32) NOT NULL,
+  phone_hash CHAR(64) NULL,
+  member_days INT NOT NULL DEFAULT 0,
+  status VARCHAR(32) NOT NULL,
+  claimed_by_user_id VARCHAR(64) NULL,
+  claimed_at DATETIME NULL,
+  refunded_at DATETIME NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  INDEX idx_order_entitlements_phone_status (phone_hash, status),
+  INDEX idx_order_entitlements_claimed_by (claimed_by_user_id)
+);
+
+CREATE TABLE order_entitlement_requests (
+  id VARCHAR(64) PRIMARY KEY,
+  phone_hash CHAR(64) NOT NULL,
+  status VARCHAR(32) NOT NULL,
+  entitlement_id VARCHAR(64) NULL,
+  processed_by_admin_id VARCHAR(64) NULL,
+  processed_at DATETIME NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  INDEX idx_order_entitlement_requests_phone_status (phone_hash, status),
+  INDEX idx_order_entitlement_requests_entitlement (entitlement_id)
 );
 
 CREATE TABLE token_usage_records (

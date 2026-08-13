@@ -4,6 +4,7 @@ const deviceSession = require('../security/device-session');
 const contentAccess = require('../security/content-access');
 const { buildOcrPayload } = require('../ocr/split-lines');
 const wxContentCheck = require('../security/wx-content-check');
+const medicalContentPolicy = require('../security/medical-content-policy');
 
 var MODE_CONFIG = {
   organize: {
@@ -33,6 +34,18 @@ var MAX_HISTORY_ROUNDS = 10;
 function createProviderGatewayModule(deps) {
   var auth = deps.auth;
   var store = deps.store;
+
+  function rejectGeneralMedicalResult(req, res, actor, text) {
+    var access = contentAccess.getAccessContext({
+      store: store,
+      req: req,
+      actor: actor,
+      businessKey: 'aiMode'
+    });
+    if (access.hasProfessionalAccess || !medicalContentPolicy.containsMedicalContent(text)) return false;
+    fail(res, 422, 'MEDICAL_CONTENT_NOT_SUPPORTED', 'This content is not supported in general mode.');
+    return true;
+  }
 
   function parseDataUrl(value) {
     var raw = String(value || '').trim();
@@ -430,6 +443,7 @@ function createProviderGatewayModule(deps) {
           }
         }, { userId: actor.id });
         var agentResult = agentResponse.result || {};
+        if (rejectGeneralMedicalResult(req, res, actor, agentResult.text)) return;
         ok(res, buildOcrResponse(agentResult.text || '', {
           engine: agentResult.engine || config.ocrCloudModel,
           status: agentResult.status || 'ok',
@@ -456,6 +470,7 @@ function createProviderGatewayModule(deps) {
           body.mimeType || image.mimeType || '',
           body.fileType || ''
         );
+        if (rejectGeneralMedicalResult(req, res, actor, cloudOcr.text)) return;
         ok(res, buildOcrResponse(cloudOcr.text, {
           engine: config.ocrCloudModel,
           status: cloudOcr.status,
@@ -478,6 +493,7 @@ function createProviderGatewayModule(deps) {
           fileType: body.fileType || '',
           source: body.source || 'mini_program'
         }, config.ocrTimeoutMs);
+        if (rejectGeneralMedicalResult(req, res, actor, ocrData.text || ocrData.resultText)) return;
         ok(res, buildOcrResponse(ocrData.text || ocrData.resultText || '', {
           engine: config.ocrEngine,
           status: ocrData.status || 'ok',
@@ -636,6 +652,7 @@ function createProviderGatewayModule(deps) {
           }
         }, { userId: actor.id });
         var agentResult = agentResponse.result || {};
+        if (rejectGeneralMedicalResult(req, res, actor, agentResult.text)) return;
         ok(res, {
           engine: agentResult.engine || config.asrCloudModel,
           status: agentResult.status || 'ok',
@@ -659,6 +676,7 @@ function createProviderGatewayModule(deps) {
     if (resolveDashscopeApiKey()) {
       try {
         var cloudResult = await callCloudAsr(audio.base64, audio.mimeType || body.mimeType || '', body.format || '');
+        if (rejectGeneralMedicalResult(req, res, actor, cloudResult.text)) return;
         ok(res, {
           engine: config.asrCloudModel,
           status: cloudResult.status,
@@ -682,6 +700,7 @@ function createProviderGatewayModule(deps) {
           mimeType: body.mimeType || audio.mimeType || '',
           source: body.source || 'mini_program'
         }, config.asrTimeoutMs);
+        if (rejectGeneralMedicalResult(req, res, actor, asrData.text || asrData.resultText)) return;
         ok(res, {
           engine: config.asrEngine,
           status: asrData.status || 'ok',

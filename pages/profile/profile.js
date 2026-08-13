@@ -290,7 +290,7 @@ Page({
 
         const user = session.user || {};
 
-        const nickName = user.nickname || '用户';
+        const nickName = '主任';
 
         const memberCard = buildMemberCardState(session);
 
@@ -318,6 +318,10 @@ Page({
 
     });
 
+  },
+
+  goClaimMembership() {
+    wx.navigateTo({ url: '/pages/purchase/index' });
   },
 
 

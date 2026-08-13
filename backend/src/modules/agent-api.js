@@ -1,6 +1,7 @@
 const { config } = require('../config');
 const { fail, ok, parseBody, startSse, writeSse, endSse } = require('../http');
 const { redactSensitiveText } = require('../security/redaction');
+const medicalContentPolicy = require('../security/medical-content-policy');
 const { callAgentService, streamAgentChat } = require('./agent-proxy');
 const directAi = require('./direct-ai-chat');
 const contentAccess = require('../security/content-access');
@@ -36,6 +37,21 @@ function createAgentApiModule(deps) {
     var raw = String(body.text || body.redactedText || body.message || '').trim();
     if (!raw) return null;
     return redactSensitiveText(raw);
+  }
+
+  function rejectMedicalContent(res) {
+    fail(res, 422, 'MEDICAL_CONTENT_NOT_SUPPORTED', 'This content is not supported in general mode.');
+    return null;
+  }
+
+  function allowGeneralContent(res, mode, text, messages) {
+    if (mode === 'professional') return true;
+    if (medicalContentPolicy.containsMedicalContent(text)
+      || medicalContentPolicy.containsMedicalContentInMessages(messages)) {
+      rejectMedicalContent(res);
+      return false;
+    }
+    return true;
   }
 
   async function invokeAgent(agentType, actor, data, res, featureName) {
@@ -85,7 +101,8 @@ function createAgentApiModule(deps) {
     }
 
     var task = String(body.task || 'organize').trim().toLowerCase();
-    var mode = body.mode ? String(body.mode).trim().toLowerCase() : resolveMode(req, actor);
+    var mode = resolveMode(req, actor);
+    if (!allowGeneralContent(res, mode, guarded.text, body.messages)) return;
     var data = {
       text: guarded.text,
       task: task,
@@ -124,6 +141,7 @@ function createAgentApiModule(deps) {
       return;
     }
     var guarded = redactSensitiveText(contentRaw);
+    if (!allowGeneralContent(res, resolveMode(req, actor), guarded.text)) return;
     var templateType = String(body.templateType || body.template_type || '').trim();
     if (!templateType) {
       fail(res, 400, 'TEMPLATE_TYPE_REQUIRED', 'templateType is required');
@@ -165,6 +183,11 @@ function createAgentApiModule(deps) {
       source: body.source || 'mini_program'
     }, res, 'OCR agent');
     if (!response) return;
+    if (resolveMode(req, actor) !== 'professional'
+      && medicalContentPolicy.containsMedicalContent(response.result && response.result.text)) {
+      rejectMedicalContent(res);
+      return;
+    }
     ok(res, response.result || {});
   }
 
@@ -185,6 +208,11 @@ function createAgentApiModule(deps) {
       source: body.source || 'mini_program'
     }, res, 'ASR agent');
     if (!response) return;
+    if (resolveMode(req, actor) !== 'professional'
+      && medicalContentPolicy.containsMedicalContent(response.result && response.result.text)) {
+      rejectMedicalContent(res);
+      return;
+    }
     ok(res, response.result || {});
   }
 
@@ -196,9 +224,11 @@ function createAgentApiModule(deps) {
     var body = await parseBody(req, { maxBytes: config.ocrMaxImageBytes * 6 });
     var messageRaw = String(body.message || body.text || '').trim();
     var guarded = messageRaw ? redactSensitiveText(messageRaw) : { text: '', hits: [] };
+    var mode = resolveMode(req, actor);
+    if (!allowGeneralContent(res, mode, guarded.text, body.messages)) return null;
     var data = {
       message: guarded.text,
-      mode: body.mode ? String(body.mode).trim().toLowerCase() : resolveMode(req, actor),
+      mode: mode,
       userId: actor.id,
       attachments: Array.isArray(body.attachments) ? body.attachments : [],
       messages: Array.isArray(body.messages) ? body.messages : [],

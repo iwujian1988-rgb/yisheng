@@ -217,7 +217,7 @@ function createAdminModule(deps) {
         disabledReason: '',
         lastLogin: '',
         registerSource: 'admin_created',
-        features: {},
+        features: { transferDemo: Boolean(body.transferDemo) },
         createdAt: now,
         updatedAt: now
       };
@@ -225,6 +225,11 @@ function createAdminModule(deps) {
     } else {
       user.memberStatus = 'active';
       user.memberEnd = body.expiryDate || user.memberEnd;
+      if (body.transferDemo !== undefined) {
+        user.features = Object.assign({}, user.features || {}, {
+          transferDemo: Boolean(body.transferDemo)
+        });
+      }
       user.updatedAt = now;
     }
     if (body.serialNo) {
@@ -267,7 +272,8 @@ function createAdminModule(deps) {
         openid: user.openid ? 'provided' : '',
         memberEnd: user.memberEnd,
         serialNo: body.serialNo || '',
-        hasProofCode: Boolean(body.proofCode)
+        hasProofCode: Boolean(body.proofCode),
+        transferDemo: Boolean(user.features && user.features.transferDemo)
       }
     });
     ok(res, {
@@ -276,7 +282,8 @@ function createAdminModule(deps) {
       openidMasked: user.openid ? user.openid.slice(0, 8) + '...' : '',
       status: user.memberStatus,
       expiryDate: user.memberEnd,
-      serialNo: body.serialNo || ''
+      serialNo: body.serialNo || '',
+      transferDemo: Boolean(user.features && user.features.transferDemo)
     });
   }
 
@@ -291,11 +298,17 @@ function createAdminModule(deps) {
     var before = {
       status: user.status,
       memberStatus: user.memberStatus,
-      memberEnd: user.memberEnd
+      memberEnd: user.memberEnd,
+      transferDemo: Boolean(user.features && user.features.transferDemo)
     };
     if (body.status) user.memberStatus = body.status;
     if (body.expiryDate) user.memberEnd = body.expiryDate;
     if (body.disabledReason !== undefined) user.disabledReason = body.disabledReason;
+    if (body.transferDemo !== undefined) {
+      user.features = Object.assign({}, user.features || {}, {
+        transferDemo: Boolean(body.transferDemo)
+      });
+    }
     user.updatedAt = nowIso();
     writeAudit(store, {
       actor: actor,
@@ -307,14 +320,16 @@ function createAdminModule(deps) {
       afterJson: {
         status: user.status,
         memberStatus: user.memberStatus,
-        memberEnd: user.memberEnd
+        memberEnd: user.memberEnd,
+        transferDemo: Boolean(user.features && user.features.transferDemo)
       }
     });
     ok(res, {
       id: user.id,
       phone: maskPhone(user.phone),
       memberStatus: user.memberStatus,
-      memberEnd: user.memberEnd
+      memberEnd: user.memberEnd,
+      transferDemo: Boolean(user.features && user.features.transferDemo)
     });
   }
 

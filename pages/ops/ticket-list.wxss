@@ -1,24 +1,25 @@
 /* pages/ops/ticket-list.wxss */
 .ticket-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px;
+  background-color: #FCFBFF;
+  padding: 24rpx 32rpx;
 }
 
 .filter-bar {
   display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 20rpx;
+  margin-bottom: 32rpx;
 }
 
 .filter-item {
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 16rpx 32rpx;
+  border-radius: 40rpx;
   background-color: #FFFFFF;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
 }
 
 .filter-active {
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
 }
 
 .filter-active .filter-text {
@@ -26,50 +27,53 @@
 }
 
 .filter-text {
-  font-size: 14px;
-  color: #666666;
+  font-size: 28rpx;
+  color: #64739A;
 }
 
 .empty-section {
   display: flex;
   justify-content: center;
-  padding-top: 120px;
+  padding-top: 240rpx;
 }
 
 .empty-text {
-  font-size: 14px;
-  color: #999999;
+  font-size: 28rpx;
+  color: #98A1B8;
 }
 
 .ticket-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20rpx;
 }
 
 .ticket-card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 16px 20px;
+  border-radius: 24rpx;
+  padding: 32rpx 40rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .ticket-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 12rpx;
 }
 
 .ticket-type {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
 }
 
 .ticket-status {
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 4px;
+  font-size: 24rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
 }
 
 .status-open {
@@ -83,6 +87,6 @@
 }
 
 .ticket-time {
-  font-size: 13px;
-  color: #999999;
+  font-size: 26rpx;
+  color: #98A1B8;
 }

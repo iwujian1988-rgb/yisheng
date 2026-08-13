@@ -1,53 +1,56 @@
 /* pages/settings/storage.wxss */
 .storage-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px;
+  background-color: #FCFBFF;
+  padding: 24rpx 32rpx;
 }
 
 .data-card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 0 20px;
+  border-radius: 20rpx;
+  padding: 0 40rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .data-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
+  padding: 32rpx 0;
 }
 
 .data-left {
   flex: 1;
-  margin-right: 12px;
+  margin-right: 24rpx;
 }
 
 .data-label {
-  font-size: 15px;
-  color: #333333;
+  font-size: 30rpx;
+  color: #101936;
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: 4rpx;
 }
 
 .data-desc {
-  font-size: 12px;
-  color: #999999;
+  font-size: 24rpx;
+  color: #98A1B8;
   display: block;
 }
 
 .data-divider {
-  height: 1px;
-  background-color: #F0F0F0;
+  height: 2rpx;
+  background-color: rgba(111, 61, 255, 0.08);
 }
 
 .clear-btn {
-  font-size: 14px;
+  font-size: 28rpx;
   color: #F5222D;
   background-color: transparent;
-  border: 1px solid #F5222D;
-  border-radius: 6px;
-  padding: 4px 16px;
-  line-height: 24px;
+  border: 2rpx solid #F5222D;
+  border-radius: 999rpx;
+  padding: 8rpx 32rpx;
+  line-height: 48rpx;
   flex-shrink: 0;
 }

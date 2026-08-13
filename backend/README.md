@@ -72,6 +72,7 @@ ASR_WORKER_URL=
 ASR_TIMEOUT_MS=60000
 ASR_MAX_AUDIO_BYTES=20971520
 ALLOW_UNKNOWN_DEVICE_BINDING=false
+AUTO_REGISTER_BLE_DEVICES=false
 ```
 
 OCR cloud behavior:
@@ -81,6 +82,8 @@ OCR cloud behavior:
 - The same `DASHSCOPE_API_KEY` is also used for cloud ASR when `ASR_WORKER_URL` is empty.
 
 Device pilot flow:
+
+- Set `AUTO_REGISTER_BLE_DEVICES=true` to allow a signed-in user to automatically create and bind a supported BLE device on first connection. Manual serial-number binding remains restricted to pre-registered devices.
 
 - Register a pilot device with `POST /api/admin/devices`.
 - Body fields: `serialNo`, optional `templateAccess`, `proofCode`, `reservedUserId`, `model`, `firmwareVersion`, `protocolVersion`.

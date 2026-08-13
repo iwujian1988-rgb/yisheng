@@ -41,7 +41,8 @@ const ENDPOINTS = {
   purchase: {
     activate: '/api/purchase/activate',
     records: '/api/purchase/records',
-    entitlement: '/api/purchase/entitlement'
+    entitlement: '/api/purchase/entitlement',
+    claimOrderEntitlement: '/api/purchase/claim-order-entitlement'
   },
   content: {
     drafts: '/api/content/drafts'

@@ -1,29 +1,32 @@
 /* pages/common/encryption-note.wxss */
 .encryption-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px 48px;
+  background-color: #FCFBFF;
+  padding: 32rpx 64rpx 96rpx;
 }
 
 /* 卡片 */
 .card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 12px;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 24rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .card-title {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 20rpx;
 }
 
 .card-desc {
-  font-size: 14px;
-  color: #666666;
+  font-size: 28rpx;
+  color: #64739A;
   line-height: 1.8;
 }
 
@@ -31,16 +34,16 @@
 .section-header {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 20rpx;
 }
 
 .section-badge {
-  font-size: 11px;
+  font-size: 22rpx;
   font-weight: 600;
   color: #FFFFFF;
-  padding: 3px 8px;
-  border-radius: 4px;
-  margin-right: 10px;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  margin-right: 20rpx;
 }
 
 .badge-local {
@@ -48,7 +51,7 @@
 }
 
 .badge-cloud {
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
 }
 
 .badge-ai {
@@ -56,26 +59,26 @@
 }
 
 .section-title {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
 }
 
 .section-desc {
-  font-size: 14px;
-  color: #666666;
+  font-size: 28rpx;
+  color: #64739A;
   line-height: 1.8;
 }
 
 /* 确认按钮 */
 .confirm-btn {
   width: 100%;
-  height: 52px;
-  border-radius: 12px;
-  font-size: 16px;
+  height: 104rpx;
+  border-radius: 999rpx;
+  font-size: 32rpx;
   font-weight: 500;
-  margin-top: 24px;
-  background-color: #4A90E2;
+  margin-top: 48rpx;
+  background-color: #6F3DFF;
   color: #FFFFFF;
 }
 

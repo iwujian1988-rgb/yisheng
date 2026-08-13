@@ -5,15 +5,13 @@
         <text class="profile-hero__name">{{nickName || '用户'}}</text>
         <text class="profile-hero__phone">{{phone || '未绑定手机号'}}</text>
       </view>
-      <t-avatar size="large" shape="circle" t-class="profile-hero__avatar">
-        {{nickNameInitial || '?'}}
-      </t-avatar>
+      <image class="profile-hero__avatar" src="/assets/profile/chief-avatar.png" mode="aspectFill" />
     </view>
   </view>
 
-  <view class="vip-card {{isMember ? 'vip-card--active' : ''}}">
+  <view class="vip-card {{isMember ? 'vip-card--active' : ''}}" bindtap="goClaimMembership">
     <view class="vip-card__badge">
-      <t-icon name="user-vip" size="48rpx" color="#D4A017" />
+      <t-icon name="user-vip" size="48rpx" color="#6F3DFF" />
     </view>
     <view class="vip-card__content">
       <view class="vip-card__row vip-card__row--head">

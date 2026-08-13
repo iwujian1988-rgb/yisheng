@@ -9,7 +9,9 @@ const bleTransferBehavior = require('../../behaviors/ble-transfer');
 const tabBarNav = require('../../services/navigation/tab-bar');
 const transferSettings = require('../../services/settings/transfer-settings');
 const localHistory = require('../../services/transfer/local-history');
-const reviewerMock = require('../../services/dev/reviewer-mock');
+const transferDemo = require('../../services/device/transfer-demo');
+
+const GUIDE_POSTER_SEEN_KEY = 'homeGuidePosterSeenV1';
 
 Page({
   behaviors: [bleTransferBehavior],
@@ -18,6 +20,10 @@ Page({
     banner: null,
     inputText: '',
     canSend: false,
+    isFullscreen: false,
+    showGuidePoster: false,
+    greeting: '',
+    greetingNote: '',
     stayOnPageAfterSend: true,
     textareaAutosize: { minHeight: 200 },
     statusTitle: '设备已连接',
@@ -44,6 +50,12 @@ Page({
   onLoad() {
     this.setData({ banner: bannerConfig.getHomeBanner() });
     this.refreshSpeedMode();
+    this.refreshGreeting();
+    this.greetingTimer = setInterval(() => this.refreshGreeting(), 60 * 1000);
+  },
+
+  onUnload() {
+    if (this.greetingTimer) clearInterval(this.greetingTimer);
   },
 
   onShow() {
@@ -51,17 +63,14 @@ Page({
     if (!authGuard.requireActiveAccount()) return;
     authSession.refreshCurrentSession().catch(() => null);
     this.refreshSpeedMode();
+    this.refreshGreeting();
     this.refreshDeviceStatus();
     this.refreshMemberStatus();
+    this.resumePendingBleConnection();
+    this.showGuidePosterOnce();
     const draft = draftService.consumeDraft();
     if (draft && draft.text) {
       this.updateInputText(draft.text);
-    }
-    if (this.data.connected) {
-      this.manualDisconnect = false;
-    }
-    if (!this.manualDisconnect && !this.data.connected && !this.reconnecting) {
-      this.tryReconnectBoundDevice();
     }
   },
 
@@ -70,6 +79,38 @@ Page({
     const isMember = summary.purchaseStatus === 'paid' || (summary.user && summary.user.memberStatus === 'active');
     const memberExpiry = summary.user && summary.user.memberEnd ? String(summary.user.memberEnd).slice(0, 10) : '';
     this.setData({ isMember, memberExpiry });
+  },
+
+  refreshGreeting() {
+    const hour = new Date().getHours();
+    let period = '晚上好';
+    let note = '工作是做不完的！记得开心';
+    if (hour >= 5 && hour < 8) {
+      period = '早上好';
+      note = '新的一天，从容开始！';
+    } else if (hour >= 8 && hour < 12) {
+      period = '上午好';
+      note = '今天也要顺顺利利！';
+    } else if (hour >= 12 && hour < 14) {
+      period = '中午好';
+      note = '午饭要按时吃！';
+    } else if (hour >= 14 && hour < 18) {
+      period = '下午好';
+      note = '记得早点下班！';
+    } else if (hour < 5) {
+      period = '夜深了';
+      note = '别太晚，注意休息！';
+    }
+    this.setData({ greeting: '主任，' + period + '！', greetingNote: note });
+  },
+
+  resumePendingBleConnection() {
+    const pendingDeviceId = wx.getStorageSync('pendingBleConnect');
+    if (this.data.connected || this.reconnecting) return;
+    if (pendingDeviceId) wx.removeStorageSync('pendingBleConnect');
+    if (!pendingDeviceId && !bleLink.shouldAutoReconnect()) return;
+    this.manualDisconnect = false;
+    this.tryReconnectBoundDevice();
   },
 
   updateInputText(inputText) {
@@ -105,7 +146,7 @@ Page({
   },
 
   onConnectTap() {
-    if (reviewerMock.isMockBleMode()) {
+    if (transferDemo.isActive()) {
       wx.showToast({ title: '演示设备已连接', icon: 'none' });
       return;
     }
@@ -125,6 +166,38 @@ Page({
 
   onClearTap() {
     this.updateInputText('');
+  },
+
+  openFullscreen() {
+    this.setData({ isFullscreen: true });
+  },
+
+  closeFullscreen() {
+    this.setData({ isFullscreen: false });
+  },
+
+  openGuidePoster() {
+    this.setData({ showGuidePoster: true });
+  },
+
+  showGuidePosterOnce() {
+    if (wx.getStorageSync(GUIDE_POSTER_SEEN_KEY)) return;
+    wx.setStorageSync(GUIDE_POSTER_SEEN_KEY, true);
+    this.openGuidePoster();
+  },
+
+  closeGuidePoster() {
+    this.setData({ showGuidePoster: false });
+  },
+
+  stopGuidePoster() {},
+
+  openGuideH5() {
+    this.closeGuidePoster();
+    wx.navigateTo({
+      url: '/pages/common/webview?title=' + encodeURIComponent('小科打字猿使用指南') +
+        '&url=' + encodeURIComponent('https://api.maxnote.me/guide')
+    });
   },
 
   onSendTap() {

@@ -1,33 +1,36 @@
 /* pages/dev/index.wxss */
 .dev-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px;
+  background-color: #FCFBFF;
+  padding: 24rpx 32rpx;
 }
 
 .warning-card {
   background-color: rgba(250, 173, 20, 0.1);
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 24px;
+  border-radius: 20rpx;
+  padding: 24rpx 32rpx;
+  margin-bottom: 48rpx;
 }
 
 .warning-text {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #FAAD14;
   line-height: 1.6;
 }
 
 .tool-card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 0 20px;
+  border-radius: 20rpx;
+  padding: 0 40rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .tool-title {
-  font-size: 14px;
-  color: #999999;
-  padding: 14px 0;
+  font-size: 28rpx;
+  color: #98A1B8;
+  padding: 28rpx 0;
   display: block;
 }
 
@@ -35,12 +38,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
+  padding: 32rpx 0;
 }
 
 .tool-label {
-  font-size: 15px;
-  color: #333333;
+  font-size: 30rpx;
+  color: #101936;
 }
 
 .danger {
@@ -48,11 +51,11 @@
 }
 
 .tool-arrow {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #CCCCCC;
 }
 
 .tool-divider {
-  height: 1px;
-  background-color: #F0F0F0;
+  height: 2rpx;
+  background-color: rgba(111, 61, 255, 0.08);
 }

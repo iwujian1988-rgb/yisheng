@@ -69,7 +69,7 @@ function createMemoryStore() {
     disabledReason: '',
     lastLogin: '',
     registerSource: 'dev_seed',
-    features: {},
+    features: { transferDemo: true },
     createdAt: now,
     updatedAt: now
   };
@@ -356,12 +356,15 @@ function createMemoryStore() {
     issues: [],
     auditLogs: [],
     activationCodes: [],
+    orderEntitlements: [],
+    orderEntitlementRequests: [],
     longTextTests: [],
     bugReports: [],
     deviceSessionChallenges: [],
     deviceSessions: [],
     deviceLiveProofs: [],
-    wechatSessionKeys: []
+    wechatSessionKeys: [],
+    authSessions: []
   };
 }
 

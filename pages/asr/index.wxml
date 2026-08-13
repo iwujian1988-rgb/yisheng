@@ -60,7 +60,7 @@
       disabled="{{recording || transcribing || !editableText}}"
       bindtap="confirmResult"
     >
-      {{returnToAi ? '填入 AI' : '使用这段'}}
+      {{returnToAi ? '填入 AI' : '发送到电脑'}}
     </button>
   </view>
 </view>

@@ -23,7 +23,8 @@ function ensureCollections(store) {
     'deviceSessionChallenges',
     'deviceSessions',
     'deviceLiveProofs',
-    'wechatSessionKeys'
+    'wechatSessionKeys',
+    'authSessions'
   ].forEach((key) => {
     if (!Array.isArray(store[key])) store[key] = [];
   });

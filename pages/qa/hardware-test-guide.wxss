@@ -1,48 +1,51 @@
 /* pages/qa/hardware-test-guide.wxss */
 .guide-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px 32px;
+  background-color: #FCFBFF;
+  padding: 24rpx 32rpx;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24rpx;
 }
 
 .step-card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: 20rpx;
+  padding: 40rpx;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .step-header {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 20rpx;
 }
 
 .step-num {
-  width: 28px;
-  height: 28px;
+  width: 56rpx;
+  height: 56rpx;
   border-radius: 50%;
-  background-color: #4A90E2;
+  background-color: #6F3DFF;
   color: #FFFFFF;
-  font-size: 14px;
+  font-size: 28rpx;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
+  margin-right: 24rpx;
 }
 
 .step-title {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 500;
-  color: #333333;
+  color: #101936;
 }
 
 .step-desc {
-  font-size: 14px;
-  color: #666666;
+  font-size: 28rpx;
+  color: #64739A;
   line-height: 1.8;
-  padding-left: 40px;
+  padding-left: 80rpx;
 }

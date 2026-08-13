@@ -1,8 +1,11 @@
 /* pages/analytics/index.wxss */
-.analytics-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; }
-.section-title { padding: 8px 0 16px; }
-.section-text { font-size: 16px; color: #333333; font-weight: 500; }
-.card-list { display: flex; flex-direction: column; gap: 12px; }
-.entry-card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; }
-.card-title { font-size: 15px; color: #333333; font-weight: 500; }
-.card-desc { font-size: 13px; color: #999999; margin-top: 6px; }
+.analytics-container { min-height: 100vh; background-color: #FCFBFF; padding: 24rpx 32rpx; }
+.section-title { padding: 16rpx 0 32rpx; }
+.section-text { font-size: 32rpx; color: #101936; font-weight: 500; }
+.card-list { display: flex; flex-direction: column; gap: 24rpx; }
+.entry-card { background-color: #FFFFFF; border-radius: 24rpx; padding: 32rpx; display: flex; flex-direction: column;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
+}
+.card-title { font-size: 30rpx; color: #101936; font-weight: 500; }
+.card-desc { font-size: 26rpx; color: #98A1B8; margin-top: 12rpx; }

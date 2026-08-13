@@ -44,12 +44,6 @@ Page({
     });
   },
 
-  onShow() {
-    if (!this.data.connected && !this.reconnecting) {
-      this.tryReconnectBoundDevice();
-    }
-  },
-
   onUnload() {
     this.closeBluetooth();
   },

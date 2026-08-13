@@ -1,106 +1,21 @@
-/* pages/tutorials/index.wxss */
 .tutorials-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
+  padding: 32rpx 28rpx 72rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #f4f1ff 0, #fcfbff 320rpx);
 }
 
-/* Tab 栏 */
-.tab-bar {
-  display: flex;
-  background-color: #FFFFFF;
-  padding: 0 16px;
-  border-bottom: 1px solid #F0F0F0;
+.page-hero { padding: 20rpx 16rpx 34rpx; }
+.page-title { display: block; color: #101936; font-size: 42rpx; font-weight: 700; }
+
+.guide-card, .faq-card {
+  margin-bottom: 20rpx;
+  padding: 30rpx;
+  border: 1rpx solid rgba(111, 61, 255, .10);
+  border-radius: 24rpx;
+  background: #fff;
+  box-shadow: 0 8rpx 28rpx rgba(30, 22, 79, .04);
 }
 
-.tab-item {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  padding: 14px 0;
-  position: relative;
-}
-
-.tab-text {
-  font-size: 14px;
-  color: #666666;
-}
-
-.tab-active .tab-text {
-  color: #4A90E2;
-  font-weight: 500;
-}
-
-.tab-active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24px;
-  height: 3px;
-  border-radius: 2px;
-  background-color: #4A90E2;
-}
-
-/* 空状态 */
-.empty-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 120px;
-}
-
-.empty-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-color: #E8E8E8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 24px;
-}
-
-.empty-icon-text {
-  font-size: 36px;
-  color: #999999;
-}
-
-.empty-title {
-  font-size: 16px;
-  color: #666666;
-  margin-bottom: 8px;
-}
-
-.empty-desc {
-  font-size: 14px;
-  color: #999999;
-}
-
-/* 教程列表 */
-.list-section {
-  padding: 16px 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.tutorial-card {
-  background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 16px 20px;
-}
-
-.tutorial-title {
-  font-size: 15px;
-  color: #333333;
-  font-weight: 500;
-  margin-bottom: 4px;
-  display: block;
-}
-
-.tutorial-desc {
-  font-size: 13px;
-  color: #999999;
-  display: block;
-}
+.guide-title { display: block; margin-bottom: 22rpx; color: #332060; font-size: 32rpx; font-weight: 700; }
+.step-text { display: block; margin-top: 12rpx; color: #455271; font-size: 28rpx; line-height: 42rpx; }

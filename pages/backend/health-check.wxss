@@ -1,17 +1,17 @@
 .health-container {
   min-height: 100vh;
-  background-color: #f5f7fa;
-  padding: 16px 32px 48px;
+  background-color: #FCFBFF;
+  padding: 32rpx 64rpx 96rpx;
 }
 
 .empty-section {
   display: flex;
   justify-content: center;
-  padding-top: 120px;
+  padding-top: 240rpx;
 }
 
 .empty-text {
-  font-size: 14px;
+  font-size: 28rpx;
   color: #64748b;
   text-align: center;
 }
@@ -19,23 +19,26 @@
 .check-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 24px;
+  gap: 20rpx;
+  margin-bottom: 48rpx;
 }
 
 .check-card {
   background-color: #ffffff;
-  border-radius: 8px;
-  padding: 16px 20px;
+  border-radius: 20rpx;
+  padding: 32rpx 40rpx;
   display: flex;
   align-items: center;
+
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
 }
 
 .check-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  margin-right: 12px;
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 10rpx;
+  margin-right: 24rpx;
   flex-shrink: 0;
 }
 
@@ -56,36 +59,36 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12rpx;
 }
 
 .check-name {
-  font-size: 15px;
-  color: #333333;
+  font-size: 30rpx;
+  color: #101936;
 }
 
 .check-message {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #64748b;
   word-break: break-all;
 }
 
 .check-result {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #64748b;
-  margin-left: 12px;
+  margin-left: 24rpx;
 }
 
 .action-section {
-  margin-top: 20px;
+  margin-top: 40rpx;
 }
 
 .action-btn {
   width: 100%;
-  height: 52px;
-  border-radius: 8px;
-  font-size: 16px;
+  height: 104rpx;
+  border-radius: 999rpx;
+  font-size: 32rpx;
   font-weight: 500;
-  background-color: #4a90e2;
+  background-color: #6F3DFF;
   color: #ffffff;
 }

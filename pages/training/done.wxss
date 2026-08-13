@@ -1,15 +1,18 @@
 /* pages/training/done.wxss */
-.done-container { min-height: 100vh; background-color: #F5F7FA; padding: 16px 32px; display: flex; flex-direction: column; }
-.done-header { display: flex; flex-direction: column; align-items: center; padding: 40px 0 24px; }
-.done-title { font-size: 20px; color: #333333; font-weight: 600; }
-.done-desc { font-size: 13px; color: #999999; margin-top: 8px; }
-.done-card { background-color: #FFFFFF; border-radius: 8px; padding: 20px; }
-.info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F0F0F0; }
+.done-container { min-height: 100vh; background-color: #FCFBFF; padding: 24rpx 32rpx; display: flex; flex-direction: column; }
+.done-header { display: flex; flex-direction: column; align-items: center; padding: 80rpx 0 48rpx; }
+.done-title { font-size: 40rpx; color: #101936; font-weight: 600; }
+.done-desc { font-size: 26rpx; color: #98A1B8; margin-top: 16rpx; }
+.done-card { background-color: #FFFFFF; border-radius: 20rpx; padding: 40rpx;
+  border: 2rpx solid rgba(111, 61, 255, 0.12);
+  box-sizing: border-box;
+}
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 24rpx 0; border-bottom: 2rpx solid rgba(111, 61, 255, 0.08); }
 .info-row:last-child { border-bottom: none; }
-.info-label { font-size: 14px; color: #999999; }
-.info-value { font-size: 14px; color: #333333; }
-.bottom-actions { margin-top: auto; padding: 24px 0; display: flex; flex-direction: column; gap: 10px; }
-.btn-primary { background-color: #4A90E2; border-radius: 12px; padding: 14px 0; text-align: center; }
-.btn-text { font-size: 16px; color: #FFFFFF; }
-.btn-secondary { background-color: #FFFFFF; border: 1px solid #4A90E2; border-radius: 12px; padding: 14px 0; text-align: center; }
-.btn-text-secondary { font-size: 16px; color: #4A90E2; }
+.info-label { font-size: 28rpx; color: #98A1B8; }
+.info-value { font-size: 28rpx; color: #101936; }
+.bottom-actions { margin-top: auto; padding: 48rpx 0; display: flex; flex-direction: column; gap: 20rpx; }
+.btn-primary { background-color: #6F3DFF; border-radius: 999rpx; padding: 28rpx 0; text-align: center; }
+.btn-text { font-size: 32rpx; color: #FFFFFF; }
+.btn-secondary { background-color: #FFFFFF; border: 2rpx solid #6F3DFF; border-radius: 999rpx; padding: 28rpx 0; text-align: center; }
+.btn-text-secondary { font-size: 32rpx; color: #6F3DFF; }

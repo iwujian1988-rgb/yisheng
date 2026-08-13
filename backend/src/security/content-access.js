@@ -180,19 +180,12 @@ function requireItemAccess(item, options) {
     return { ok: false, statusCode: 404, code: opts.notFoundCode || 'CONTENT_NOT_FOUND', message: opts.notFoundMessage || 'content not found' };
   }
   if (audience === 'professional' && !canAccessAudience(audience, context, opts.rule)) {
-    if (!context.memberActive) {
-      return {
-        ok: false,
-        statusCode: 403,
-        code: opts.deniedCode || 'CONTENT_ACCESS_DENIED',
-        message: opts.deniedMessage || 'content access denied'
-      };
-    }
     return {
       ok: false,
-      statusCode: 403,
-      code: context.deviceAccess.code,
-      message: context.deviceAccess.message
+      // Do not reveal that a professional item exists or which proof failed.
+      statusCode: 404,
+      code: opts.notFoundCode || 'CONTENT_NOT_FOUND',
+      message: opts.notFoundMessage || 'content not found'
     };
   }
   return { ok: true, context };

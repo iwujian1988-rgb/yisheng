@@ -4,7 +4,7 @@
     <text class="card-title">问题类型</text>
     <radio-group bindchange="onTypeChange">
       <label class="radio-item" wx:for="{{types}}" wx:key="value">
-        <radio value="{{item.value}}" checked="{{selectedType === item.value}}" color="#4A90E2" />
+        <radio value="{{item.value}}" checked="{{selectedType === item.value}}" color="#6F3DFF" />
         <text class="radio-text">{{item.label}}</text>
       </label>
     </radio-group>
