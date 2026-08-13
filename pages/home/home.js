@@ -22,6 +22,7 @@ Page({
     canSend: false,
     isFullscreen: false,
     showGuidePoster: false,
+    showTransferModal: false,
     greeting: '',
     greetingNote: '',
     stayOnPageAfterSend: true,
@@ -209,7 +210,35 @@ Page({
     if (!text || this.data.sending) return;
     if (!featureEntitlements.guardTransferFeature('发送到电脑')) return;
     const tokens = vucEncoder.textToTokens(text);
+    this.setData({ showTransferModal: true });
     this.sendTokens(tokens, text, 'manual');
+  },
+
+  openTransferModal() {
+    if (!this.data.sending) return;
+    this.setData({ showTransferModal: true });
+  },
+
+  closeTransferModal() {
+    this.setData({ showTransferModal: false });
+  },
+
+  stopTransferModalTap() {},
+
+  onTransferCancelTap() {
+    if (!this.data.sending) return;
+    wx.showModal({
+      title: '停止发送？',
+      content: '停止后，已经输入到电脑的文字会保留，剩余内容不会继续发送。',
+      confirmText: '停止发送',
+      confirmColor: '#D64545',
+      cancelText: '继续发送',
+      success: (res) => {
+        if (!res.confirm) return;
+        this.onCancelSendTap();
+        this.setData({ showTransferModal: false });
+      }
+    });
   },
 
   onTransferComplete(text, source) {

@@ -3,7 +3,7 @@ var client = require('../api/client');
 
 var HEARTBEAT_INTERVAL_MS = 30 * 1000;
 var timer = null;
-var ticking = false;
+var tickPromise = null;
 
 function getEndpoint() {
   return '/api/devices/heartbeat';
@@ -14,12 +14,10 @@ function clearStoredProof() {
 }
 
 function tick() {
-  if (ticking) return Promise.resolve(null);
-  ticking = true;
-  return liveDevice.hasLiveBluetoothConnection().then(function (connected) {
+  if (tickPromise) return tickPromise;
+  var work = liveDevice.hasLiveBluetoothConnection().then(function (connected) {
     if (!connected) {
       clearStoredProof();
-      ticking = false;
       return null;
     }
     return client.request({ url: getEndpoint(), method: 'POST' })
@@ -29,15 +27,22 @@ function tick() {
         } else {
           clearStoredProof();
         }
-        ticking = false;
         return data;
       })
       .catch(function () {
         clearStoredProof();
-        ticking = false;
         return null;
       });
   });
+  tickPromise = work.then(function (data) {
+    tickPromise = null;
+    return data;
+  }, function () {
+    tickPromise = null;
+    clearStoredProof();
+    return null;
+  });
+  return tickPromise;
 }
 
 function start() {

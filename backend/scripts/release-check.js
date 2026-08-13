@@ -27,6 +27,7 @@ function runNodeEval(label, code, env) {
 function main() {
   run('NODE_CHECK_ADMIN_UI', process.execPath, ['--check', 'backend/public/admin/app.js']);
   run('NODE_CHECK_API_CLIENT', process.execPath, ['--check', 'services/api/client.js']);
+  run('NODE_CHECK_AGENT_CHAT_CLIENT', process.execPath, ['--check', 'services/agent/chat.js']);
   run('NODE_CHECK_NETWORK_TEST', process.execPath, ['--check', 'services/diagnostics/network-test.js']);
   run('NODE_CHECK_BACKEND_HEALTH_PAGE', process.execPath, ['--check', 'pages/backend/health-check.js']);
   run('NODE_CHECK_DEVICE_PAGE', process.execPath, ['--check', 'pages/device/device.js']);
@@ -66,6 +67,13 @@ function main() {
     "if(project.setting.uploadWithSourceMap) throw new Error('source maps must be disabled for submission');",
     "if(Object.prototype.hasOwnProperty.call(app,'requiredPrivateInfos')) throw new Error('unused private API declaration present');",
     "console.log('submission packages',packages.join(','));"
+  ].join(' '));
+  runNodeEval('AI_STREAM_DEVICE_PROOF_HEADER', [
+    "const fs=require('fs');",
+    "const source=fs.readFileSync('services/agent/chat.js','utf8');",
+    "if(!source.includes(\"'X-Device-Session'\")) throw new Error('AI stream missing device session header');",
+    "if(!source.includes(\"'X-Device-Live'\")) throw new Error('AI stream missing live proof header');",
+    "if(!source.includes('JSON.parse(decodeChunk(body))')) throw new Error('AI stream does not decode ArrayBuffer errors');"
   ].join(' '));
   runNodeEval('MEDICAL_ACCESS_GUARD', [
     "const fs=require('fs');",

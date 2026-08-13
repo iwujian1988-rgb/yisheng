@@ -3,7 +3,7 @@ function sendJson(res, statusCode, payload) {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization,Content-Type,X-Device-Session,X-Device-Session-Token',
+    'Access-Control-Allow-Headers': 'Authorization,Content-Type,X-Device-Session,X-Device-Session-Token,X-Device-Live,X-Device-Live-Proof',
   });
   res.end(JSON.stringify(payload));
 }
@@ -40,7 +40,7 @@ function startSse(res, statusCode) {
     'X-Accel-Buffering': 'no',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization,Content-Type,X-Device-Session,X-Device-Session-Token'
+    'Access-Control-Allow-Headers': 'Authorization,Content-Type,X-Device-Session,X-Device-Session-Token,X-Device-Live,X-Device-Live-Proof'
   });
 }
 

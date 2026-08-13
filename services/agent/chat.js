@@ -1,10 +1,19 @@
 const apiClient = require('../api/client');
 const apiBase = require('../config/api-base');
 const deviceSession = require('../device/session');
+const liveHeartbeat = require('../device/live-heartbeat');
 const { ENDPOINTS } = require('../api/endpoints');
 
 function getToken() {
   return wx.getStorageSync('token') || '';
+}
+
+function getLiveProof() {
+  try {
+    return wx.getStorageSync('deviceLiveProof') || '';
+  } catch (error) {
+    return '';
+  }
 }
 
 function getBaseUrl() {
@@ -94,8 +103,13 @@ function sendChatStream(options, handlers) {
   const deviceToken = deviceSession.getDeviceSessionToken();
   let buffer = '';
   let settled = false;
+  let aborted = false;
+  let requestTask = null;
 
-  const requestTask = wx.request({
+  function startRequest() {
+    if (aborted) return;
+    const liveProof = getLiveProof();
+    requestTask = wx.request({
     url: baseUrl + ENDPOINTS.agent.chatStream,
     method: 'POST',
     enableChunked: true,
@@ -113,7 +127,7 @@ function sendChatStream(options, handlers) {
       'Content-Type': 'application/json',
       Accept: 'text/event-stream',
       Authorization: token ? 'Bearer ' + token : ''
-    }, deviceToken ? { 'X-Device-Session': deviceToken } : {}),
+    }, deviceToken ? { 'X-Device-Session': deviceToken } : {}, liveProof ? { 'X-Device-Live': liveProof } : {}),
     success(res) {
       if (settled) return;
       if (buffer) {
@@ -127,7 +141,14 @@ function sendChatStream(options, handlers) {
         return;
       }
       settled = true;
-      const body = res.data || {};
+      let body = res.data || {};
+      if (body instanceof ArrayBuffer) {
+        try {
+          body = JSON.parse(decodeChunk(body));
+        } catch (error) {
+          body = {};
+        }
+      }
       const message = apiClient.friendlyMessage(body.code, body.message || '请求失败');
       if (handlers.onError) {
         handlers.onError({ code: body.code || 'HTTP_ERROR', message: message, statusCode: res.statusCode });
@@ -144,7 +165,17 @@ function sendChatStream(options, handlers) {
         });
       }
     }
-  });
+    });
+
+    if (requestTask && typeof requestTask.onChunkReceived === 'function') {
+      requestTask.onChunkReceived((res) => {
+        buffer += decodeChunk(res.data);
+        const parsed = parseSseEvents(buffer);
+        buffer = parsed.remainder;
+        parsed.events.forEach(dispatchEvent);
+      });
+    }
+  }
 
   function dispatchEvent(evt) {
     let payload = {};
@@ -166,17 +197,15 @@ function sendChatStream(options, handlers) {
     }
   }
 
-  if (requestTask && typeof requestTask.onChunkReceived === 'function') {
-    requestTask.onChunkReceived((res) => {
-      buffer += decodeChunk(res.data);
-      const parsed = parseSseEvents(buffer);
-      buffer = parsed.remainder;
-      parsed.events.forEach(dispatchEvent);
-    });
+  if (deviceToken && !getLiveProof()) {
+    liveHeartbeat.tick().then(startRequest, startRequest);
+  } else {
+    startRequest();
   }
 
   return {
     abort: function () {
+      aborted = true;
       if (requestTask && typeof requestTask.abort === 'function') {
         requestTask.abort();
       }

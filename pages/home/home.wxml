@@ -46,13 +46,12 @@
         <view class="composer__bar-right">
           <view class="composer__tool" bindtap="openFullscreen"><t-icon name="fullscreen" size="34rpx" color="#8B95AA" /></view>
           <view class="composer__tool" wx:if="{{inputText}}" bindtap="onClearTap"><t-icon name="delete" size="34rpx" color="#8B95AA" /></view>
-          <view class="composer__tool" wx:if="{{sending}}" bindtap="onPauseSendTap"><t-icon name="{{sendPaused ? 'play' : 'pause'}}" size="34rpx" color="#8B95AA" /></view>
           <view
             wx:if="{{sending}}"
             class="composer__send composer__send--stop"
-            bindtap="onCancelSendTap"
+            bindtap="openTransferModal"
           >
-            <text>停止 {{sendProgress}}%</text>
+            <text>发送中 {{sendProgress}}%</text>
           </view>
           <view
             wx:else
@@ -92,10 +91,61 @@
         <view class="fullscreen-composer__toolset">
           <view class="fullscreen-composer__tool" bindtap="closeFullscreen"><t-icon name="fullscreen-exit" size="38rpx" color="#8B95AA" /></view>
           <view class="fullscreen-composer__tool" bindtap="onClearTap"><t-icon name="delete" size="38rpx" color="#8B95AA" /></view>
-          <view class="fullscreen-composer__tool" wx:if="{{sending}}" bindtap="onPauseSendTap"><t-icon name="{{sendPaused ? 'play' : 'pause'}}" size="38rpx" color="#8B95AA" /></view>
-          <view wx:if="{{sending}}" class="fullscreen-composer__tool fullscreen-composer__tool--stop" bindtap="onCancelSendTap"><t-icon name="close" size="38rpx" color="#FFFFFF" /></view>
+          <view wx:if="{{sending}}" class="fullscreen-composer__tool fullscreen-composer__tool--stop" bindtap="openTransferModal"><t-icon name="send" size="38rpx" color="#FFFFFF" /></view>
           <view wx:else class="fullscreen-composer__tool fullscreen-composer__tool--send {{(!canSend || !connected) ? 'is-disabled' : ''}}" bindtap="onSendTap"><t-icon name="send" size="38rpx" color="#8B95AA" /></view>
         </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="transfer-modal" wx:if="{{sending && showTransferModal}}" catchtap="stopTransferModalTap">
+    <view class="transfer-sheet" catchtap="stopTransferModalTap">
+      <view class="transfer-sheet__topline">
+        <view class="transfer-sheet__status">
+          <view class="transfer-sheet__status-icon {{sendPaused ? 'is-paused' : ''}}">
+            <t-icon name="{{sendPaused ? 'pause' : 'send'}}" size="32rpx" color="{{sendPaused ? '#6F3DFF' : '#FFFFFF'}}" />
+          </view>
+          <view>
+            <text class="transfer-sheet__eyebrow">{{sendPaused ? '传输已暂停' : '正在发送到电脑'}}</text>
+            <text class="transfer-sheet__status-note">{{sendPaused ? '确认光标位置后再继续' : '请保持当前操作状态'}}</text>
+          </view>
+        </view>
+        <view class="transfer-sheet__collapse" bindtap="closeTransferModal" hover-class="transfer-sheet__collapse--hover">
+          <text>收起</text>
+        </view>
+      </view>
+
+      <view class="transfer-sheet__progress-head">
+        <text class="transfer-sheet__progress-value">{{sendProgress}}</text>
+        <text class="transfer-sheet__progress-unit">%</text>
+      </view>
+      <view class="transfer-sheet__progress-track">
+        <view class="transfer-sheet__progress-bar {{sendPaused ? 'is-paused' : ''}}" style="width: {{sendProgress}}%;"></view>
+      </view>
+      <text class="transfer-sheet__progress-caption">{{sendPaused ? '发送进度已停在这里' : '文字正在逐步输入，请耐心等待'}}</text>
+
+      <view class="transfer-sheet__warning">
+        <view class="transfer-sheet__warning-icon"><text>!</text></view>
+        <view class="transfer-sheet__warning-copy">
+          <text class="transfer-sheet__warning-title">请不要移动或点击鼠标</text>
+          <text class="transfer-sheet__warning-text">保持电脑光标停留在目标输入框中，也不要操作键盘。切换窗口或移动光标，文字可能输入到错误位置。</text>
+        </view>
+      </view>
+
+      <view class="transfer-sheet__steps">
+        <view class="transfer-sheet__step"><text class="transfer-sheet__step-no">1</text><text>光标放在输入框</text></view>
+        <view class="transfer-sheet__step-line"></view>
+        <view class="transfer-sheet__step"><text class="transfer-sheet__step-no">2</text><text>双手离开设备</text></view>
+        <view class="transfer-sheet__step-line"></view>
+        <view class="transfer-sheet__step"><text class="transfer-sheet__step-no">3</text><text>等待发送完成</text></view>
+      </view>
+
+      <view class="transfer-sheet__actions">
+        <view class="transfer-sheet__primary" bindtap="onPauseSendTap" hover-class="transfer-sheet__primary--hover">
+          <t-icon name="{{sendPaused ? 'play' : 'pause'}}" size="32rpx" color="#FFFFFF" />
+          <text>{{sendPaused ? '继续发送' : '暂停发送'}}</text>
+        </view>
+        <view class="transfer-sheet__danger" bindtap="onTransferCancelTap" hover-class="transfer-sheet__danger--hover"><text>停止发送</text></view>
       </view>
     </view>
   </view>

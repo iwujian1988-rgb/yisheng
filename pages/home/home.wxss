@@ -315,6 +315,280 @@
 .fullscreen-composer__tool--send { background: #eef0f4; }
 .fullscreen-composer__tool--send.is-disabled { opacity: .42; }
 
+/* === Sending task sheet === */
+.transfer-modal {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 32rpx 24rpx calc(32rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  background: rgba(16, 25, 54, .54);
+}
+
+.transfer-sheet {
+  width: 100%;
+  padding: 32rpx;
+  border: 2rpx solid rgba(111, 61, 255, .12);
+  border-radius: 36rpx;
+  box-sizing: border-box;
+  background: #FFFFFF;
+  box-shadow: 0 28rpx 80rpx rgba(16, 25, 54, .24);
+}
+
+.transfer-sheet__topline,
+.transfer-sheet__status,
+.transfer-sheet__actions {
+  display: flex;
+  align-items: center;
+}
+
+.transfer-sheet__topline {
+  justify-content: space-between;
+}
+
+.transfer-sheet__status {
+  min-width: 0;
+  gap: 16rpx;
+}
+
+.transfer-sheet__status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64rpx;
+  height: 64rpx;
+  flex-shrink: 0;
+  border-radius: 20rpx;
+  background: #6F3DFF;
+}
+
+.transfer-sheet__status-icon.is-paused {
+  background: #F2EDFF;
+}
+
+.transfer-sheet__eyebrow,
+.transfer-sheet__status-note,
+.transfer-sheet__progress-caption,
+.transfer-sheet__warning-title,
+.transfer-sheet__warning-text {
+  display: block;
+}
+
+.transfer-sheet__eyebrow {
+  color: #101936;
+  font-size: 30rpx;
+  font-weight: 800;
+  line-height: 40rpx;
+}
+
+.transfer-sheet__status-note {
+  margin-top: 2rpx;
+  color: #64739A;
+  font-size: 22rpx;
+  line-height: 30rpx;
+}
+
+.transfer-sheet__collapse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88rpx;
+  height: 56rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  box-sizing: border-box;
+  background: #F5F3FA;
+  color: #64739A;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.transfer-sheet__collapse--hover {
+  background: #F2EDFF;
+  color: #6F3DFF;
+}
+
+.transfer-sheet__progress-head {
+  display: flex;
+  align-items: baseline;
+  margin-top: 32rpx;
+  color: #101936;
+  line-height: 1;
+}
+
+.transfer-sheet__progress-value {
+  font-size: 76rpx;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -3rpx;
+}
+
+.transfer-sheet__progress-unit {
+  margin-left: 6rpx;
+  color: #6F3DFF;
+  font-size: 34rpx;
+  font-weight: 800;
+}
+
+.transfer-sheet__progress-track {
+  width: 100%;
+  height: 16rpx;
+  margin-top: 18rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #ECE8F7;
+}
+
+.transfer-sheet__progress-bar {
+  min-width: 12rpx;
+  height: 100%;
+  border-radius: inherit;
+  background: #6F3DFF;
+  transition: width .18s ease;
+}
+
+.transfer-sheet__progress-bar.is-paused {
+  background: #9B84DD;
+}
+
+.transfer-sheet__progress-caption {
+  margin-top: 12rpx;
+  color: #64739A;
+  font-size: 22rpx;
+}
+
+.transfer-sheet__warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 18rpx;
+  margin-top: 28rpx;
+  padding: 24rpx;
+  border: 2rpx solid rgba(225, 145, 29, .20);
+  border-radius: 24rpx;
+  background: #FFF8EA;
+}
+
+.transfer-sheet__warning-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42rpx;
+  height: 42rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #E1911D;
+  color: #FFFFFF;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.transfer-sheet__warning-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.transfer-sheet__warning-title {
+  color: #6F4812;
+  font-size: 27rpx;
+  font-weight: 800;
+  line-height: 38rpx;
+}
+
+.transfer-sheet__warning-text {
+  margin-top: 6rpx;
+  color: #7A5C2A;
+  font-size: 23rpx;
+  line-height: 36rpx;
+}
+
+.transfer-sheet__steps {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 28rpx;
+  padding: 0 4rpx;
+}
+
+.transfer-sheet__step {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  color: #64739A;
+  font-size: 20rpx;
+  line-height: 28rpx;
+  text-align: center;
+}
+
+.transfer-sheet__step-no {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: #F2EDFF;
+  color: #6F3DFF;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.transfer-sheet__step-line {
+  width: 28rpx;
+  height: 2rpx;
+  margin-top: 20rpx;
+  flex-shrink: 0;
+  background: rgba(111, 61, 255, .16);
+}
+
+.transfer-sheet__actions {
+  gap: 16rpx;
+  margin-top: 32rpx;
+}
+
+.transfer-sheet__primary,
+.transfer-sheet__danger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  border-radius: 999rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.transfer-sheet__primary {
+  flex: 1;
+  gap: 10rpx;
+  background: #6F3DFF;
+  color: #FFFFFF;
+}
+
+.transfer-sheet__primary--hover {
+  background: #4A2BB8;
+}
+
+.transfer-sheet__danger {
+  width: 190rpx;
+  border: 2rpx solid rgba(214, 69, 69, .18);
+  background: #FFF5F5;
+  color: #C43D3D;
+}
+
+.transfer-sheet__danger--hover {
+  background: #FDEAEA;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transfer-sheet__progress-bar {
+    transition: none;
+  }
+}
+
 /* 发送按钮：禁用态尺寸不变 */
 .composer__send {
   display: inline-flex;
