@@ -329,6 +329,7 @@ Page({
     visibleTemplateGuideFields: [],
     templateGuideExpanded: false,
     templateGuideHiddenCount: 0,
+    templateGuideAfterMessageId: '',
     templateConfirmVisible: false,
     templateConfirmPreview: '',
     templatePickerVisible: false,
@@ -439,6 +440,7 @@ Page({
     }
 
     var selectedTemplate = selectedTemplateId ? templates[selectedIndex] : null;
+    var keepExistingGuideAnchor = selectedTemplateId && this.data.selectedTemplateId === selectedTemplateId;
     this.setData(Object.assign({
       templates: templates,
       templateNames: names,
@@ -446,7 +448,10 @@ Page({
       selectedTemplateId: selectedTemplateId,
       selectedTemplateName: selectedTemplateName,
       templateLabel: templateLabel,
-      templatePickerItems: this.buildTemplatePickerItems(templates, '')
+      templatePickerItems: this.buildTemplatePickerItems(templates, ''),
+      templateGuideAfterMessageId: keepExistingGuideAnchor
+        ? this.data.templateGuideAfterMessageId
+        : (((this.data.messages || []).slice(-1)[0] || {}).id || '')
     }, buildTemplateGuideState(selectedTemplate, false)));
   },
 
@@ -542,7 +547,8 @@ Page({
       selectedTemplateIndex: index,
       selectedTemplateId: selected ? selected.id : '',
       selectedTemplateName: selected ? selected.name : '',
-      templateLabel: selected ? ('已选：' + selected.name) : '选择模板（可选）'
+      templateLabel: selected ? ('已选：' + selected.name) : '选择模板（可选）',
+      templateGuideAfterMessageId: (((this.data.messages || []).slice(-1)[0] || {}).id || '')
     }, buildTemplateGuideState(selected, false)), this.scrollChatToBottom.bind(this));
   },
 
@@ -555,7 +561,8 @@ Page({
       templateLabel: '选择模板（可选）',
       templatePickerVisible: false,
       templateConfirmVisible: false,
-      templateConfirmPreview: ''
+      templateConfirmPreview: '',
+      templateGuideAfterMessageId: ''
     }, buildTemplateGuideState(null, false)));
   },
 
@@ -1177,7 +1184,8 @@ Page({
       sendingStageLabel: '',
       streamingMessageId: '',
       activeStreamTask: null,
-      cancelledMessageId: ''
+      cancelledMessageId: '',
+      templateGuideAfterMessageId: ''
     }, this.refreshSendState.bind(this));
   },
 

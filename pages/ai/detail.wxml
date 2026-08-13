@@ -1,3 +1,26 @@
+<template name="templateGuideCard">
+  <view class="template-guide">
+    <view class="template-guide__head">
+      <view class="template-guide__title-wrap">
+        <view class="template-guide__icon"><t-icon name="template" size="30rpx" color="#6F3DFF" /></view>
+        <view><text class="template-guide__eyebrow">当前文书模板</text><text class="template-guide__title">{{selectedTemplateName}}</text></view>
+      </view>
+      <text class="template-guide__change" bindtap="openTemplatePicker">更换</text>
+    </view>
+    <text class="template-guide__desc">按你掌握的情况提供即可，所有字段都可以跳过。AI 只使用你确认过的材料生成，完成后再提示可补充项。</text>
+    <view wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__fields">
+      <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}}" data-label="{{item.label}}" bindtap="insertTemplateField">
+        <text class="template-field__label">{{item.label}}</text><text class="template-field__add">＋</text>
+      </view>
+    </view>
+    <text wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__legend">紫色字段建议优先提供，但不代表必填</text>
+    <view class="template-guide__actions">
+      <text wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__primary" bindtap="insertTemplateOutline">插入填写提纲</text>
+      <text wx:if="{{templateGuideFields.length > 8}}" class="template-guide__secondary" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起字段' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text>
+    </view>
+  </view>
+</template>
+
 <view class="detail-page">
   <view class="detail-chat-wrap {{pendingPreviewItems.length ? 'detail-chat-wrap--tall-composer' : ''}}">
     <t-chat-list
@@ -6,27 +29,6 @@
       reverse="{{false}}"
       layout="both"
     >
-      <view wx:if="{{selectedTemplateId}}" class="template-guide">
-        <view class="template-guide__head">
-          <view class="template-guide__title-wrap">
-            <view class="template-guide__icon"><t-icon name="template" size="30rpx" color="#6F3DFF" /></view>
-            <view><text class="template-guide__eyebrow">当前文书模板</text><text class="template-guide__title">{{selectedTemplateName}}</text></view>
-          </view>
-          <text class="template-guide__change" bindtap="openTemplatePicker">更换</text>
-        </view>
-        <text class="template-guide__desc">按你掌握的情况提供即可，所有字段都可以跳过。AI 只使用你确认过的材料生成，完成后再提示可补充项。</text>
-        <view wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__fields">
-          <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}}" data-label="{{item.label}}" bindtap="insertTemplateField">
-            <text class="template-field__label">{{item.label}}</text><text class="template-field__add">＋</text>
-          </view>
-        </view>
-        <text wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__legend">紫色字段建议优先提供，但不代表必填</text>
-        <view class="template-guide__actions">
-          <text wx:if="{{visibleTemplateGuideFields.length}}" class="template-guide__primary" bindtap="insertTemplateOutline">插入填写提纲</text>
-          <text wx:if="{{templateGuideFields.length > 8}}" class="template-guide__secondary" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起字段' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text>
-        </view>
-      </view>
-
       <view wx:if="{{messages.length === 0 && !sending}}" class="welcome-message">
         <view class="bot-avatar">智</view>
         <view class="welcome-bubble">
@@ -39,6 +41,12 @@
           </view>
         </view>
       </view>
+
+      <template
+        wx:if="{{selectedTemplateId && !templateGuideAfterMessageId}}"
+        is="templateGuideCard"
+        data="{{selectedTemplateName, visibleTemplateGuideFields, templateGuideFields, templateGuideExpanded, templateGuideHiddenCount}}"
+      />
 
       <block wx:for="{{messages}}" wx:key="id">
         <view wx:if="{{item.role === 'user'}}" class="user-message-row">
@@ -106,6 +114,11 @@
             >保存为模板</text>
           </view>
         </t-chat-message>
+        <template
+          wx:if="{{selectedTemplateId && item.id === templateGuideAfterMessageId}}"
+          is="templateGuideCard"
+          data="{{selectedTemplateName, visibleTemplateGuideFields, templateGuideFields, templateGuideExpanded, templateGuideHiddenCount}}"
+        />
       </block>
 
       <view wx:if="{{sending && sendingStageLabel}}" class="sending-status">
