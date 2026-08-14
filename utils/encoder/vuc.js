@@ -6,8 +6,13 @@ function toVucValue(char) {
   return 'VUC' + hex;
 }
 
-function isChineseOrFullWidth(char) {
-  return /[\u4e00-\u9fa5]|[\u3000-\u303f]|[\uff00-\uffef]/.test(char);
+function shouldUseVuc(char) {
+  // The BLE packet writer is byte-oriented. Sending a non-ASCII character as a
+  // normal packet truncates its Unicode value (for example, ≥ becomes "e"),
+  // leaves Microsoft Pinyin in an unfinished composition, and makes following
+  // VUC commands leak as literal text. Route every BMP non-ASCII character
+  // through Windows Pinyin's Unicode input path instead.
+  return char.charCodeAt(0) > 0x7F || char === '(' || char === ')';
 }
 
 function textToTokens(text) {
@@ -16,12 +21,10 @@ function textToTokens(text) {
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
 
-    if (isChineseOrFullWidth(char)) {
+    if (shouldUseVuc(char)) {
       tokens.push({ type: 'vuc', value: toVucValue(char) });
     } else if (char === ' ' || char === '　') {
       tokens.push({ type: 'normal', value: char });
-    } else if (char === '(' || char === ')') {
-      tokens.push({ type: 'vuc', value: toVucValue(char) });
     } else if (/[a-z]/.test(char)) {
       tokens.push({ type: 'letter', value: char });
     } else if (/[A-Z]/.test(char)) {
@@ -44,4 +47,3 @@ module.exports = {
   textToTokens,
   tokensToPreview
 };
-

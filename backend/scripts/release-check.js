@@ -126,6 +126,12 @@ function main() {
     "if(!source.includes(\"'X-Device-Live'\")) throw new Error('AI stream missing live proof header');",
     "if(!source.includes('JSON.parse(decodeChunk(body))')) throw new Error('AI stream does not decode ArrayBuffer errors');"
   ].join(' '));
+  runNodeEval('VUC_UNICODE_ENCODING', [
+    "const encoder=require('./utils/encoder/vuc');",
+    "const values=encoder.textToTokens('≥·×é新增（）').map(item=>item.value);",
+    "for(const value of ['VUC2265','VUC00B7','VUC00D7','VUC00E9','VUC65B0','VUC589E','VUCFF08','VUCFF09']) if(!values.includes(value)) throw new Error('non-ASCII VUC encoding missing: '+value);",
+    "const ascii=encoder.textToTokens('A1+'); if(ascii[0].type!=='letter'||ascii[1].type!=='normal'||ascii[2].type!=='normal') throw new Error('ASCII token behavior regressed');"
+  ].join(' '));
   runNodeEval('MEDICAL_ACCESS_GUARD', [
     "const fs=require('fs');",
     "const api=fs.readFileSync('backend/src/modules/agent-api.js','utf8');",
