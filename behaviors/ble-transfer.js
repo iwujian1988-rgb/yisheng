@@ -17,6 +17,7 @@ module.exports = Behavior({
 
   lifetimes: {
     detached() {
+      this.endTransferSession();
       this.cancelPendingAck();
       this.cancelScheduledReconnect();
       if (this._bleConnectionStateListener && wx.offBLEConnectionStateChange) {
@@ -34,6 +35,28 @@ module.exports = Behavior({
     }
   },
   methods: {
+    beginTransferSession() {
+      this._activeTransferSpeedMode = transferSettings.getTransferSettings().speedMode;
+      const app = typeof getApp === 'function' ? getApp() : null;
+      if (app && app.globalData) {
+        app.globalData.transferSending = true;
+        app.globalData.activeTransferSpeedMode = this._activeTransferSpeedMode;
+      }
+    },
+
+    endTransferSession() {
+      this._activeTransferSpeedMode = '';
+      const app = typeof getApp === 'function' ? getApp() : null;
+      if (app && app.globalData) {
+        app.globalData.transferSending = false;
+        app.globalData.activeTransferSpeedMode = '';
+      }
+    },
+
+    getActiveTransferSpeedMode() {
+      return this._activeTransferSpeedMode || transferSettings.getTransferSettings().speedMode;
+    },
+
     cancelScheduledReconnect() {
       if (!this._bleReconnectTimer) return;
       clearTimeout(this._bleReconnectTimer);
@@ -304,7 +327,7 @@ module.exports = Behavior({
     },
 
     shouldUseAckFlow() {
-      return transferSettings.usesAckFlow(transferSettings.getTransferSettings().speedMode);
+      return transferSettings.usesAckFlow(this.getActiveTransferSpeedMode());
     },
 
     handleBleCharacteristicValueChange(res) {
@@ -392,6 +415,7 @@ module.exports = Behavior({
           }
           this._resumeSend = null;
           this.setData({ sending: false, sendPaused: false });
+          this.endTransferSession();
           wx.setKeepScreenOn({ keepScreenOn: false });
           wx.showToast({ title: '设备响应超时', icon: 'none' });
         }
@@ -451,6 +475,7 @@ module.exports = Behavior({
       // 演示设备只替换底层蓝牙写入；编码、历史和 UI 仍走正式流程。
       if (transferDemo.isActive()) {
         this.cancelSend = false;
+        this.beginTransferSession();
         this.setData({ sending: true, sendPaused: false, sendProgress: 0 });
         wx.setKeepScreenOn({ keepScreenOn: true });
         const total = (tokens && tokens.length) || 1;
@@ -474,6 +499,7 @@ module.exports = Behavior({
 
       this.cancelSend = false;
       this._resumeSend = null;
+      this.beginTransferSession();
       this.setData({ sending: true, sendPaused: false, sendProgress: 0 });
       wx.setKeepScreenOn({ keepScreenOn: true });
 
@@ -497,10 +523,10 @@ module.exports = Behavior({
         const needSpace = sendProfile.shouldInsertSpace(prevToken, token);
         const sendContent = () => {
           const packets = token.type === 'vuc'
-            ? [bleProtocol.createVucPacket(token.value)]
+            ? [bleProtocol.createVucPacket(token.value, this.getActiveTransferSpeedMode())]
             : token.type === 'letter'
-              ? bleProtocol.createLetterPackets(token.value)
-              : [bleProtocol.createPacket(token.value)];
+              ? bleProtocol.createLetterPackets(token.value, this.getActiveTransferSpeedMode())
+              : [bleProtocol.createPacket(token.value, this.getActiveTransferSpeedMode())];
           this.sendPackets(packets, () => {
             tokenIndex++;
             this.finishToken(token, tokenIndex, tokens.length, sendNextToken);
@@ -508,7 +534,7 @@ module.exports = Behavior({
         };
 
         if (needSpace) {
-          this.sendPackets([bleProtocol.createSpacePacket()], sendContent);
+          this.sendPackets([bleProtocol.createSpacePacket(this.getActiveTransferSpeedMode())], sendContent);
           return;
         }
         sendContent();
@@ -567,6 +593,7 @@ module.exports = Behavior({
           fail: () => {
             this._resumeSend = null;
             this.setData({ sending: false, sendPaused: false });
+            this.endTransferSession();
             wx.setKeepScreenOn({ keepScreenOn: false });
             wx.showToast({ title: '发送失败', icon: 'none' });
           }
@@ -578,7 +605,11 @@ module.exports = Behavior({
     finishToken(token, currentIndex, total, next) {
       if (this.cancelSend) return;
       this.setData({ sendProgress: Math.floor((currentIndex / total) * 100) });
-      const delay = this.shouldUseAckFlow() ? 0 : sendProfile.getTokenDelay(token);
+      // DONE means the device finished pressing the commit key, not that the
+      // Windows IME has already returned to an idle composition state. Keep the
+      // selected token interval after ACK so consecutive VUC commands cannot
+      // overlap inside Microsoft Pinyin.
+      const delay = sendProfile.getTokenDelay(token, this.getActiveTransferSpeedMode());
       setTimeout(() => {
         if (this.cancelSend) return;
         if (this.data.sendPaused) {
@@ -590,6 +621,7 @@ module.exports = Behavior({
     },
     finishSuccessfulSend(text, source) {
       const stayOnPage = this.data.stayOnPageAfterSend;
+      this.endTransferSession();
       this.setData({
         sending: false,
         sendPaused: false,
@@ -610,6 +642,7 @@ module.exports = Behavior({
     finishCancelledSend() {
       this.cancelPendingAck();
       this._resumeSend = null;
+      this.endTransferSession();
       this.setData({ sending: false, sendPaused: false, sendProgress: 0 });
       wx.setKeepScreenOn({ keepScreenOn: false });
     },

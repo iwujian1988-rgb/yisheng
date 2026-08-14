@@ -129,6 +129,10 @@ Page({
   },
 
   goTransferSettings() {
+    if (this.data.sending || transferSettings.isTransferSpeedLocked()) {
+      wx.showToast({ title: '发送完成后再调整速度', icon: 'none' });
+      return;
+    }
     wx.navigateTo({ url: '/pages/settings/transfer' });
   },
 

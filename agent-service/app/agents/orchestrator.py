@@ -26,6 +26,7 @@ from app.utils.session_store import get_session_store
 from app.utils.source_summary import truncate_sources_dict
 from app.utils.sse import format_sse
 from app.utils.text_output import split_sectioned_output
+from app.utils.text_quality import assess_text_quality
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,21 @@ class OrchestratorAgent(BaseAgent):
 
     def _session_store(self):
         return get_session_store(self.settings.session_context_ttl, self.settings.session_max_messages)
+
+    def _session_key(self, user_id: str, context_id: str) -> str:
+        """Isolate remembered material by document task, never by user alone."""
+        clean_context = re.sub(r"[^a-zA-Z0-9_-]", "", context_id or "")[:80]
+        if not user_id or not clean_context:
+            return ""
+        return f"{user_id}:{clean_context}"
+
+    def _merge_material_text(self, sources: AgentSources, material_text: str) -> AgentSources:
+        value = (material_text or "").strip()
+        if not value:
+            return sources
+        existing = sources.pasted_text.strip()
+        sources.pasted_text = "\n\n".join(part for part in (existing, value) if part)
+        return sources
 
     async def _run_ocr(self, attachment: dict[str, Any]) -> str:
         agent = OcrAgent(self.settings)
@@ -183,6 +199,13 @@ class OrchestratorAgent(BaseAgent):
                 "templateType": template_type or "通用",
                 "sourcePriority": normalize_source_priority(None, sources),
                 "reason": "heuristic template intent",
+            }
+        if has_media and template:
+            return {
+                "task": "text_organize",
+                "mode": mode,
+                "sourcePriority": normalize_source_priority(None, sources),
+                "reason": "selected template requires document organization",
             }
         if has_media and any(keyword in msg for keyword in ORGANIZE_KEYWORDS):
             return {
@@ -349,21 +372,24 @@ class OrchestratorAgent(BaseAgent):
             mode = "general"
 
         user_id = str((data.get("userId") or data.get("user_id") or "")).strip()
+        context_id = str(data.get("contextId") or data.get("context_id") or "").strip()
+        session_key = self._session_key(user_id, context_id)
         attachments = data.get("attachments") if isinstance(data.get("attachments"), list) else []
         template = data.get("template") if isinstance(data.get("template"), dict) else None
         baseline = data.get("baseline_fields") if isinstance(data.get("baseline_fields"), dict) else None
         client_history = data.get("messages") if isinstance(data.get("messages"), list) else []
 
         session_store = self._session_store()
-        server_history = session_store.get(user_id) if user_id else []
+        server_history = session_store.get(session_key) if session_key else []
         history = merge_histories(client_history, server_history)
 
         collect_started = time.perf_counter()
         sources, steps = await self._collect_sources(attachments)
+        sources = self._merge_material_text(sources, str(data.get("materialText") or ""))
         timings["collect_ms"] = int((time.perf_counter() - collect_started) * 1000)
 
         has_new_sources = sources.has_content()
-        if not has_new_sources:
+        if not has_new_sources and session_key and bool(data.get("reuseContextSources")):
             sources = self._sources_from_history(history)
 
         heuristic_plan = self._heuristic_plan(user_instruction, mode, sources, template)
@@ -401,8 +427,8 @@ class OrchestratorAgent(BaseAgent):
                 "bodyText": body,
                 "confirmItems": [],
             }
-            if user_id:
-                await self._persist_round(user_id, user_instruction, body, sources, has_new_sources=has_new_sources)
+            if session_key:
+                await self._persist_round(session_key, user_instruction, body, sources, has_new_sources=has_new_sources)
             timings["total_ms"] = int((time.perf_counter() - started) * 1000)
             return {"finalResult": final, "steps": steps, "plan": plan, "timings": timings}
 
@@ -427,9 +453,9 @@ class OrchestratorAgent(BaseAgent):
                 "templateDraft": result.get("templateDraft"),
                 "success": result.get("success", True),
             }
-            if user_id:
+            if session_key:
                 await self._persist_round(
-                    user_id,
+                    session_key,
                     user_instruction or "[创建模板]",
                     "已生成模板草稿",
                     sources,
@@ -451,6 +477,7 @@ class OrchestratorAgent(BaseAgent):
             "mode": plan_mode,
             "messages": history,
             "plan": plan,
+            "detailLevel": str(data.get("detailLevel") or "standard"),
         }
         if template:
             text_payload["template"] = template
@@ -469,12 +496,13 @@ class OrchestratorAgent(BaseAgent):
             "resultText": result.get("resultText") or "",
             "bodyText": result.get("bodyText") or "",
             "confirmItems": result.get("confirmItems") or [],
+            "quality": result.get("quality") or None,
             "task": text_payload["task"],
             "mode": plan_mode,
         }
-        if user_id:
+        if session_key:
             await self._persist_round(
-                user_id,
+                session_key,
                 user_instruction,
                 final.get("bodyText") or final.get("resultText") or "",
                 sources,
@@ -493,13 +521,15 @@ class OrchestratorAgent(BaseAgent):
             mode = "general"
 
         user_id = str((data.get("userId") or data.get("user_id") or "")).strip()
+        context_id = str(data.get("contextId") or data.get("context_id") or "").strip()
+        session_key = self._session_key(user_id, context_id)
         attachments = data.get("attachments") if isinstance(data.get("attachments"), list) else []
         template = data.get("template") if isinstance(data.get("template"), dict) else None
         baseline = data.get("baseline_fields") if isinstance(data.get("baseline_fields"), dict) else None
         client_history = data.get("messages") if isinstance(data.get("messages"), list) else []
 
         session_store = self._session_store()
-        server_history = session_store.get(user_id) if user_id else []
+        server_history = session_store.get(session_key) if session_key else []
         history = merge_histories(client_history, server_history)
 
         needs_server_ocr = any(
@@ -514,10 +544,11 @@ class OrchestratorAgent(BaseAgent):
 
         collect_started = time.perf_counter()
         sources, steps = await self._collect_sources(attachments)
+        sources = self._merge_material_text(sources, str(data.get("materialText") or ""))
         timings["collect_ms"] = int((time.perf_counter() - collect_started) * 1000)
 
         has_new_sources = sources.has_content()
-        if not has_new_sources:
+        if not has_new_sources and session_key and bool(data.get("reuseContextSources")):
             sources = self._sources_from_history(history)
 
         heuristic_plan = self._heuristic_plan(user_instruction, mode, sources, template)
@@ -548,8 +579,8 @@ class OrchestratorAgent(BaseAgent):
                 "bodyText": body,
                 "confirmItems": [],
             }
-            if user_id:
-                await self._persist_round(user_id, user_instruction, body, sources, has_new_sources=has_new_sources)
+            if session_key:
+                await self._persist_round(session_key, user_instruction, body, sources, has_new_sources=has_new_sources)
             timings["total_ms"] = int((time.perf_counter() - started) * 1000)
             yield format_sse(
                 "done",
@@ -579,9 +610,9 @@ class OrchestratorAgent(BaseAgent):
                 "templateDraft": result.get("templateDraft"),
                 "success": result.get("success", True),
             }
-            if user_id:
+            if session_key:
                 await self._persist_round(
-                    user_id,
+                    session_key,
                     user_instruction or "[创建模板]",
                     "已生成模板草稿",
                     sources,
@@ -608,6 +639,7 @@ class OrchestratorAgent(BaseAgent):
             "mode": plan_mode,
             "messages": history,
             "plan": plan,
+            "detailLevel": str(data.get("detailLevel") or "standard"),
         }
         if template:
             text_payload["template"] = template
@@ -630,17 +662,23 @@ class OrchestratorAgent(BaseAgent):
 
         raw = "".join(raw_parts)
         sectioned = split_sectioned_output(raw)
+        quality = assess_text_quality(sources.combined_text(source_priority), sectioned["body_text"], template)
+        confirm_items = list(sectioned["confirm_items"])
+        confirm_items.extend(
+            item["message"] for item in quality["warnings"] if item["message"] not in confirm_items
+        )
         final = {
             "type": "text",
             "resultText": sectioned["result_text"],
             "bodyText": sectioned["body_text"],
-            "confirmItems": sectioned["confirm_items"],
+            "confirmItems": confirm_items,
+            "quality": quality,
             "task": text_payload["task"],
             "mode": plan_mode,
         }
-        if user_id:
+        if session_key:
             await self._persist_round(
-                user_id,
+                session_key,
                 user_instruction,
                 final.get("bodyText") or final.get("resultText") or "",
                 sources,

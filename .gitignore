@@ -12,3 +12,7 @@ backend/.env.*
 deploy/certs/
 deploy/.env.production
 yisheng.tar.gz
+.tools/
+.build/
+firmware/dist/
+firmware/**/build/

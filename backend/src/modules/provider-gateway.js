@@ -43,7 +43,7 @@ function createProviderGatewayModule(deps) {
       businessKey: 'aiMode'
     });
     if (access.hasProfessionalAccess || !medicalContentPolicy.containsMedicalContent(text)) return false;
-    fail(res, 422, 'MEDICAL_CONTENT_NOT_SUPPORTED', 'This content is not supported in general mode.');
+    fail(res, 422, 'PROFESSIONAL_CONTENT_NOT_SUPPORTED', 'This content is not supported in general mode.');
     return true;
   }
 

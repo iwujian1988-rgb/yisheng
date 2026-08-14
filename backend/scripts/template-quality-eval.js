@@ -12,8 +12,8 @@ const cases = [
   {
     name: '会诊记录-口述加字段',
     template: createConsultationOfficialTemplate(new Date().toISOString()),
-    facts: [/2型糖尿病/, /NRS2002.{0,6}2分/, /近(2|两)年.{0,12}(下降|减轻).{0,4}5\s*(kg|公斤)/i, /(摄入|进食).{0,12}(80%|八成)/, /糖尿病饮食/],
-    forbidden: [/梅毒/, /营养不良/, /需关注营养状况/],
+    facts: [/2型糖尿病/, /NRS2002.{0,16}2分/, /近(2|两)年(?:内|来)?.{0,12}(下降|减轻).{0,4}5\s*(kg|公斤)/i, /(摄入|进食).{0,12}(80%|八成)/, /糖尿病饮食/],
+    forbidden: [/梅毒/, /营养不良/, /需关注营养状况/, /结合当前病情/, /营养状态/, /帮助患者更好/, /有助于|以促进/],
     input: '患者2型糖尿病，今天吃得还可以，大概达到平时需要的八成。近两年体重下降约5公斤，NRS2002两分。建议继续糖尿病饮食，加强饮食宣教。'
   },
   {
@@ -62,11 +62,16 @@ async function main() {
   if (!directAi.isConfigured()) throw new Error('AI provider is not configured');
   console.log('provider=' + config.aiProvider + ', model=' + config.aiResolvedModel);
   let passed = 0;
-  for (const item of cases) {
+  const caseFilter = String(process.env.QUALITY_CASE || '').trim();
+  const selectedCases = caseFilter ? cases.filter((item) => item.name.includes(caseFilter)) : cases;
+  if (!selectedCases.length) throw new Error('No quality cases matched QUALITY_CASE=' + caseFilter);
+  for (const item of selectedCases) {
     const result = await directAi.callDirectAi('text', {
       mode: 'professional',
       task: 'organize',
-      message: item.input,
+      message: '',
+      materialText: item.input,
+      attachments: item.attachments || [],
       template: item.template,
       messages: []
     });
@@ -77,23 +82,27 @@ async function main() {
     const markdown = /(\*\*|^---$)/m.test(body);
     const conversational = /(根据您提供的信息|如需补充.{0,8}告知)/.test(body);
     const pendingInBody = /^待确认(?:事项)?[：:]/m.test(body);
+    const qualityStatus = result.quality && result.quality.status || 'missing';
+    const richnessStatus = result.quality && result.quality.richness && result.quality.richness.status || 'missing';
     const usable = body.length >= 80
       && matched >= Math.ceil(item.facts.length * 0.8)
       && !placeholder
       && !forbidden.length
       && !markdown
       && !conversational
-      && !pendingInBody;
+      && !pendingInBody
+      && qualityStatus === 'passed'
+      && richnessStatus === 'adequate';
     if (usable) passed += 1;
     console.log('\n[' + (usable ? 'PASS' : 'REVIEW') + '] ' + item.name);
-    console.log('bodyLength=' + body.length + ', facts=' + matched + '/' + item.facts.length + ', placeholder=' + placeholder + ', markdown=' + markdown + ', conversational=' + conversational + ', pendingInBody=' + pendingInBody + ', forbidden=' + (forbidden.join('|') || 'none'));
+    console.log('bodyLength=' + body.length + ', expansionRatio=' + (result.quality && result.quality.expansionRatio || 'n/a') + ', richness=' + richnessStatus + ', facts=' + matched + '/' + item.facts.length + ', placeholder=' + placeholder + ', markdown=' + markdown + ', conversational=' + conversational + ', pendingInBody=' + pendingInBody + ', quality=' + qualityStatus + ', forbidden=' + (forbidden.join('|') || 'none'));
     console.log(body);
     if (Array.isArray(result.confirmItems) && result.confirmItems.length) {
       console.log('待确认：' + result.confirmItems.join('；'));
     }
   }
-  console.log('\nQUALITY_SUMMARY ' + passed + '/' + cases.length + ' passed');
-  if (passed !== cases.length) process.exitCode = 1;
+  console.log('\nQUALITY_SUMMARY ' + passed + '/' + selectedCases.length + ' passed');
+  if (passed !== selectedCases.length) process.exitCode = 1;
 }
 
 main().catch((error) => {

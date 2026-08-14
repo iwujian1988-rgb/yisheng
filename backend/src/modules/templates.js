@@ -59,6 +59,14 @@ function templateDetail(item) {
   };
 }
 
+function templateForGeneration(item) {
+  return Object.assign({}, templateDetail(item), {
+    templateVersion: Number(item.template_version || 1),
+    generationContract: item.generation_contract || null,
+    writingBlueprint: item.writing_blueprint || null
+  });
+}
+
 function findTemplate(store, templateId, userId) {
   ensureAgentTemplates(store);
   return store.agentTemplates.find(function (item) {
@@ -192,7 +200,8 @@ function createTemplatesModule(deps) {
     findTemplate: findTemplate,
     listTextTasks: listTextTasks,
     ensureAgentTemplates: ensureAgentTemplates,
-    templateDetail: templateDetail
+    templateDetail: templateDetail,
+    templateForGeneration: templateForGeneration
   };
 }
 

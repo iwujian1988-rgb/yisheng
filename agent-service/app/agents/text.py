@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import json
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -10,6 +11,7 @@ from app.utils.agent_context import AgentSources, format_context_history_item, f
 from app.utils.field_schema import format_fields_schema
 from app.utils.prompts import load_prompt
 from app.utils.text_output import split_sectioned_output
+from app.utils.text_quality import assess_text_quality
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +112,9 @@ class TextAgent(BaseAgent):
         template = data.get("template") if isinstance(data.get("template"), dict) else None
         baseline = data.get("baseline_fields") if isinstance(data.get("baseline_fields"), dict) else None
         extract_target = str(data.get("extractTarget") or data.get("extract_target") or "").strip()
+        detail_level = str(data.get("detailLevel") or "standard").strip().lower()
+        if detail_level not in ("concise", "standard", "detailed"):
+            detail_level = "standard"
 
         source_text = sources.combined_text(keys)
         if not source_text and user_instruction:
@@ -140,19 +145,45 @@ class TextAgent(BaseAgent):
                 "仅在用户明确询问专业用途时说明该能力；不要主动在普通问候或身份介绍中展开。"
             )
         if template or baseline:
+            generation_contract = None
+            writing_blueprint = None
+            if template:
+                generation_contract = template.get("generationContract") or template.get("generation_contract")
+                writing_blueprint = template.get("writingBlueprint") or template.get("writing_blueprint")
+            if generation_contract:
+                system_content += (
+                    "\n\n## 当前模板生成合同（必须遵守）\n"
+                    + json.dumps(generation_contract, ensure_ascii=False, indent=2)
+                )
+            if writing_blueprint:
+                system_content += (
+                    "\n\n## 当前模板写作蓝图（格式与文风必须遵守）\n"
+                    + json.dumps(writing_blueprint, ensure_ascii=False, indent=2)
+                    + "\n蓝图中的花括号仅表示写作位置，禁止原样输出。蓝图 narrativeRequirements 中与现有材料相符的句段结构必须执行，不得重新压缩成逗号串联的短句。"
+                )
             system_content += (
                 "\n\n## 模板补充规则\n"
                 "模板字段用于组织内容，不是生成前必须逐项追问的门槛。"
                 "先把口述、粘贴文本和 OCR 视为零散原始记录，抽取其中的事实，再归入匹配的模板章节，形成连贯、可直接核对和编辑的正式文书；不要逐行复述原材料。"
                 "正文只保留有事实内容的章节，不得输出空字段、空标题、“未提供”、“不详”、“待补充”或下划线占位，也不得把全部模板字段做成清单。"
                 "缺失内容只在【待确认】集中列出少量确实影响文书质量的项目，不要追问所有字段。不得编造。"
-                "模板样例只用于学习文书结构、语气和详略，不得把样例中的患者事实带入结果。"
+                "模板生成合同用于约束结构、语气和详略；不使用包含具体个案事实的样例作为生成来源。"
+                "模板写作蓝图用于模仿章节顺序、段落组织、书面语风格和标准篇幅。材料包含多个事实时，应将口语短句扩写为完整、连贯、可直接修改的正式段落，不得只做字段搬运。"
+                "只能通过补足语法、梳理时间线、增加必要连接、规范术语和对已知事实做中性摘要来增加文字，不得重复凑字或新增事实。"
+                "输出前可把写作蓝图的篇幅规则作为过度压缩提示：安全时将并列短语改为完整句和连贯段落；但材料已经规范，或继续扩写只能产生重复、空话或新事实时，允许低于参考比例。事实准确永远优先于篇幅。"
                 "除非原始材料明确提供，否则严禁新增诊断、诊断依据、鉴别诊断、检查发现、治疗方案、用药指示、监测计划、预后或风险结论；模板中有某个章节，不代表可以生成该章节的事实。"
                 "不得新增原材料没有明确表达的临床解释、评价、意义、关注点、因果说明或建议；只允许整理结构和规范表达。"
+                "不得为了扩写而给已有建议补充原文没有的理由、目的、预期收益或效果，不得擅加“结合当前病情”“有助于”“以促进”等评价性套话。"
                 "只输出文书本身，不要添加开场解释、结束邀约、Markdown 加粗或分隔线，也不要出现“根据您提供的信息”“如需补充请告知”等对话套话。"
                 "用户说“没有”“不清楚”“未知”或“未提供”时，视为该项无法提供，不得再次追问同一项。"
                 "以会话历史为准；只有确实无法完成当前明确任务时，才能提出一个简短问题，否则直接给出当前最佳草稿。"
             )
+            detail_rules = {
+                "concise": "用户选择简洁：保留关键事实与必要章节，使用完整句，但避免背景性复述和重复表达。",
+                "standard": "用户选择标准：按模板形成结构完整、详略均衡、可直接核对和修改的正式草稿。",
+                "detailed": "用户选择详细：在不新增任何事实、解释、理由或结论的前提下，充分梳理时间线、事实关系与段落衔接；不得用重复或空话凑篇幅。",
+            }
+            system_content += "\n\n## 用户选择的详细程度\n" + detail_rules[detail_level]
 
         sections: list[str] = []
         if user_instruction:
@@ -177,6 +208,8 @@ class TextAgent(BaseAgent):
             "max_tokens": _resolve_max_tokens(task, extract_target),
             "task": task,
             "mode": mode,
+            "source_text": source_text,
+            "template": template,
         }
 
     async def execute(self, data: dict[str, Any]) -> dict[str, Any]:
@@ -189,10 +222,16 @@ class TextAgent(BaseAgent):
             max_tokens=prepared["max_tokens"],
         )
         sectioned = split_sectioned_output(raw)
+        quality = assess_text_quality(prepared["source_text"], sectioned["body_text"], prepared["template"])
+        confirm_items = list(sectioned["confirm_items"])
+        confirm_items.extend(
+            item["message"] for item in quality["warnings"] if item["message"] not in confirm_items
+        )
         return {
             "resultText": sectioned["result_text"],
             "bodyText": sectioned["body_text"],
-            "confirmItems": sectioned["confirm_items"],
+            "confirmItems": confirm_items,
+            "quality": quality,
             "provider": self.settings.ai_provider,
             "model": self.settings.text_model,
             "task": prepared["task"],
@@ -202,10 +241,23 @@ class TextAgent(BaseAgent):
     async def execute_stream(self, data: dict[str, Any]) -> AsyncIterator[str]:
         prepared = self._prepare_chat_request(data)
         client = ChatClient(self.settings)
+        yielded = False
         async for chunk in client.chat_completions_stream(
             model=self.settings.text_model,
             messages=prepared["messages"],
             temperature=0.3,
             max_tokens=prepared["max_tokens"],
         ):
+            yielded = True
             yield chunk
+        if not yielded:
+            logger.warning("empty_stream_retry_non_stream task=%s", prepared["task"])
+            retry_text = await client.chat_completions(
+                model=self.settings.text_model,
+                messages=prepared["messages"],
+                temperature=0.3,
+                max_tokens=prepared["max_tokens"],
+            )
+            if not retry_text.strip():
+                raise RuntimeError("AI provider returned an empty response after retry")
+            yield retry_text

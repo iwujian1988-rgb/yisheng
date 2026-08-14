@@ -1,20 +1,21 @@
 <view class="settings-container">
   <view class="section">
     <text class="section-title">传输速度</text>
+    <text class="section-hint" wx:if="{{transferLocked}}">当前正在发送，本页设置将在发送完成后才可调整。</text>
     <view class="option-group">
-      <view class="option-card {{speedMode === 'slow' ? 'option-active' : ''}}" bindtap="selectSpeed" data-speed="slow">
+      <view class="option-card {{speedMode === 'slow' ? 'option-active' : ''}} {{transferLocked ? 'option-disabled' : ''}}" bindtap="selectSpeed" data-speed="slow">
         <text class="option-name">慢速</text>
         <text class="option-desc">老爷机使用，最稳。</text>
       </view>
-      <view class="option-card {{speedMode === 'safe' ? 'option-active' : ''}}" bindtap="selectSpeed" data-speed="safe">
+      <view class="option-card {{speedMode === 'safe' ? 'option-active' : ''}} {{transferLocked ? 'option-disabled' : ''}}" bindtap="selectSpeed" data-speed="safe">
         <text class="option-name">稳定</text>
         <text class="option-desc">推荐日常使用。速度与稳定折中。</text>
       </view>
-      <view class="option-card {{speedMode === 'balanced' ? 'option-active' : ''}}" bindtap="selectSpeed" data-speed="balanced">
+      <view class="option-card {{speedMode === 'balanced' ? 'option-active' : ''}} {{transferLocked ? 'option-disabled' : ''}}" bindtap="selectSpeed" data-speed="balanced">
         <text class="option-name">均衡</text>
         <text class="option-desc">性能较好的电脑使用， 速度优于稳定。</text>
       </view>
-      <view class="option-card {{speedMode === 'turbo' ? 'option-active' : ''}}" bindtap="selectSpeed" data-speed="turbo">
+      <view class="option-card {{speedMode === 'turbo' ? 'option-active' : ''}} {{transferLocked ? 'option-disabled' : ''}}" bindtap="selectSpeed" data-speed="turbo">
         <text class="option-name">快速</text>
         <text class="option-desc">仅限性能好的电脑可用，慎用。</text>
       </view>

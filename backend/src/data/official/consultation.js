@@ -1,61 +1,84 @@
 const { createOfficialTemplate } = require('./factory');
 
-const CONSULTATION_SAMPLE = `梅毒会诊：否
-当前诊断：
-2型糖尿病伴血糖控制不佳
-会诊意见：
-NRS2002评分2分
-患者现食欲胃纳可，饮食摄入满足日常所需80-100%， 早餐以牛奶、鸡蛋和馒头为主，中晚餐以荤素+米饭/面条为主，近2年体重下降约5kg（下降幅度11%），目前推荐能量1200Kcal/d，建议如下：
-1、维持糖尿病普食；
-2、营养宣教：已详细指导患者及家属饮食合理分配及适宜量，避免易升糖食物及脂肪含量较高食物摄入，控制淀粉类食物总摄入量，解答其饮食疑问等。
-谢邀~
-注意事项：
-已予以口头营养咨询，表示知晓。`;
+const CONSULTATION_SAMPLE = `会诊基本信息：{申请科室、会诊科室、日期时间}
+会诊目的：{用户明确提供的目的}
+病情摘要：{与本次会诊相关的已知事实}
+相关检查：{用户明确提供的检查结果}
+会诊意见：{会诊人员已明确提供的意见}
+处理建议：{会诊人员已明确提供的建议}`;
 
 const CONSULTATION_FIELDS = {
-  disease_context: {
-    _label: '疾病背景',
-    syphilis_consultation: {
-      label: '梅毒会诊',
+  consultation_info: {
+    _label: '会诊基本信息',
+    requesting_department: {
+      label: '申请科室',
       type: 'string',
       is_required: false,
-      description: '提取梅毒会诊对应状态（如：否）'
+      description: '仅提取用户明确提供的申请科室'
     },
-    current_diagnosis: {
-      label: '当前诊断',
-      type: 'array',
+    consulting_department: {
+      label: '会诊科室',
+      type: 'string',
+      is_required: false,
+      description: '仅提取用户明确提供的会诊科室'
+    },
+    consultation_time: {
+      label: '会诊时间',
+      type: 'string',
+      is_required: false,
+      description: '保留日期与时间原文'
+    },
+    purpose: {
+      label: '会诊目的',
+      type: 'string',
       is_required: true,
-      description: '按疾病名词切分为字符串数组',
+      description: '整理用户明确提供的会诊原因或希望解决的问题'
+    }
+  },
+  case_summary: {
+    _label: '会诊材料',
+    condition_summary: {
+      label: '病情摘要',
+      type: 'string',
+      is_required: true,
+      description: '只整理与本次会诊相关的已知事实，保留否定和不确定性'
+    },
+    relevant_examinations: {
+      label: '相关检查',
+      type: 'array',
+      is_required: false,
+      description: '保留检查名称、时间、结果、数值和单位',
+      items: { type: 'string' }
+    },
+    known_diagnoses: {
+      label: '已明确诊断',
+      type: 'array',
+      is_required: false,
+      description: '仅提取用户明确提供的诊断，保留疑似、考虑、待排等表达',
       items: { type: 'string' }
     }
   },
-  consultation_opinion: {
-    _label: '会诊意见',
-    clinical_evaluation: {
-      label: '临床评估',
+  consultation_result: {
+    _label: '会诊结果',
+    opinion: {
+      label: '会诊意见',
       type: 'string',
-      is_required: true,
-      description: '提取「建议如下」之前的前置叙述，过滤无临床意义的客套话'
-    },
-    nrs2002_score: {
-      label: 'NRS2002评分',
-      type: 'number',
       is_required: false,
-      description: '若包含评分则提取纯数字，无则留空'
+      description: '仅整理会诊人员已明确提供的意见，未提供时不得自动生成'
     },
     suggestions: {
-      label: '具体建议',
+      label: '处理建议',
       type: 'array',
-      is_required: true,
-      description: '按1、2、3等序号拆分为独立数组元素',
+      is_required: false,
+      description: '仅整理会诊人员已明确提供的建议，不得自动补充',
       items: { type: 'string' }
+    },
+    consultant: {
+      label: '会诊人员',
+      type: 'string',
+      is_required: false,
+      description: '仅提取用户明确提供的人员信息'
     }
-  },
-  precautions_and_consent: {
-    label: '注意事项',
-    type: 'string',
-    is_required: false,
-    description: '提取注意事项栏内的完整文本'
   }
 };
 

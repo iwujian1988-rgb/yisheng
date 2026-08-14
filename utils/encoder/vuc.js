@@ -1,9 +1,11 @@
 function toVucValue(char) {
-  let hex = char.charCodeAt(0).toString(16).toUpperCase();
+  let hex = char.charCodeAt(0).toString(16).toLowerCase();
   while (hex.length < 4) {
     hex = '0' + hex;
   }
-  return 'VUC' + hex;
+  // The project's original proven V-mode form is lowercase. It also avoids
+  // holding Shift for every V/U/C and A-F key on the HID device.
+  return 'vuc' + hex;
 }
 
 function shouldUseVuc(char) {
@@ -12,7 +14,7 @@ function shouldUseVuc(char) {
   // leaves Microsoft Pinyin in an unfinished composition, and makes following
   // VUC commands leak as literal text. Route every BMP non-ASCII character
   // through Windows Pinyin's Unicode input path instead.
-  return char.charCodeAt(0) > 0x7F || char === '(' || char === ')';
+  return char.charCodeAt(0) > 0x7F || /[uUvV]/.test(char) || char === '(' || char === ')';
 }
 
 function textToTokens(text) {

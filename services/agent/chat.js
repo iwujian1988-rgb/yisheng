@@ -81,10 +81,13 @@ function sendChat(options) {
     timeout: 120000,
     data: {
       message: options.message || '',
+      materialText: options.materialText || '',
+      contextId: options.contextId || '',
       attachments: options.attachments || [],
       messages: options.messages || [],
       templateId: options.templateId || '',
       templateType: options.templateType || '',
+      detailLevel: options.detailLevel || 'standard',
       mode: options.mode || ''
     }
   });
@@ -117,10 +120,13 @@ function sendChatStream(options, handlers) {
     timeout: options.timeout || 120000,
     data: {
       message: options.message || '',
+      materialText: options.materialText || '',
+      contextId: options.contextId || '',
       attachments: options.attachments || [],
       messages: options.messages || [],
       templateId: options.templateId || '',
       templateType: options.templateType || '',
+      detailLevel: options.detailLevel || 'standard',
       mode: options.mode || ''
     },
     header: Object.assign({

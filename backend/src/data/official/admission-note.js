@@ -30,6 +30,20 @@ const ADMISSION_NOTE_SAMPLE = `主诉 Chief Concern
 康复会诊: 不需要 营养会诊: 需要`;
 
 const ADMISSION_NOTE_FIELDS = {
+  general_information: {
+    _label: '一般资料',
+    name: { label: '姓名', type: 'string', is_required: false, description: '仅在材料明确提供时整理' },
+    sex: { label: '性别', type: 'string', is_required: false, description: '仅在材料明确提供时整理' },
+    age: { label: '年龄', type: 'string', is_required: false, description: '保留原始年龄及单位' },
+    ethnicity: { label: '民族', type: 'string', is_required: false, description: '仅在材料明确提供时整理' },
+    occupation: { label: '职业', type: 'string', is_required: false, description: '仅在材料明确提供时整理' },
+    marital_status: { label: '婚姻状况', type: 'string', is_required: false, description: '仅在材料明确提供时整理' },
+    address: { label: '住址', type: 'string', is_required: false, description: '仅在材料明确提供时整理，不推断地域' },
+    admission_time: { label: '入院时间', type: 'string', is_required: false, description: '保留原始日期与时间' },
+    record_time: { label: '记录时间', type: 'string', is_required: false, description: '保留原始日期与时间' },
+    history_provider: { label: '病史陈述者', type: 'string', is_required: false, description: '患者本人、家属或其他明确来源' },
+    history_reliability: { label: '病史可靠性', type: 'string', is_required: false, description: '仅记录材料中明确给出的判断，不自行评定' }
+  },
   medical_history: {
     _label: '核心病史',
     chief_concern: {
@@ -57,7 +71,7 @@ const ADMISSION_NOTE_FIELDS = {
       label: '内科疾病史',
       type: 'array',
       is_required: false,
-      description: '只提取勾选为「有」的疾病，丢弃否认项',
+      description: '完整保留已明确提供的阳性病史和重要否认项，不得改变否定极性',
       items: { type: 'string' }
     },
     surgical_and_trauma: {
@@ -88,7 +102,7 @@ const ADMISSION_NOTE_FIELDS = {
       label: '其他病史',
       type: 'array',
       is_required: false,
-      description: '仅在有阳性发现时提取，全阴性返回空数组',
+      description: '保留与当前记录相关的阳性发现及重要否认项',
       items: { type: 'string' }
     }
   },
@@ -274,6 +288,7 @@ function createAdmissionNoteOfficialTemplate(nowIso) {
     id: 'tpl_official_admission_note',
     template_type: '大病历',
     name: '大病历',
+    template_version: 3,
     fields: ADMISSION_NOTE_FIELDS,
     sample: ADMISSION_NOTE_SAMPLE
   }, nowIso);

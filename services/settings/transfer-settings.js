@@ -1,5 +1,5 @@
 const DEFAULT_TRANSFER_SETTINGS = {
-  speedMode: 'balanced'
+  speedMode: 'safe'
 };
 
 const SPEED_MODE_LABELS = {
@@ -11,24 +11,24 @@ const SPEED_MODE_LABELS = {
 
 const VUC_DELAY_MS = {
   slow: 350,
-  turbo: 180,
-  balanced: 250,
-  safe: 350
+  turbo: 50,
+  balanced: 100,
+  safe: 200
 };
 
 // 固件 VUC 七键之间间隔（与 SPD 标签联动；快速档为 0 表示 print 连打）
 const VUC_KEY_DELAY_MS = {
-  turbo: 0,
-  balanced: 12,
-  safe: 50,
-  slow: 100
+  turbo: 12,
+  balanced: 20,
+  safe: 28,
+  slow: 40
 };
 
 const VUC_PRE_SPACE_DELAY_MS = {
-  turbo: 5,
-  balanced: 10,
-  safe: 20,
-  slow: 30
+  turbo: 12,
+  balanced: 20,
+  safe: 28,
+  slow: 40
 };
 
 const SPEED_TO_SPD = {
@@ -57,8 +57,16 @@ function getTransferSettings() {
   return Object.assign({}, DEFAULT_TRANSFER_SETTINGS);
 }
 
+function isTransferSpeedLocked() {
+  const app = typeof getApp === 'function' ? getApp() : null;
+  return Boolean(app && app.globalData && app.globalData.transferSending);
+}
+
 function saveTransferSettings(settings) {
   const current = getTransferSettings();
+  if (isTransferSpeedLocked()) {
+    return Object.assign({}, current, { locked: true });
+  }
   const nextSettings = {
     speedMode: (settings && settings.speedMode) || current.speedMode || DEFAULT_TRANSFER_SETTINGS.speedMode
   };
@@ -127,6 +135,7 @@ module.exports = {
   VUC_PRE_SPACE_DELAY_MS,
   SPEED_TO_SPD,
   getTransferSettings,
+  isTransferSpeedLocked,
   saveTransferSettings,
   getSpeedDelays,
   getVucDelayMs,

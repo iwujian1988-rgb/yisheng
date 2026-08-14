@@ -12,6 +12,13 @@ const TALK_72H_SAMPLE = `简要病情:
 1.内科护理常规，二级护理，糖尿病饮食； 2.完善24小时尿蛋白定量、肌电图、馒头餐试验等检查，继续并发症评估； 3.治疗上予以胰岛素皮下泵控制血糖。根据血糖及检查结果调整治疗方案。 4.可衡量的目标和出院计划：住院期间进行糖尿病饮食指导，知晓糖尿病相关知识，出院后糖尿病饮食控制，规律用药，定期监测血糖，注意低血糖，知晓低血糖应对方法，内分泌科门诊定期随访。`;
 
 const TALK_72H_FIELDS = {
+  communication_info: {
+    _label: '沟通信息',
+    time: { label: '沟通时间', type: 'string', is_required: false, description: '保留原始日期与时间' },
+    location: { label: '沟通地点', type: 'string', is_required: false, description: '' },
+    participants: { label: '参与人员', type: 'string', is_required: false, description: '仅提取实际参与人员' },
+    communication_target: { label: '沟通对象及关系', type: 'string', is_required: false, description: '仅提取用户明确提供的关系' }
+  },
   brief_condition: {
     _label: '简要病情',
     history_and_symptoms: {
@@ -98,6 +105,11 @@ const TALK_72H_FIELDS = {
       is_required: false,
       description: '提取第4点可衡量的目标和出院计划'
     }
+  },
+  response_and_understanding: {
+    _label: '患方反馈',
+    opinion: { label: '患方意见', type: 'string', is_required: false, description: '仅整理实际表达的意见' },
+    understanding: { label: '理解与确认', type: 'string', is_required: false, description: '仅整理已发生的确认或疑问，不得代写知情同意' }
   }
 };
 

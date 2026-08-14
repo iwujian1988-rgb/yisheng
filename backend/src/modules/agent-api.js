@@ -40,7 +40,7 @@ function createAgentApiModule(deps) {
   }
 
   function rejectMedicalContent(res) {
-    fail(res, 422, 'MEDICAL_CONTENT_NOT_SUPPORTED', 'This content is not supported in general mode.');
+    fail(res, 422, 'PROFESSIONAL_CONTENT_NOT_SUPPORTED', 'This content is not supported in general mode.');
     return null;
   }
 
@@ -116,7 +116,7 @@ function createAgentApiModule(deps) {
         fail(res, 404, 'TEMPLATE_NOT_FOUND', 'template not found');
         return;
       }
-      data.template = templates.templateDetail(template);
+      data.template = templates.templateForGeneration(template);
     } else if (body.templateType) {
       data.baseline_fields = templates.getBaselineByType(String(body.templateType).trim());
     }
@@ -223,16 +223,24 @@ function createAgentApiModule(deps) {
 
     var body = await parseBody(req, { maxBytes: config.ocrMaxImageBytes * 6 });
     var messageRaw = String(body.message || body.text || '').trim();
+    var materialRaw = String(body.materialText || '').trim();
     var guarded = messageRaw ? redactSensitiveText(messageRaw) : { text: '', hits: [] };
+    var guardedMaterial = materialRaw ? redactSensitiveText(materialRaw) : { text: '', hits: [] };
     var mode = resolveMode(req, actor);
-    if (!allowGeneralContent(res, mode, guarded.text, body.messages)) return null;
+    var detailLevel = ['concise', 'standard', 'detailed'].indexOf(String(body.detailLevel || 'standard')) >= 0
+      ? String(body.detailLevel || 'standard')
+      : 'standard';
+    if (!allowGeneralContent(res, mode, [guarded.text, guardedMaterial.text].filter(Boolean).join('\n'), body.messages)) return null;
     var data = {
       message: guarded.text,
+      materialText: guardedMaterial.text,
+      contextId: String(body.contextId || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80),
       mode: mode,
       userId: actor.id,
       attachments: Array.isArray(body.attachments) ? body.attachments : [],
       messages: Array.isArray(body.messages) ? body.messages : [],
-      templateName: body.templateName || ''
+      templateName: body.templateName || '',
+      detailLevel: detailLevel
     };
 
     if (body.templateId) {
@@ -241,7 +249,7 @@ function createAgentApiModule(deps) {
         fail(res, 404, 'TEMPLATE_NOT_FOUND', 'template not found');
         return null;
       }
-      data.template = templates.templateDetail(template);
+      data.template = templates.templateForGeneration(template);
     } else if (body.templateType) {
       data.baseline_fields = templates.getBaselineByType(String(body.templateType).trim());
     }
@@ -249,7 +257,7 @@ function createAgentApiModule(deps) {
     return {
       actor: actor,
       data: data,
-      redactionHits: guarded.hits
+      redactionHits: (guarded.hits || []).concat(guardedMaterial.hits || [])
     };
   }
 

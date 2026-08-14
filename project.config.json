@@ -35,6 +35,26 @@
         "type": "folder"
       },
       {
+        "value": ".codex",
+        "type": "folder"
+      },
+      {
+        "value": ".tools",
+        "type": "folder"
+      },
+      {
+        "value": "node_modules",
+        "type": "folder"
+      },
+      {
+        "value": "deploy",
+        "type": "folder"
+      },
+      {
+        "value": "scripts",
+        "type": "folder"
+      },
+      {
         "value": "package.json",
         "type": "file"
       },
@@ -69,6 +89,10 @@
       {
         "value": "miniprogram_npm/tdesign-miniprogram/upload",
         "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/.wechatide.ib.json",
+        "type": "file"
       },
       {
         "value": "miniprogram_npm/tdesign-miniprogram/cascader",

@@ -73,7 +73,7 @@ const DISCHARGE_FIELDS = {
       label: '实验室检查',
       type: 'array',
       is_required: false,
-      description: '按检查时间、项目大类及具体指标切分，严禁省略或截断任何化验指标',
+      description: '按检查时间、项目大类及具体指标切分，完整保留源材料中明确列出的关键结果、数值和单位',
       items: {
         date: { label: '检查日期', type: 'string', is_required: true, description: '如 2025-03-20' },
         test_category: { label: '检验大类', type: 'string', is_required: true, description: '如血生化、尿常规' },

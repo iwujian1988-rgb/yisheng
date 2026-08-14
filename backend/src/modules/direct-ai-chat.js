@@ -1,5 +1,6 @@
 const { config } = require('../config');
 const wxContentCheck = require('../security/wx-content-check');
+const { assessTextQuality } = require('./text-quality');
 
 function isConfigured() {
   return Boolean(config.aiApiKey && (config.aiChatCompletionsUrl || config.aiBaseUrl));
@@ -18,7 +19,9 @@ function templateForPrompt(template) {
     id: template.id || '',
     name: template.name || '',
     templateType: template.templateType || template.template_type || '',
-    fields: template.fields || {}
+    fields: template.fields || {},
+    generationContract: template.generationContract || template.generation_contract || null,
+    writingBlueprint: template.writingBlueprint || template.writing_blueprint || null
   };
 }
 
@@ -66,9 +69,14 @@ function buildMessages(data, agentType) {
       'For structured templates, draft from the information already provided instead of requiring every field before writing.',
       'Omit empty sections and field labels from the document body. Never fill the body with "未提供", "不详", "待补充", blank placeholders, or a checklist of every template field.',
       'Do not invent facts. Put only a few material omissions that genuinely affect usefulness under one concise "待确认" section.',
-      'Use the template sample as a style and organization reference, never as patient facts.',
+      'Use the server-provided generation contract for structure, style, omission rules, and forbidden inferences. Do not use example-case facts as source material.',
+      'Use the server-provided writing blueprint as the authoritative format and style reference. Follow its heading order, composition guidance, abstract style pattern, and standard-rich length policy.',
+      'Treat the blueprint narrativeRequirements as mandatory sentence-structure rules whenever the corresponding source facts exist. Do not compress facts that the blueprint asks to place in separate complete sentences.',
+      'Expand terse notes into complete professional sentences and coherent paragraphs using only grammar, chronology, transitions, normalization, and fact-preserving summaries. Do not stay telegraphic when several facts are available.',
+      'Before finalizing, use the blueprint length policy only as a signal for possible over-compression. Prefer complete sentences when safe, but allow a shorter draft when the source is already structured or further expansion would require repetition, filler, or a new fact. Factual precision always outranks length.',
       'Never infer or add a diagnosis, diagnostic basis, differential diagnosis, examination finding, treatment, medication instruction, monitoring plan, prognosis, or risk conclusion unless that exact fact is present in the user sources.',
       'Do not add clinical interpretation, evaluation, significance, concern, causal explanation, or recommendation that is not explicitly present in the user sources. Reorganize and normalize wording only.',
+      'Do not expand a supplied recommendation by inventing its rationale, purpose, expected benefit, likely effect, or phrases such as "based on the condition" and "to help improve" unless those meanings are explicit in the sources.',
       'A template section is not permission to create its content. If a section has no supported fact, omit the whole section from the body.',
       'Output only the document itself. Do not add a preface, closing offer, markdown bold markers, markdown separators, or phrases such as "根据您提供的信息" and "如需补充请告知".',
       'Keep every number, duration, drug name, allergy, negation, and uncertainty exactly consistent with the source.',
@@ -76,6 +84,12 @@ function buildMessages(data, agentType) {
       'If the user says "没有", "不清楚", "未知", or "未提供", treat that field as unavailable and do not ask for it again.',
       'Use the conversation history as the source of truth. Ask at most one concise clarification only when it is essential; otherwise provide the best editable partial draft.'
     ].join(' '));
+    var detailRule = {
+      concise: 'Use concise detail: preserve key facts and necessary sections in complete sentences, without repetition.',
+      standard: 'Use standard detail: produce a complete, balanced, directly editable draft that follows the template.',
+      detailed: 'Use detailed treatment: fully organize chronology, fact relationships, and paragraph transitions without adding any fact, interpretation, rationale, or filler.'
+    }[data.detailLevel] || 'Use standard detail: produce a complete, balanced, directly editable draft that follows the template.';
+    system.push('User-selected detail level: ' + detailRule);
   }
   if (agentType === 'text' && data.task) {
     system.push('Requested text task: ' + String(data.task));
@@ -88,7 +102,11 @@ function buildMessages(data, agentType) {
     if (content) messages.push({ role: message.role, content: content });
   });
 
-  var userLines = [String(data.message || data.text || '').trim()];
+  var userLines = [];
+  var instruction = String(data.message || data.text || '').trim();
+  var materialText = String(data.materialText || '').trim();
+  if (instruction) userLines.push('User instruction:\n' + instruction);
+  if (materialText) userLines.push('Source text:\n' + materialText);
   appendAttachmentText(userLines, data.attachments);
   messages.push({ role: 'user', content: userLines.filter(Boolean).join('\n\n') });
   return messages;
@@ -106,29 +124,40 @@ async function callDirectAi(agentType, data) {
 
   try {
     var endpoint = config.aiChatCompletionsUrl || (config.aiBaseUrl.replace(/\/$/, '') + '/v1/chat/completions');
-    var response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + config.aiApiKey
-      },
-      body: JSON.stringify({
-        model: config.aiResolvedModel,
-        messages: buildMessages(data || {}, agentType),
-        temperature: 0.3,
-        max_tokens: 4096
-      }),
-      signal: controller.signal
-    });
-    var payload = await response.json().catch(function () { return {}; });
-    if (!response.ok) {
-      throw new Error(payload.error && payload.error.message || 'AI provider request failed');
+    var payload = {};
+    var content = '';
+    var baseMessages = buildMessages(data || {}, agentType);
+    for (var attempt = 0; attempt < 2 && !content; attempt += 1) {
+      var requestMessages = baseMessages.slice();
+      if (attempt > 0) {
+        requestMessages.push({
+          role: 'user',
+          content: 'The previous response was empty. Generate the complete document now from the same sources and writing blueprint.'
+        });
+      }
+      var response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + config.aiApiKey
+        },
+        body: JSON.stringify({
+          model: config.aiResolvedModel,
+          messages: requestMessages,
+          temperature: attempt === 0 ? 0.3 : 0.2,
+          max_tokens: 4096
+        }),
+        signal: controller.signal
+      });
+      payload = await response.json().catch(function () { return {}; });
+      if (!response.ok) {
+        throw new Error(payload.error && payload.error.message || 'AI provider request failed');
+      }
+      content = payload.choices && payload.choices[0] && payload.choices[0].message
+        ? String(payload.choices[0].message.content || '').trim()
+        : '';
     }
-
-    var content = payload.choices && payload.choices[0] && payload.choices[0].message
-      ? String(payload.choices[0].message.content || '').trim()
-      : '';
-    if (!content) throw new Error('AI provider returned an empty response');
+    if (!content) throw new Error('AI provider returned an empty response after retry');
 
     var sectioned = splitSectionedOutput(content);
     var safeContent = await wxContentCheck.sanitizeText(content);
@@ -139,6 +168,16 @@ async function callDirectAi(agentType, data) {
       if (confirmItem === '无' || confirmItem === '无。') continue;
       safeConfirmItems.push(await wxContentCheck.sanitizeText(confirmItem));
     }
+    var sourceText = [String(data.materialText || data.text || data.message || '').trim()];
+    (data.attachments || []).forEach(function (attachment) {
+      var attachmentText = String(attachment && attachment.ocrText || '').trim();
+      if (attachmentText) sourceText.push(attachmentText);
+    });
+    var quality = assessTextQuality(sourceText.filter(Boolean).join('\n\n'), safeBodyText, data.template);
+    for (var warningIndex = 0; warningIndex < quality.warnings.length; warningIndex += 1) {
+      var warningText = quality.warnings[warningIndex].message;
+      if (safeConfirmItems.indexOf(warningText) < 0) safeConfirmItems.push(warningText);
+    }
     return {
       type: 'text',
       status: 'ok',
@@ -146,6 +185,7 @@ async function callDirectAi(agentType, data) {
       bodyText: safeBodyText,
       confirmText: safeConfirmItems.join('\n'),
       confirmItems: safeConfirmItems,
+      quality: quality,
       provider: config.aiProvider,
       model: config.aiModel,
       usage: payload.usage || null,

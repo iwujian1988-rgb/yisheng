@@ -29,6 +29,29 @@ function main() {
   run('NODE_CHECK_API_CLIENT', process.execPath, ['--check', 'services/api/client.js']);
   run('NODE_CHECK_AGENT_CHAT_CLIENT', process.execPath, ['--check', 'services/agent/chat.js']);
   run('NODE_CHECK_BLE_TRANSFER', process.execPath, ['--check', 'behaviors/ble-transfer.js']);
+  runNodeEval('FIRMWARE_RELIABLE_HID', [
+    "const fs=require('fs');",
+    "const source=fs.readFileSync('firmware/yisheng-v3/yisheng-v3.ino','utf8');",
+    "if(!source.includes('V3.0.10-ReliableVUC')) throw new Error('reliable VUC firmware version missing');",
+    "if(!source.includes('Keyboard.press(key)')||!source.includes('Keyboard.release(key)')) throw new Error('explicit HID key press/release missing');",
+    "if(/Keyboard\\.(?:write|print)\\s*\\(/.test(source)) throw new Error('zero-hold Keyboard.write/print remains in firmware');"
+  ].join(' '));
+  runNodeEval('BLE_ACK_SETTLE_DELAY', [
+    "const fs=require('fs');",
+    "const source=fs.readFileSync('behaviors/ble-transfer.js','utf8');",
+    "if(source.includes('this.shouldUseAckFlow() ? 0 : sendProfile.getTokenDelay(token)')) throw new Error('ACK flow still removes IME settle delay');",
+    "if(!source.includes('const delay = sendProfile.getTokenDelay(token, this.getActiveTransferSpeedMode())')) throw new Error('token settle delay missing');"
+  ].join(' '));
+  runNodeEval('TRANSFER_SPEED_SNAPSHOT', [
+    "const fs=require('fs');",
+    "global.wx={getStorageSync:()=>({speedMode:'turbo'}),setStorageSync:()=>{throw new Error('locked transfer must not save')}};",
+    "global.getApp=()=>({globalData:{transferSending:true}});",
+    "const settings=require('./services/settings/transfer-settings'); const locked=settings.saveTransferSettings({speedMode:'slow'}); if(!locked.locked||locked.speedMode!=='turbo') throw new Error('speed lock failed');",
+    "const protocol=require('./utils/ble/protocol'); if(!protocol.createVucPacket('vuc4e00','safe').startsWith('SPD3|WIN11|')) throw new Error('packet did not use transfer speed snapshot');",
+    "const source=fs.readFileSync('behaviors/ble-transfer.js','utf8');",
+    "if(!source.includes('this._activeTransferSpeedMode = transferSettings.getTransferSettings().speedMode')) throw new Error('transfer speed snapshot missing');",
+    "if(!source.includes('sendProfile.getTokenDelay(token, this.getActiveTransferSpeedMode())')) throw new Error('delay does not use speed snapshot');"
+  ].join(' '));
   run('NODE_CHECK_BLUETOOTH_PAGE', process.execPath, ['--check', 'pages/bluetooth/index.js']);
   run('NODE_CHECK_NETWORK_TEST', process.execPath, ['--check', 'services/diagnostics/network-test.js']);
   run('NODE_CHECK_BACKEND_HEALTH_PAGE', process.execPath, ['--check', 'pages/backend/health-check.js']);
@@ -98,20 +121,24 @@ function main() {
   ].join(' '));
   runNodeEval('AI_TEMPLATE_DOCUMENT_WORKFLOW', [
     "const fs=require('fs');",
-    "const js=fs.readFileSync('pages/ai/detail.js','utf8'); const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8'); const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8'); const direct=fs.readFileSync('backend/src/modules/direct-ai-chat.js','utf8'); const agent=fs.readFileSync('agent-service/app/agents/text.py','utf8');",
+    "const js=fs.readFileSync('pages/ai/detail.js','utf8'); const chat=fs.readFileSync('services/agent/chat.js','utf8'); const api=fs.readFileSync('backend/src/modules/agent-api.js','utf8'); const orchestration=fs.readFileSync('agent-service/app/agents/orchestrator.py','utf8'); const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8'); const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8'); const direct=fs.readFileSync('backend/src/modules/direct-ai-chat.js','utf8'); const agent=fs.readFileSync('agent-service/app/agents/text.py','utf8'); const blueprints=fs.readFileSync('backend/src/data/official/writing-blueprints.js','utf8'); const quality=fs.readFileSync('backend/src/modules/text-quality.js','utf8');",
     "if(!js.includes('stripEmptyTemplateFields') || !js.includes('wx.onKeyboardHeightChange')) throw new Error('AI composer must filter empty template labels and track keyboard height');",
     "if(!wxml.includes('style=\"{{composerBottomStyle}}\"') || !wxml.includes('adjust-position=\"{{false}}\"')) throw new Error('AI composer keyboard positioning regressed');",
-    "if(!wxss.includes('grid-template-columns: minmax(0, 1fr) auto') || !wxss.includes('z-index: 10020')) throw new Error('AI send button or confirmation sheet layout regressed');",
+    "if(!wxss.includes('.composer-toolbar__left') || !wxss.includes('flex: 0 0 176rpx') || !wxss.includes('z-index: 12000')) throw new Error('AI send button or confirmation dialog layout regressed');",
+    "if(!wxml.includes('可选字段') || !wxml.includes('材料无误，生成草稿') || !wxml.includes('templateConfirmSources')) throw new Error('Template workflow guidance regressed');",
     "if(!direct.includes('Omit empty sections and field labels') || !agent.includes('正文只保留有事实内容的章节')) throw new Error('Template generation must produce a document instead of echoing empty fields');",
+    "if(!direct.includes('writing blueprint') || !agent.includes('当前模板写作蓝图') || !blueprints.includes('standard-rich') || !quality.includes('richnessThin')) throw new Error('Template format imitation or richness signal regressed');",
     "if(!direct.includes('Never infer or add a diagnosis') || !direct.includes('splitSectionedOutput') || !agent.includes('严禁新增诊断')) throw new Error('Medical generation fact boundaries regressed');"
+    ,"if(!js.includes('documentContextId') || !chat.includes('materialText') || !chat.includes('contextId') || !api.includes('templateForGeneration') || !orchestration.includes('selected template requires document organization') || !orchestration.includes('reuseContextSources')) throw new Error('Document context isolation or unified material routing regressed');",
+    "if(!js.includes('templateId ? createDocumentContextId()') || !js.includes('var taskMessages = templateId ? []') || !js.includes('documentMessage.request.documentContextId')) throw new Error('Each generated document must own a fresh context and revisions must reuse only the target context');"
   ].join(' '));
   runNodeEval('AI_DOCUMENT_WORKBENCH', [
     "const fs=require('fs');",
     "const js=fs.readFileSync('pages/ai/detail.js','utf8'); const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8'); const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8');",
     "if(!js.includes('buildMaterialSummary') || !js.includes('OCR 已加入') || !js.includes('录音转写已加入')) throw new Error('Document workbench must explain how sources join the selected template');",
-    "for(const text of ['查看参考字段','输入、录音和 OCR 将合并整理','生成文书','templateConfirmSources','编辑正文','让 AI 修改']){if(!wxml.includes(text)) throw new Error('Document workbench missing: '+text);}",
-    "if(!js.includes('buildTemplateConfirmPreview') || !js.includes('documentTaskStartIndex') || !js.includes(\"confirmEditorMode: 'direct'\")) throw new Error('Document isolation, material review, or direct editing regressed');",
-    "if(!wxss.includes('.document-workbench') || !wxss.includes('.document-workbench__materials.is-ready') || !wxss.includes('.confirm-editor__textarea--document')) throw new Error('Document workbench states are missing');"
+    "for(const text of ['整理为','可选字段','详细程度','生成结构','预览并生成','templateConfirmSources','编辑正文','让 AI 修改','AI 整理·尚未核对']){if(!wxml.includes(text)) throw new Error('Document workbench missing: '+text);}",
+    "if(!js.includes('buildTemplateConfirmPreview') || !js.includes('documentTaskStartIndex') || !js.includes(\"confirmEditorMode: 'direct'\") || !js.includes('syncComposerLayout') || !js.includes('detailLevel')) throw new Error('Document isolation, material review, responsive layout, or detail control regressed');",
+    "if(!wxss.includes('.document-workbench') || !wxss.includes('.document-workbench__materials.is-ready') || !wxss.includes('.document-workbench__segment.is-active') || !wxss.includes('.confirm-editor__textarea--document')) throw new Error('Document workbench states are missing');"
   ].join(' '));
   runNodeEval('PUBLIC_AI_COPY_GUARD', [
     "const fs=require('fs');",
@@ -129,8 +156,14 @@ function main() {
   runNodeEval('VUC_UNICODE_ENCODING', [
     "const encoder=require('./utils/encoder/vuc');",
     "const values=encoder.textToTokens('≥·×é新增（）').map(item=>item.value);",
-    "for(const value of ['VUC2265','VUC00B7','VUC00D7','VUC00E9','VUC65B0','VUC589E','VUCFF08','VUCFF09']) if(!values.includes(value)) throw new Error('non-ASCII VUC encoding missing: '+value);",
+    "for(const value of ['vuc2265','vuc00b7','vuc00d7','vuc00e9','vuc65b0','vuc589e','vucff08','vucff09']) if(!values.includes(value)) throw new Error('non-ASCII VUC encoding missing: '+value);",
     "const ascii=encoder.textToTokens('A1+'); if(ascii[0].type!=='letter'||ascii[1].type!=='normal'||ascii[2].type!=='normal') throw new Error('ASCII token behavior regressed');"
+  ].join(' '));
+  runNodeEval('IME_MODE_TRIGGER_ENCODING', [
+    "const encoder=require('./utils/encoder/vuc');",
+    "const normalLetters=encoder.textToTokens('aAzZ'); if(normalLetters.some(item=>item.type!=='letter')) throw new Error('ordinary ASCII letters must keep the established letter path');",
+    "const triggers=encoder.textToTokens('uUvV'); if(triggers.some(item=>item.type!=='vuc')) throw new Error('IME mode-trigger letters must use VUC');",
+    "for(const value of ['vuc0075','vuc0055','vuc0076','vuc0056']) if(!triggers.some(item=>item.value===value)) throw new Error('missing safe trigger encoding: '+value);"
   ].join(' '));
   runNodeEval('MEDICAL_ACCESS_GUARD', [
     "const fs=require('fs');",

@@ -95,7 +95,7 @@ async function run() {
       Authorization: 'Bearer ' + demoLogin.token
     },
     body: JSON.stringify({ text: '请整理这份病历', mode: 'professional' })
-  }, 'MEDICAL_CONTENT_NOT_SUPPORTED');
+  }, 'PROFESSIONAL_CONTENT_NOT_SUPPORTED');
 
   await requestExpectError('/api/agent/chat', {
     method: 'POST',
@@ -104,7 +104,7 @@ async function run() {
       Authorization: 'Bearer ' + demoLogin.token
     },
     body: JSON.stringify({ message: '请根据处方给建议', mode: 'professional' })
-  }, 'MEDICAL_CONTENT_NOT_SUPPORTED');
+  }, 'PROFESSIONAL_CONTENT_NOT_SUPPORTED');
 
   await request('/api/admin/paid-users/' + demoLogin.user.id, {
     method: 'PATCH',

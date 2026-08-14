@@ -4,9 +4,9 @@ function shouldInsertSpace(prevToken, token) {
   return Boolean(prevToken && prevToken.type === 'letter' && token.type === 'vuc');
 }
 
-function getTokenDelay(token) {
-  const { speedMode } = transferSettings.getTransferSettings();
-  const delays = transferSettings.getSpeedDelays(speedMode);
+function getTokenDelay(token, speedMode) {
+  const selectedSpeedMode = speedMode || transferSettings.getTransferSettings().speedMode;
+  const delays = transferSettings.getSpeedDelays(selectedSpeedMode);
 
   if (token.type === 'vuc') {
     return delays.vuc;

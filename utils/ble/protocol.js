@@ -7,29 +7,29 @@ const DEFAULT_MTU = 20;
 const CHUNK_DELAY_MS = 20;
 const MODE_TAG = 'WIN11';
 
-function getProtocolPrefix() {
-  const { speedMode } = transferSettings.getTransferSettings();
-  const spdTag = transferSettings.getSpdTag(speedMode);
+function getProtocolPrefix(speedMode) {
+  const selectedSpeedMode = speedMode || transferSettings.getTransferSettings().speedMode;
+  const spdTag = transferSettings.getSpdTag(selectedSpeedMode);
   return spdTag + '|' + MODE_TAG + '|';
 }
 
-function createPacket(payload) {
-  return getProtocolPrefix() + payload;
+function createPacket(payload, speedMode) {
+  return getProtocolPrefix(speedMode) + payload;
 }
 
-function createVucPacket(value) {
-  return createPacket(value + ',');
+function createVucPacket(value, speedMode) {
+  return createPacket(value + ',', speedMode);
 }
 
-function createLetterPackets(value) {
+function createLetterPackets(value, speedMode) {
   return [
-    createPacket(value),
-    createPacket('\n')
+    createPacket(value, speedMode),
+    createPacket('\n', speedMode)
   ];
 }
 
-function createSpacePacket() {
-  return createPacket(' ');
+function createSpacePacket(speedMode) {
+  return createPacket(' ', speedMode);
 }
 
 function str2ab(str) {

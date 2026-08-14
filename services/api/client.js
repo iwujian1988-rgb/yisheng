@@ -98,7 +98,7 @@ function friendlyMessage(code, fallback) {
     OCR_WORKER_FAILED: '图片识别暂时不可用，请稍后重试',
     AGENT_SERVICE_FAILED: 'AI 服务暂时不可用，请稍后重试',
     AI_PROVIDER_FAILED: 'AI 服务暂时不可用，请稍后重试',
-    MEDICAL_CONTENT_NOT_SUPPORTED: '当前内容涉及专业医疗信息。请保持授权设备连接后重试',
+    PROFESSIONAL_CONTENT_NOT_SUPPORTED: '当前内容需要专业权限。请保持授权设备连接后重试',
     MEMBER_REQUIRED: '当前账号暂未开通会员，请先开通服务'
   };
   return map[code] || fallback || '请求失败';

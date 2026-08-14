@@ -90,13 +90,13 @@ const FIRST_COURSE_FIELDS = {
       label: '病史特点',
       type: 'string',
       is_required: true,
-      description: '概括性描述，如「中年男性，急性起病」'
+      description: '仅整理用户已明确提供的病史诊断依据，不得自行推导'
     },
     disease_features: {
       label: '疾病特征',
       type: 'string',
       is_required: true,
-      description: '疾病特征性表现及发展过程'
+      description: '仅整理用户已明确表达的疾病特征与发展过程'
     },
     exam_basis: {
       label: '查体依据',
@@ -117,7 +117,7 @@ const FIRST_COURSE_FIELDS = {
       label: '鉴别项目',
       type: 'array',
       is_required: false,
-      description: '针对主诊断的鉴别诊断列表',
+      description: '仅提取用户已明确提供的鉴别诊断，不得自动生成',
       items: { type: 'string' }
     }
   },
@@ -139,7 +139,7 @@ const FIRST_COURSE_FIELDS = {
       label: '治疗原则',
       type: 'string',
       is_required: false,
-      description: '对因对症治疗方案'
+      description: '仅整理用户已明确提供的治疗原则或方案'
     },
     patient_education: {
       label: '知识宣教',

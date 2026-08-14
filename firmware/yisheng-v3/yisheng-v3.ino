@@ -24,7 +24,7 @@
 
 // ==========================================
 
-const String FIRMWARE_VERSION = "V3.0.8-RestoreUSB";
+const String FIRMWARE_VERSION = "V3.0.10-ReliableVUC";
 
 
 
@@ -50,6 +50,8 @@ int vucKeyDelayMs = 12;
 
 int vucPreSpaceDelayMs = 5;
 
+int vucPrefixDelayMs = 45;
+
 String currentMode = "RAW";
 
 String bleRxBuffer;
@@ -57,6 +59,14 @@ String bleRxBuffer;
 unsigned long bleRxLastMs = 0;
 
 const unsigned long RX_IDLE_MS = 45;
+
+// USBHIDKeyboard::write() sends key-down and key-up back-to-back. During a
+// long transfer one of those reports can occasionally be missed by the host,
+// causing missing VUC prefixes or a visibly stuck key. Hold every key across
+// multiple USB frames and leave a release gap before pressing the next key.
+const int HID_TEXT_KEY_HOLD_MS = 16;
+const int HID_VUC_KEY_HOLD_MS = 28;
+const int HID_RELEASE_GAP_MS = 12;
 
 
 
@@ -90,33 +100,75 @@ void applySpdProfile(const String& spdPart) {
 
   if (spdPart == "SPD1") {
 
-    vucKeyDelayMs = 0;
+    vucKeyDelayMs = 12;
 
-    vucPreSpaceDelayMs = 5;
+    vucPreSpaceDelayMs = 12;
+
+    vucPrefixDelayMs = 30;
 
   } else if (spdPart == "SPD2") {
 
-    vucKeyDelayMs = 12;
-
-    vucPreSpaceDelayMs = 10;
-
-  } else if (spdPart == "SPD3") {
-
-    vucKeyDelayMs = 50;
+    vucKeyDelayMs = 20;
 
     vucPreSpaceDelayMs = 20;
 
+    vucPrefixDelayMs = 45;
+
+  } else if (spdPart == "SPD3") {
+
+    vucKeyDelayMs = 28;
+
+    vucPreSpaceDelayMs = 28;
+
+    vucPrefixDelayMs = 65;
+
   } else if (spdPart == "SPD4") {
 
-    vucKeyDelayMs = 100;
+    vucKeyDelayMs = 40;
 
-    vucPreSpaceDelayMs = 30;
+    vucPreSpaceDelayMs = 40;
+
+    vucPrefixDelayMs = 90;
 
   } else {
 
-    vucKeyDelayMs = 12;
+    vucKeyDelayMs = 20;
 
-    vucPreSpaceDelayMs = 10;
+    vucPreSpaceDelayMs = 20;
+
+    vucPrefixDelayMs = 45;
+
+  }
+
+}
+
+
+
+void tapKeyReliably(uint8_t key, int interKeyDelayMs, int holdMs = HID_TEXT_KEY_HOLD_MS) {
+
+  const int releaseDelayMs = interKeyDelayMs > HID_RELEASE_GAP_MS
+
+    ? interKeyDelayMs
+
+    : HID_RELEASE_GAP_MS;
+
+  Keyboard.press(key);
+
+  delay(holdMs);
+
+  Keyboard.release(key);
+
+  delay(releaseDelayMs);
+
+}
+
+
+
+void typeTextReliably(const String& text, int interKeyDelayMs) {
+
+  for (int k = 0; k < text.length(); k++) {
+
+    tapKeyReliably(text[k], interKeyDelayMs);
 
   }
 
@@ -126,27 +178,33 @@ void applySpdProfile(const String& spdPart) {
 
 void typeVucToken(const String& token) {
 
-  if (vucKeyDelayMs <= 0) {
+  // Clear a potentially stale key once per Unicode token. Sending an extra
+  // empty HID report before every key doubled USB traffic and still allowed
+  // Windows Pinyin to lose an occasional hexadecimal digit on long text.
+  Keyboard.releaseAll();
 
-    Keyboard.print(token);
+  delay(HID_RELEASE_GAP_MS);
 
-  } else {
+  const int prefixLength = token.length() >= 3 ? 3 : token.length();
 
-    Keyboard.releaseAll();
+  for (int k = 0; k < prefixLength; k++) {
 
-    for (int k = 0; k < token.length(); k++) {
+    tapKeyReliably(token[k], vucKeyDelayMs, HID_VUC_KEY_HOLD_MS);
 
-      Keyboard.write(token[k]);
+  }
 
-      delay(vucKeyDelayMs);
+  // Give Microsoft Pinyin time to enter Unicode mode before the code point.
+  delay(vucPrefixDelayMs);
 
-    }
+  for (int k = prefixLength; k < token.length(); k++) {
+
+    tapKeyReliably(token[k], vucKeyDelayMs, HID_VUC_KEY_HOLD_MS);
 
   }
 
   delay(vucPreSpaceDelayMs);
 
-  Keyboard.write(' ');
+  tapKeyReliably(' ', vucKeyDelayMs, HID_VUC_KEY_HOLD_MS);
 
 }
 
@@ -338,7 +396,7 @@ void processIncomingBlePacket(String rxValue) {
 
   if (firstPipe == -1 || secondPipe == -1) {
 
-    Keyboard.print(rxValue);
+    typeTextReliably(rxValue, HID_RELEASE_GAP_MS);
 
     notifyDone();
 
@@ -384,15 +442,7 @@ void processIncomingBlePacket(String rxValue) {
 
     } else {
 
-      Keyboard.releaseAll();
-
-      for (int k = 0; k < token.length(); k++) {
-
-        Keyboard.write(token[k]);
-
-        delay(1);
-
-      }
+      typeTextReliably(token, HID_RELEASE_GAP_MS);
 
     }
 
@@ -508,11 +558,13 @@ void setup() {
 
   pServer->getAdvertising()->start();
 
-  Serial.println("--- 舒克智能外设 V3.0.6-VMode 固件已就绪 ---");
+  Serial.println("--- 舒克智能外设 " + FIRMWARE_VERSION + " 固件已就绪 ---");
 
-  Serial.println("--- VUC键间: SPD1=0 SPD2=12 SPD3=50 SPD4=100ms ---");
+  Serial.println("--- VUC键间: SPD1=12 SPD2=20 SPD3=28 SPD4=40ms ---");
 
-  Serial.println("--- 空格前: SPD1=5 SPD2=10 SPD3=20 SPD4=30ms ---");
+  Serial.println("--- 空格前: SPD1=12 SPD2=20 SPD3=28 SPD4=40ms ---");
+
+  Serial.println("--- HID按键: 普通16ms/VUC 28ms + 松开间隔，逐字仅清键一次 ---");
 
   Serial.println("--- BLE 分片重组 + 每包 Notify DONE ---");
 

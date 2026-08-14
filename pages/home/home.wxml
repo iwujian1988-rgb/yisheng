@@ -151,7 +151,7 @@
   </view>
 
   <!-- ============ Transfer mode inline row ============ -->
-  <view class="mode-row" wx:if="{{speedModeText}}" bindtap="goTransferSettings" hover-class="mode-row--hover">
+  <view class="mode-row {{sending ? 'mode-row--locked' : ''}}" wx:if="{{speedModeText}}" bindtap="goTransferSettings" hover-class="mode-row--hover">
     <t-icon name="thunder" size="28rpx" color="#6F3DFF" />
     <text class="mode-row__text">{{speedModeText}}</text>
     <t-icon name="chevron-right" size="28rpx" color="#64739A" />

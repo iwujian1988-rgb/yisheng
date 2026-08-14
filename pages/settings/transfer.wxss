@@ -49,6 +49,10 @@
   background-color: #F2EDFF;
 }
 
+.option-card.option-disabled {
+  opacity: 0.55;
+}
+
 .option-name {
   font-size: 30rpx;
   font-weight: 500;

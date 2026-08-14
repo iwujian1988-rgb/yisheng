@@ -14,6 +14,10 @@ var MAX_PENDING_IMAGES = 3;
 var COMPRESS_QUALITY = 70;
 var COMPRESS_MAX_WIDTH = 1280;
 
+function createDocumentContextId() {
+  return 'doc-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
+}
+
 function looksLikeMarkdown(text) {
   var value = String(text || '');
   return /(^|\n)\s{0,3}#{1,6}\s|(\*\*|__|```)|(\n\s*[-*]\s)/.test(value);
@@ -120,17 +124,13 @@ function buildTemplateGuideState(template, expanded) {
     templateGuideFields: fields,
     visibleTemplateGuideFields: prioritized.slice(0, limit),
     templateGuideExpanded: Boolean(expanded),
-    templateGuideHiddenCount: Math.max(0, prioritized.length - limit)
+    templateGuideHiddenCount: Math.max(0, prioritized.length - limit),
+    templateStructureText: prioritized.slice(0, 5).map(function (item) { return item.label; }).join('、') || '由模板自动确定'
   };
 }
 
-function buildConfirmedTemplateMessage(message) {
-  return [
-    '【用户已确认的生成材料】',
-    message || '用户本次仅提供了附件材料。',
-    '',
-    '请把以上文字和附件视为零散原始记录：先抽取事实，再归入当前模板的对应章节，并改写成连贯、可直接核对和编辑的正式文书。不要逐行复述输入，不要输出空字段、空标题、“未提供”或“待补充”占位正文。未提供、未知或不确定的信息不得猜测；只在【待确认】中集中列出少量确实影响文书质量的补充项。'
-  ].join('\n');
+function normalizeDetailLevel(value) {
+  return ['concise', 'standard', 'detailed'].indexOf(value) >= 0 ? value : 'standard';
 }
 
 function stripEmptyTemplateFields(text, fields) {
@@ -189,7 +189,7 @@ function hasFailedAttachment(attachments) {
 
 function shouldRenderDocument(message, selectedTemplateId) {
   var text = String(message && (message.bodyText || message.streamingText || message.content) || '');
-  return Boolean(selectedTemplateId) || text.length >= 360 || /【正文】|主诉|现病史|既往史|体格检查/.test(text);
+  return Boolean(selectedTemplateId) || text.length >= 360 || /【正文】|正文[：:]/.test(text);
 }
 
 function attachmentsToUploadPayload(attachments) {
@@ -414,7 +414,17 @@ Page({
     materialReady: false,
     materialRecognizing: false,
     materialFeedbackText: '',
-    documentTaskStartIndex: 0
+    documentTaskStartIndex: 0,
+    documentContextId: '',
+    detailLevel: 'standard',
+    detailLevelLabel: '标准',
+    detailLevelOptions: [
+      { value: 'concise', label: '简洁', hint: '保留核心信息' },
+      { value: 'standard', label: '标准', hint: '结构完整，便于核对' },
+      { value: 'detailed', label: '详细', hint: '在不增加事实的前提下充分展开' }
+    ],
+    templateStructureText: '由模板自动确定',
+    chatBottomStyle: ''
   },
 
   onLoad: function (options) {
@@ -431,7 +441,12 @@ Page({
       }
       var initialText = options && options.text ? decodeURIComponent(options.text) : '';
       var workspaceDraft = wx.getStorageSync(AI_WORKSPACE_DRAFT_KEY) || {};
-      that.setData({ inputText: initialText || workspaceDraft.inputText || '' });
+      that.setData({
+        inputText: initialText || workspaceDraft.inputText || '',
+        detailLevel: normalizeDetailLevel(workspaceDraft.detailLevel),
+        detailLevelLabel: ({ concise: '简洁', standard: '标准', detailed: '详细' })[normalizeDetailLevel(workspaceDraft.detailLevel)],
+        documentContextId: createDocumentContextId()
+      });
       if (workspaceDraft.templateId) wx.setStorageSync('selectedTemplateId', workspaceDraft.templateId);
       that.consumeMediaInputDraft();
       that._workspaceAuthorized = true;
@@ -452,12 +467,24 @@ Page({
     }
   },
 
+  syncComposerLayout: function () {
+    var that = this;
+    if (this._composerLayoutTimer) clearTimeout(this._composerLayoutTimer);
+    this._composerLayoutTimer = setTimeout(function () {
+      wx.createSelectorQuery().in(that).select('.detail-composer').boundingClientRect(function (rect) {
+        if (!rect || !rect.height) return;
+        that.setData({ chatBottomStyle: 'bottom:calc(' + Math.ceil(rect.height) + 'px + var(--app-tab-bar-height, 100rpx));' });
+      }).exec();
+    }, 30);
+  },
+
   setPendingAttachments: function (attachments, callback) {
     this.setData({
       pendingAttachments: attachments,
       pendingPreviewItems: attachmentsToPreviewItems(attachments)
     }, function () {
       this.refreshMaterialSummary();
+      this.syncComposerLayout();
       if (callback) callback();
     }.bind(this));
   },
@@ -544,7 +571,10 @@ Page({
       selectedTemplateName: selectedTemplateName,
       templateLabel: templateLabel,
       templatePickerItems: this.buildTemplatePickerItems(templates, '')
-    }, buildTemplateGuideState(selectedTemplate, false)), this.persistWorkspaceDraft.bind(this));
+    }, buildTemplateGuideState(selectedTemplate, false)), function () {
+      this.persistWorkspaceDraft();
+      this.syncComposerLayout();
+    }.bind(this));
   },
 
   buildTemplatePickerItems: function (templates, keyword) {
@@ -653,6 +683,7 @@ Page({
           : ''
       });
       this.scrollChatToBottom();
+      this.syncComposerLayout();
     }.bind(this));
   },
 
@@ -670,17 +701,29 @@ Page({
       templateConfirmImages: [],
       templateFieldsPanelVisible: false,
       documentTaskStartIndex: (this.data.messages || []).length
-    }, buildTemplateGuideState(null, false)), this.persistWorkspaceDraft.bind(this));
+    }, buildTemplateGuideState(null, false)), function () {
+      this.persistWorkspaceDraft();
+      this.syncComposerLayout();
+    }.bind(this));
   },
 
   toggleTemplateGuide: function () {
     var selected = this.data.selectedTemplate;
     if (!selected) return;
-    this.setData(buildTemplateGuideState(selected, !this.data.templateGuideExpanded));
+    this.setData(buildTemplateGuideState(selected, !this.data.templateGuideExpanded), this.syncComposerLayout.bind(this));
   },
 
   toggleTemplateFieldsPanel: function () {
-    this.setData({ templateFieldsPanelVisible: !this.data.templateFieldsPanelVisible });
+    this.setData({ templateFieldsPanelVisible: !this.data.templateFieldsPanelVisible }, this.syncComposerLayout.bind(this));
+  },
+
+  selectDetailLevel: function (e) {
+    var value = normalizeDetailLevel(e.currentTarget.dataset.value);
+    var labels = { concise: '简洁', standard: '标准', detailed: '详细' };
+    this.setData({ detailLevel: value, detailLevelLabel: labels[value] }, function () {
+      this.persistWorkspaceDraft();
+      this.syncComposerLayout();
+    }.bind(this));
   },
 
   insertTemplateField: function (e) {
@@ -745,6 +788,7 @@ Page({
     wx.setStorageSync(AI_WORKSPACE_DRAFT_KEY, {
       inputText: inputText,
       templateId: templateId,
+      detailLevel: this.data.detailLevel,
       updatedAt: Date.now()
     });
   },
@@ -783,30 +827,35 @@ Page({
       return;
     }
     if (templateId && !isDocumentRevision && !options.skipTemplateConfirm) {
-      this._pendingTemplateSend = { message: message, attachments: attachments, templateId: templateId };
+      this._pendingTemplateSend = { message: message, attachments: attachments, templateId: templateId, detailLevel: this.data.detailLevel };
       this.setData({
         templateConfirmVisible: true,
         templateConfirmPreview: buildTemplateConfirmPreview(message, attachments, this.data.voiceTextChars),
         templateConfirmSources: buildMaterialSummary(message, attachments, this.data.voiceTextChars).materialSummaryText,
         templateConfirmImages: attachmentsToPreviewItems(attachments)
-      });
+      }, this.scrollChatToBottom.bind(this));
       return;
     }
-    var apiMessage = templateId && !isDocumentRevision ? buildConfirmedTemplateMessage(message) : message;
+    // Template generation keeps source material separate from instructions. The server
+    // owns the template contract and professional processing rules.
+    var materialText = templateId && !isDocumentRevision ? message : '';
+    var apiMessage = templateId && !isDocumentRevision ? '' : message;
     var visibleMessage = isDocumentRevision ? '正在按补充信息修订文书' : message;
-    // A template generation is one independent document task. Never let a previous
-    // document silently become source material for the next one. Revisions include
-    // their target document explicitly in the request below.
-    var taskMessages = templateId
-      ? (this.data.messages || []).slice(Number(this.data.documentTaskStartIndex || 0))
-      : this.data.messages;
+    // Bind server memory to one generated document, not to the whole page. Every new
+    // template draft gets a fresh context; a revision reuses only its target draft's
+    // context. This prevents consecutive drafts from sharing facts.
+    var documentContextId = isDocumentRevision
+      ? (options.contextId || createDocumentContextId())
+      : (templateId ? createDocumentContextId() : (this.data.documentContextId || createDocumentContextId()));
+    var taskMessages = templateId ? [] : this.data.messages;
     var conversationHistory = buildConversationHistory(taskMessages);
 
     var userMessage = createMessage('user', visibleMessage, {
       chatContent: buildUserChatContent(visibleMessage, attachments),
       rawAttachments: attachments,
       isRevisionRequest: isDocumentRevision,
-      revisionTargetId: options.applyToDocumentId || ''
+      revisionTargetId: options.applyToDocumentId || '',
+      documentContextId: documentContextId
     });
 
     var streamMessage = createMessage('assistant', '', {
@@ -816,11 +865,14 @@ Page({
       resultType: 'text',
       request: {
         message: apiMessage,
+        materialText: materialText,
         restoreMessage: isDocumentRevision ? '' : message,
         attachments: attachments,
         templateId: templateId,
+        detailLevel: options.detailLevel || this.data.detailLevel,
         applyToDocumentId: options.applyToDocumentId || '',
-        forceDocument: Boolean(options.forceDocument)
+        forceDocument: Boolean(options.forceDocument),
+        documentContextId: documentContextId
       }
     });
 
@@ -838,6 +890,7 @@ Page({
       materialReady: isDocumentRevision ? this.data.materialReady : false,
       materialRecognizing: false,
       materialFeedbackText: '',
+      documentContextId: documentContextId,
       sending: true,
       streamingMessageId: streamMessage.id,
       sendingStageLabel: needsServerOcr ? '识别图片并生成中…' : '正在生成回复…',
@@ -852,9 +905,12 @@ Page({
     var streamText = '';
     var streamTask = agentChat.sendChatStream({
       message: apiMessage,
+      materialText: materialText,
       attachments: attachmentsToUploadPayload(attachments),
       messages: conversationHistory,
-      templateId: templateId
+      templateId: templateId,
+      detailLevel: options.detailLevel || this.data.detailLevel,
+      contextId: documentContextId
     }, {
       onStatus: function (status) {
         if (!status || !status.label) return;
@@ -1277,7 +1333,9 @@ Page({
       attachments: [],
       applyToDocumentId: messageId,
       forceDocument: true,
-      templateId: documentMessage.request && documentMessage.request.templateId || this.data.selectedTemplateId || ''
+      templateId: documentMessage.request && documentMessage.request.templateId || this.data.selectedTemplateId || '',
+      detailLevel: documentMessage.request && documentMessage.request.detailLevel || this.data.detailLevel,
+      contextId: documentMessage.request && documentMessage.request.documentContextId || documentMessage.documentContextId || createDocumentContextId()
     });
   },
 
@@ -1292,10 +1350,13 @@ Page({
     this.setData({
       inputText: request.restoreMessage !== undefined ? request.restoreMessage : (request.message || ''),
       pendingAttachments: request.attachments || [],
-      pendingPreviewItems: attachmentsToPreviewItems(request.attachments || [])
+      pendingPreviewItems: attachmentsToPreviewItems(request.attachments || []),
+      detailLevel: normalizeDetailLevel(request.detailLevel || this.data.detailLevel),
+      detailLevelLabel: ({ concise: '简洁', standard: '标准', detailed: '详细' })[normalizeDetailLevel(request.detailLevel || this.data.detailLevel)]
     }, function () {
       this.persistWorkspaceDraft();
       this.refreshSendState();
+      this.syncComposerLayout();
     }.bind(this));
   },
 
@@ -1422,7 +1483,8 @@ Page({
       activeStreamTask: null,
       cancelledMessageId: '',
       templateFieldsPanelVisible: false,
-      documentTaskStartIndex: 0
+      documentTaskStartIndex: 0,
+      documentContextId: createDocumentContextId()
     }, function () {
       this.persistWorkspaceDraft();
       this.refreshSendState();
@@ -1430,6 +1492,7 @@ Page({
   },
 
   onUnload: function () {
+    if (this._composerLayoutTimer) clearTimeout(this._composerLayoutTimer);
     if (this._keyboardHeightHandler && wx.offKeyboardHeightChange) {
       wx.offKeyboardHeightChange(this._keyboardHeightHandler);
     }
