@@ -37,6 +37,8 @@ function main() {
   run('NODE_CHECK_API_CLIENT', process.execPath, ['--check', 'services/api/client.js']);
   run('NODE_CHECK_AGENT_CHAT_CLIENT', process.execPath, ['--check', 'services/agent/chat.js']);
   run('AI_FIELD_FLOW_SMOKE', process.execPath, ['backend/scripts/ai-field-flow-smoke.js']);
+  run('AI_WORKSPACE_SMOKE', process.execPath, ['backend/scripts/ai-workspace-smoke.js']);
+  run('AI_WORKSPACE_CLIENT_SMOKE', process.execPath, ['backend/scripts/ai-workspace-client-smoke.js']);
   run('NODE_CHECK_BLE_TRANSFER', process.execPath, ['--check', 'behaviors/ble-transfer.js']);
   runNodeEval('FIRMWARE_RELIABLE_HID', [
     "const fs=require('fs');",
@@ -139,7 +141,7 @@ function main() {
     "if(!direct.includes('writing blueprint') || !agent.includes('当前模板写作蓝图') || !blueprints.includes('standard-rich') || !quality.includes('richnessThin')) throw new Error('Template format imitation or richness signal regressed');",
     "if(!direct.includes('Never infer or add a diagnosis') || !direct.includes('splitSectionedOutput') || !agent.includes('严禁新增诊断')) throw new Error('Medical generation fact boundaries regressed');"
     ,"if(!js.includes('documentContextId') || !chat.includes('materialText') || !chat.includes('contextId') || !api.includes('templateForGeneration') || !orchestration.includes('selected template requires document organization') || !orchestration.includes('reuseContextSources')) throw new Error('Document context isolation or unified material routing regressed');",
-    "if(!js.includes('templateId ? createDocumentContextId()') || !js.includes('var taskMessages = templateId ? []') || !js.includes('documentMessage.request.documentContextId')) throw new Error('Each generated document must own a fresh context and revisions must reuse only the target context');"
+    "const workspace=fs.readFileSync('backend/src/modules/ai-workspaces.js','utf8'); const repository=fs.readFileSync('backend/src/repositories/ai-workspace-repository.js','utf8'); const migration=fs.readFileSync('backend/db/migrations/007-add-ai-workspaces.sql','utf8'); if(!js.includes('activeWorkspaceId') || !js.includes('var taskMessages = templateId ||') || !js.includes('documentMessage.request.documentContextId') || !workspace.includes('createGeneration') || !repository.includes('materialRevision') || !migration.includes('ai_generations')) throw new Error('Each generated document must use an isolated persistent workspace and immutable generation snapshot');"
   ].join(' '));
   runNodeEval('AI_DOCUMENT_WORKBENCH', [
     "const fs=require('fs');",

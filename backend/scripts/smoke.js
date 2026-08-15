@@ -79,6 +79,47 @@ async function run() {
   });
   assert(demoTemplates.templates.every((item) => item.audience !== 'professional'), 'transfer demo must not grant professional content');
 
+  const generalTemplate = demoTemplates.templates[0];
+  assert(generalTemplate && generalTemplate.id, 'general template required for workspace smoke');
+  const workspaceCreated = await request('/api/ai/workspaces', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+    body: JSON.stringify({ templateId: generalTemplate.id, detailLevel: 'standard' })
+  });
+  const workspaceId = workspaceCreated.workspace.id;
+  assert(workspaceId && Array.isArray(workspaceCreated.workspace.fields), 'workspace fields missing');
+  if (workspaceCreated.workspace.fields.length) {
+    const field = workspaceCreated.workspace.fields[0];
+    const savedField = await request('/api/ai/workspaces/' + workspaceId + '/fields', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+      body: JSON.stringify({ fieldKey: field.key, value: '已确认字段内容' })
+    });
+    assert(savedField.workspace.fields.some((item) => item.key === field.key && item.value === '已确认字段内容'), 'workspace field did not persist');
+  }
+  const addedMaterial = await request('/api/ai/workspaces/' + workspaceId + '/materials', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+    body: JSON.stringify({ kind: 'typed', text: '仅属于第一个工作区的材料', clientMaterialId: 'smoke-material-1' })
+  });
+  assert(addedMaterial.material && addedMaterial.material.text, 'workspace material missing');
+  const generation = await request('/api/ai/workspaces/' + workspaceId + '/generations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+    body: JSON.stringify({ idempotencyKey: 'smoke-generation-1' })
+  });
+  assert(generation.generation.snapshot.materials.length === 1, 'generation snapshot did not freeze included material');
+  const restoredWorkspace = await request('/api/ai/workspaces/' + workspaceId, {
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token }
+  });
+  assert(restoredWorkspace.workspace.materials.length === 1, 'workspace did not restore its material');
+
+  await requestExpectError('/api/ai/workspaces', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+    body: JSON.stringify({ templateId: 'tpl_official_first_course' })
+  }, 'TEMPLATE_NOT_FOUND');
+
   await requestExpectError('/api/templates', {}, 'AUTH_REQUIRED');
 
   await requestExpectError('/api/templates/tpl_official_first_course?connected=true', {
@@ -365,6 +406,24 @@ async function run() {
   assert(professionalTemplates.templates.some((item) => item.id === 'tpl_official_first_course'), 'official first course missing');
   const officialCount = professionalTemplates.templates.filter((item) => item.tag === 'official').length;
   assert(officialCount >= 5, 'expected at least 5 official templates, got ' + officialCount);
+
+  const professionalWorkspace = await request('/api/ai/workspaces', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json', Authorization: 'Bearer ' + activatedUser.token,
+      'X-Device-Session': deviceSession.deviceSessionToken, 'X-Device-Live': heartbeat.liveProof
+    },
+    body: JSON.stringify({ templateId: 'tpl_official_first_course' })
+  });
+  const lockedWorkspace = await request('/api/ai/workspaces/' + professionalWorkspace.workspace.id, {
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + activatedUser.token }
+  });
+  assert(lockedWorkspace.workspace.status === 'locked' && lockedWorkspace.workspace.requiresDevice === true, 'disconnected professional workspace must return a generic lock shell');
+  await requestExpectError('/api/ai/workspaces/' + professionalWorkspace.workspace.id + '/materials', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + activatedUser.token },
+    body: JSON.stringify({ kind: 'typed', text: '不得在断连后写入', clientMaterialId: 'blocked-material' })
+  }, 'DEVICE_CONNECTION_REQUIRED');
 
   const textTasks = await request('/api/agent/text/tasks', {
     headers: {

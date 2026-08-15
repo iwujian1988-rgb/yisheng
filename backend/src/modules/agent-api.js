@@ -5,11 +5,37 @@ const medicalContentPolicy = require('../security/medical-content-policy');
 const { callAgentService, streamAgentChat } = require('./agent-proxy');
 const directAi = require('./direct-ai-chat');
 const contentAccess = require('../security/content-access');
+const { collectTemplateFields } = require('./ai-workspaces');
 
 function createAgentApiModule(deps) {
   var auth = deps.auth;
   var store = deps.store;
   var templates = deps.templates;
+  var workspaceRepository = deps.workspaceRepository || null;
+
+  function snapshotMaterialText(snapshot) {
+    var template = snapshot && snapshot.template || {};
+    var values = snapshot && snapshot.fields || {};
+    var labels = {};
+    collectTemplateFields(template.fields).forEach(function (field) { labels[field.key] = field.label; });
+    var fieldLines = Object.keys(values).map(function (key) {
+      var value = String(values[key] || '').trim();
+      return value ? (labels[key] || key) + '：' + value : '';
+    }).filter(Boolean);
+    var materialBlocks = (snapshot && snapshot.materials || []).map(function (item) {
+      return String(item && item.text || '').trim();
+    }).filter(Boolean);
+    return fieldLines.concat(materialBlocks).join('\n\n');
+  }
+
+  function finalResultFromSse(raw) {
+    var matches = String(raw || '').match(/event:\s*done\s*\r?\ndata:\s*(\{[^\n]*\})/g) || [];
+    if (!matches.length) return null;
+    var last = matches[matches.length - 1];
+    var dataLine = last.match(/data:\s*(\{[^\n]*\})/);
+    if (!dataLine) return null;
+    try { var parsed = JSON.parse(dataLine[1]); return parsed.finalResult || parsed; } catch (error) { return null; }
+  }
 
   function isMemberActive(userId) {
     return contentAccess.isMemberActive(store, userId);
@@ -222,6 +248,32 @@ function createAgentApiModule(deps) {
     if (!requireMember(actor, res, 'AI chat')) return null;
 
     var body = await parseBody(req, { maxBytes: config.ocrMaxImageBytes * 6 });
+    var generation = null;
+    if (body.workspaceId || body.generationId) {
+      if (!workspaceRepository || !body.workspaceId || !body.generationId) {
+        fail(res, 400, 'AI_GENERATION_INVALID', 'workspaceId and generationId are required');
+        return null;
+      }
+      var workspace = await workspaceRepository.getWorkspace(String(body.workspaceId), actor.id);
+      generation = workspace && await workspaceRepository.getGeneration(String(body.generationId), workspace.id, actor.id);
+      if (!workspace || !generation) {
+        fail(res, 404, 'AI_GENERATION_NOT_FOUND', 'generation not found');
+        return null;
+      }
+      if (workspace.audience === 'professional' && !contentAccess.getAccessContext({ store, req, actor, businessKey: 'aiMode' }).hasProfessionalAccess) {
+        fail(res, 403, 'DEVICE_CONNECTION_REQUIRED', 'connect device to continue');
+        return null;
+      }
+      body.message = generation.snapshot.revision ? String(generation.snapshot.revision.instruction || '') : '';
+      body.materialText = generation.snapshot.revision
+        ? String(generation.snapshot.revision.baseBody || '')
+        : snapshotMaterialText(generation.snapshot);
+      body.messages = [];
+      body.attachments = [];
+      body.templateId = workspace.templateId;
+      body.detailLevel = generation.snapshot.detailLevel || workspace.detailLevel;
+      body.contextId = workspace.id;
+    }
     var messageRaw = String(body.message || body.text || '').trim();
     var materialRaw = String(body.materialText || '').trim();
     var guarded = messageRaw ? redactSensitiveText(messageRaw) : { text: '', hits: [] };
@@ -257,16 +309,34 @@ function createAgentApiModule(deps) {
     return {
       actor: actor,
       data: data,
-      redactionHits: (guarded.hits || []).concat(guardedMaterial.hits || [])
+      redactionHits: (guarded.hits || []).concat(guardedMaterial.hits || []),
+      generation: generation
     };
   }
 
   async function agentChat(req, res) {
     var payload = await buildChatPayload(req, res);
     if (!payload) return;
+    if (payload.generation && payload.generation.status === 'completed') {
+      ok(res, {
+        bodyText: payload.generation.bodyText,
+        resultText: payload.generation.bodyText,
+        confirmItems: payload.generation.pendingItems || [],
+        generationId: payload.generation.id,
+        provider: 'generation-cache'
+      });
+      return;
+    }
 
     var response = await invokeAgent('chat', payload.actor, payload.data, res, 'AI chat');
     if (!response) return;
+    if (payload.generation && workspaceRepository) {
+      await workspaceRepository.completeGeneration(payload.generation.id, payload.actor.id, {
+        status: 'completed',
+        bodyText: String(response.result && (response.result.bodyText || response.result.body || response.result.text) || ''),
+        pendingItems: response.result && (response.result.pendingItems || response.result.confirmItems) || []
+      });
+    }
     ok(res, Object.assign({}, response.result || {}, {
       redactionHits: payload.redactionHits,
       provider: response.result && response.result.provider || 'agent-service',
@@ -280,14 +350,32 @@ function createAgentApiModule(deps) {
     if (!payload) return;
 
     startSse(res, 200);
+    if (payload.generation && payload.generation.status === 'completed') {
+      writeSse(res, 'done', { finalResult: {
+        bodyText: payload.generation.bodyText,
+        resultText: payload.generation.bodyText,
+        confirmItems: payload.generation.pendingItems || [],
+        generationId: payload.generation.id,
+        provider: 'generation-cache'
+      } });
+      endSse(res);
+      return;
+    }
     try {
       if (!config.agentServiceEnabled) {
         writeSse(res, 'status', { label: '\u6b63\u5728\u751f\u6210\u56de\u590d...' });
         var directResult = await directAi.callDirectAi('chat', payload.data);
+        if (payload.generation && workspaceRepository) {
+          await workspaceRepository.completeGeneration(payload.generation.id, payload.actor.id, {
+            status: 'completed', bodyText: String(directResult.bodyText || directResult.body || directResult.text || ''),
+            pendingItems: directResult.pendingItems || directResult.confirmItems || []
+          });
+        }
         writeSse(res, 'done', { finalResult: directResult });
         endSse(res);
         return;
       }
+      var streamed = '';
       await streamAgentChat({
         userContext: {
           userId: payload.actor.id,
@@ -295,13 +383,26 @@ function createAgentApiModule(deps) {
           deviceStatus: 'unknown'
         },
         data: payload.data
-      }, { userId: payload.actor.id }, res);
+      }, { userId: payload.actor.id, onChunk: function (chunk) { streamed += chunk; } }, res);
+      if (payload.generation && workspaceRepository) {
+        var streamedResult = finalResultFromSse(streamed) || {};
+        await workspaceRepository.completeGeneration(payload.generation.id, payload.actor.id, {
+          status: 'completed', bodyText: String(streamedResult.bodyText || streamedResult.body || streamedResult.text || ''),
+          pendingItems: streamedResult.pendingItems || streamedResult.confirmItems || []
+        });
+      }
       endSse(res);
     } catch (error) {
       if (directAi.isConfigured()) {
         try {
           writeSse(res, 'status', { label: '\u6b63\u5728\u5207\u6362\u5907\u7528 AI \u670d\u52a1...' });
           var fallbackResult = await directAi.callDirectAi('chat', payload.data);
+          if (payload.generation && workspaceRepository) {
+            await workspaceRepository.completeGeneration(payload.generation.id, payload.actor.id, {
+              status: 'completed', bodyText: String(fallbackResult.bodyText || fallbackResult.body || fallbackResult.text || ''),
+              pendingItems: fallbackResult.pendingItems || fallbackResult.confirmItems || []
+            });
+          }
           writeSse(res, 'done', { finalResult: fallbackResult });
           endSse(res);
           return;
@@ -317,6 +418,11 @@ function createAgentApiModule(deps) {
         code: 'AI_PROVIDER_FAILED',
         message: '\u0041\u0049 \u670d\u52a1\u6682\u65f6\u4e0d\u53ef\u7528\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5'
       });
+      if (payload.generation && workspaceRepository) {
+        await workspaceRepository.completeGeneration(payload.generation.id, payload.actor.id, {
+          status: 'failed', bodyText: '', pendingItems: []
+        });
+      }
       endSse(res);
     }
   }

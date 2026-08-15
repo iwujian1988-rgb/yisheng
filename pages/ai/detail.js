@@ -8,6 +8,7 @@ var draftService = require('../../services/content/draft');
 var tabBarNav = require('../../services/navigation/tab-bar');
 var ocrRecognizer = require('../../services/ocr/recognizer');
 var templateFieldMaterial = require('../../services/templates/field-material');
+var aiWorkspace = require('../../services/ai/workspace');
 
 var AI_MEDIA_INPUT_DRAFT_KEY = 'aiMediaInputDraft';
 var AI_WORKSPACE_DRAFT_KEY = 'aiWorkspaceDraftV1';
@@ -110,7 +111,7 @@ function collectTemplateGuideFields(fields) {
 
   visit(fields, '');
   return result.filter(function (item, index, list) {
-    return item.label && list.findIndex(function (candidate) { return candidate.label === item.label; }) === index;
+    return item.label && list.findIndex(function (candidate) { return candidate.key === item.key; }) === index;
   });
 }
 
@@ -118,7 +119,7 @@ function buildTemplateGuideState(template, expanded, fieldValues) {
   var fields = collectTemplateGuideFields(template && template.fields);
   var values = fieldValues || {};
   fields = fields.map(function (item) {
-    var value = String(values[item.label] || '').trim();
+    var value = String(values[item.key] !== undefined ? values[item.key] : (values[item.label] || '')).trim();
     return Object.assign({}, item, { value: value, filled: Boolean(value) });
   });
   var prioritized = fields.filter(function (item) { return item.required; }).concat(
@@ -132,6 +133,9 @@ function buildTemplateGuideState(template, expanded, fieldValues) {
     templateGuideExpanded: Boolean(expanded),
     templateGuideHiddenCount: Math.max(0, prioritized.length - limit),
     templateFieldFilledCount: templateFieldMaterial.countFilledFields(fields),
+    templateNextStepText: prioritized.length
+      ? '建议补充：' + prioritized.slice(0, 3).map(function (item) { return item.label; }).join('、') + '；也可跳过'
+      : '直接添加文字、图片或录音',
     templateStructureText: prioritized.slice(0, 5).map(function (item) { return item.label; }).join('、') || '由模板自动确定',
     templateStructureFullText: prioritized.map(function (item) { return item.label; }).join('、') || '由模板自动确定'
   };
@@ -139,6 +143,11 @@ function buildTemplateGuideState(template, expanded, fieldValues) {
 
 function normalizeDetailLevel(value) {
   return ['concise', 'standard', 'detailed'].indexOf(value) >= 0 ? value : 'standard';
+}
+
+function isGenerateCommand(text) {
+  var value = String(text || '').trim().replace(/\s+/g, '').replace(/[！!。,.，]/g, '');
+  return /^(就这样吧?|可以了?|开始(写|生成|整理)吧?|直接(写|生成|整理)吧?|按这些(写|生成|整理)吧?|(就这样吧?)?你?开始(写|生成|整理)吧?)$/.test(value);
 }
 
 function stripEmptyTemplateFields(text, fields) {
@@ -411,6 +420,7 @@ Page({
     templateFieldValues: {},
     templateFieldFilledCount: 0,
     templateFieldEditorVisible: false,
+    templateFieldEditorKey: '',
     templateFieldEditorLabel: '',
     templateFieldEditorValue: '',
     templateConfirmVisible: false,
@@ -448,6 +458,11 @@ Page({
     materialFeedbackText: '',
     documentTaskStartIndex: 0,
     documentContextId: '',
+    sideChatContextId: '',
+    activeWorkspaceId: '',
+    workspaceLocked: false,
+    workspaceSyncing: false,
+    composerMode: 'workspace',
     detailLevel: 'standard',
     detailLevelLabel: '标准',
     detailLevelOptions: [
@@ -457,6 +472,7 @@ Page({
     ],
     templateStructureText: '由模板自动确定',
     templateStructureFullText: '由模板自动确定',
+    templateNextStepText: '直接添加文字、图片或录音',
     chatBottomStyle: ''
   },
 
@@ -478,11 +494,15 @@ Page({
         inputText: initialText || workspaceDraft.inputText || '',
         pendingVoiceMaterials: Array.isArray(workspaceDraft.voiceMaterials) ? workspaceDraft.voiceMaterials : [],
         templateFieldValues: workspaceDraft.templateFieldValues || {},
+        selectedTemplateId: workspaceDraft.templateId || '',
         detailLevel: normalizeDetailLevel(workspaceDraft.detailLevel),
         detailLevelLabel: ({ concise: '简洁', standard: '标准', detailed: '详细' })[normalizeDetailLevel(workspaceDraft.detailLevel)],
-        documentContextId: createDocumentContextId()
+        documentContextId: workspaceDraft.workspaceId || createDocumentContextId(),
+        sideChatContextId: createDocumentContextId(),
+        activeWorkspaceId: workspaceDraft.workspaceId || ''
       });
       if (workspaceDraft.templateId) wx.setStorageSync('selectedTemplateId', workspaceDraft.templateId);
+      that._serverWorkspaceSelected = Boolean(workspaceDraft.workspaceId);
       that.consumeMediaInputDraft();
       that._workspaceAuthorized = true;
       that.prepareWorkspace();
@@ -598,7 +618,13 @@ Page({
       }
     }
 
-    var selectedTemplate = selectedTemplateId ? templates[selectedIndex] : null;
+    var unavailableWorkspace = Boolean(selectedId && !selectedTemplateId && this.data.activeWorkspaceId);
+    if (unavailableWorkspace) {
+      selectedTemplateId = selectedId;
+      selectedTemplateName = '当前整理';
+      templateLabel = '连接设备后继续';
+    }
+    var selectedTemplate = selectedTemplateId && !unavailableWorkspace ? templates[selectedIndex] : null;
     this.setData(Object.assign({
       templates: templates,
       templateNames: names,
@@ -606,12 +632,106 @@ Page({
       selectedTemplateId: selectedTemplateId,
       selectedTemplateName: selectedTemplateName,
       templateLabel: templateLabel,
+      workspaceLocked: unavailableWorkspace,
       templatePickerItems: this.buildTemplatePickerItems(templates, '')
     }, buildTemplateGuideState(selectedTemplate, false, this.data.templateFieldValues)), function () {
       this.persistWorkspaceDraft();
       this.refreshSendState();
       this.syncComposerLayout();
+      if (unavailableWorkspace) this.setData({ materialFeedbackText: '连接设备后继续当前整理' });
+      else if (selectedTemplate && this.data.activeWorkspaceId) this.restoreServerWorkspace();
+      else if (selectedTemplate) this.createServerWorkspace(selectedTemplate);
     }.bind(this));
+  },
+
+  restoreServerWorkspace: function () {
+    var workspaceId = this.data.activeWorkspaceId;
+    if (!workspaceId) return;
+    var that = this;
+    aiWorkspace.getWorkspace(workspaceId).then(function (workspace) {
+      if (!workspace || workspace.id !== that.data.activeWorkspaceId) return;
+      if (workspace.requiresDevice || workspace.status === 'locked') {
+        that.setData({ workspaceLocked: true, materialFeedbackText: '连接设备后继续当前整理' });
+        return;
+      }
+      if (workspace.templateId !== that.data.selectedTemplateId) return;
+      var values = {};
+      (workspace.fields || []).forEach(function (field) {
+        if (field.value) values[field.key] = field.value;
+      });
+      that.setData(Object.assign({
+        workspaceLocked: false,
+        documentContextId: workspace.id,
+        templateFieldValues: values,
+        detailLevel: normalizeDetailLevel(workspace.detailLevel)
+      }, buildTemplateGuideState(that.data.selectedTemplate, false, values)), function () {
+        that.persistWorkspaceDraft();
+        that.refreshSendState();
+      });
+    }).catch(function (error) {
+      if (error && error.code === 'AI_WORKSPACE_NOT_FOUND') {
+        that.setData({ activeWorkspaceId: '', workspaceLocked: false });
+        that.persistWorkspaceDraft();
+      }
+    });
+  },
+
+  createServerWorkspace: function (selected) {
+    if (!selected) return Promise.resolve(null);
+    if (this._workspaceCreatePromise && this._workspaceCreateTemplateId === selected.id) return this._workspaceCreatePromise;
+    this._serverWorkspaceSelected = true;
+    var that = this;
+    this._workspaceCreateTemplateId = selected.id;
+    this.setData({ workspaceSyncing: true, workspaceLocked: false });
+    var work = aiWorkspace.createWorkspace(selected.id, this.data.detailLevel).then(function (workspace) {
+      if (that.data.selectedTemplateId !== selected.id) return workspace;
+      that.setData({
+        activeWorkspaceId: workspace.id,
+        documentContextId: workspace.id,
+        workspaceLocked: false,
+        workspaceSyncing: false
+      }, that.persistWorkspaceDraft.bind(that));
+      return workspace;
+    }).catch(function (error) {
+      if (that.data.selectedTemplateId === selected.id) {
+        that.setData({ activeWorkspaceId: '', workspaceSyncing: false });
+        wx.showToast({ title: (error && error.message) || '暂时无法建立整理任务', icon: 'none' });
+      }
+      return null;
+    });
+    this._workspaceCreatePromise = work;
+    return work.then(function (workspace) {
+      if (that._workspaceCreatePromise === work) {
+        that._workspaceCreatePromise = null;
+        that._workspaceCreateTemplateId = '';
+      }
+      return workspace;
+    });
+  },
+
+  preserveCurrentWorkspaceMaterials: function () {
+    var workspaceId = this.data.activeWorkspaceId;
+    if (!workspaceId) return Promise.resolve();
+    var batchId = 'switch-' + Date.now() + '-' + Math.floor(Math.random() * 100000);
+    var operations = [];
+    var typed = stripEmptyTemplateFields(this.data.inputText, this.data.templateGuideFields);
+    if (typed) operations.push(aiWorkspace.addMaterial(workspaceId, {
+      kind: 'typed', text: typed, clientMaterialId: batchId + '-typed', status: 'included', sourceMeta: { source: 'composer' }
+    }));
+    (this.data.pendingVoiceMaterials || []).forEach(function (item, index) {
+      var text = String(item && item.text || '').trim();
+      if (text) operations.push(aiWorkspace.addMaterial(workspaceId, {
+        kind: 'asr', text: text, clientMaterialId: item.id || (batchId + '-voice-' + index), status: 'included',
+        sourceMeta: { durationText: String(item.durationText || '') }
+      }));
+    });
+    (this.data.pendingAttachments || []).forEach(function (item, index) {
+      var text = String(item && item.ocrText || '').trim();
+      if (text) operations.push(aiWorkspace.addMaterial(workspaceId, {
+        kind: 'ocr', text: text, clientMaterialId: item.id || (batchId + '-ocr-' + index), status: 'included', sourceMeta: { source: 'image' }
+      }));
+    });
+    return Promise.all(operations);
   },
 
   buildTemplatePickerItems: function (templates, keyword) {
@@ -703,8 +823,22 @@ Page({
     });
   },
 
-  selectTemplateByIndex: function (index) {
+  selectTemplateByIndex: function (index, preserved) {
     var selected = (this.data.templates || [])[index] || null;
+    if (selected && selected.id === this.data.selectedTemplateId) return;
+    var switchingTemplate = Boolean(selected && this.data.selectedTemplateId && selected.id !== this.data.selectedTemplateId);
+    if (!preserved && selected && this.data.selectedTemplateId && selected.id !== this.data.selectedTemplateId && this.data.materialReady) {
+      var that = this;
+      this.setData({ workspaceSyncing: true });
+      this.preserveCurrentWorkspaceMaterials().then(function () {
+        that.setData({ workspaceSyncing: false });
+        that.selectTemplateByIndex(index, true);
+      }).catch(function (error) {
+        that.setData({ workspaceSyncing: false });
+        wx.showToast({ title: (error && error.message) || '原整理任务保存失败，请重试', icon: 'none' });
+      });
+      return;
+    }
     this.setData(Object.assign({
       selectedTemplateIndex: index,
       selectedTemplateId: selected ? selected.id : '',
@@ -714,6 +848,15 @@ Page({
       templateFieldChoicesVisible: false,
       templateFieldValues: {},
       templateFieldFilledCount: 0,
+      composerMode: 'workspace',
+      inputText: switchingTemplate ? '' : this.data.inputText,
+      pendingVoiceMaterials: switchingTemplate ? [] : this.data.pendingVoiceMaterials,
+      pendingAttachments: switchingTemplate ? [] : this.data.pendingAttachments,
+      pendingPreviewItems: switchingTemplate ? [] : this.data.pendingPreviewItems,
+      materialSummaryText: switchingTemplate ? '还没有添加材料' : this.data.materialSummaryText,
+      materialReady: switchingTemplate ? false : this.data.materialReady,
+      activeWorkspaceId: '',
+      workspaceLocked: false,
       documentTaskStartIndex: (this.data.messages || []).length
     }, buildTemplateGuideState(selected, false, {})), function () {
       this.persistWorkspaceDraft();
@@ -728,10 +871,12 @@ Page({
       this.scrollChatToBottom();
       this.syncComposerLayout();
     }.bind(this));
+    this.createServerWorkspace(selected);
   },
 
   clearTemplateSelection: function () {
     this._pendingTemplateSend = null;
+    this._serverWorkspaceSelected = false;
     this.setData(Object.assign({
       selectedTemplateIndex: 0,
       selectedTemplateId: '',
@@ -746,6 +891,9 @@ Page({
       templateFieldChoicesVisible: false,
       templateFieldValues: {},
       templateFieldFilledCount: 0,
+      composerMode: 'workspace',
+      activeWorkspaceId: '',
+      workspaceLocked: false,
       documentTaskStartIndex: (this.data.messages || []).length
     }, buildTemplateGuideState(null, false, {})), function () {
       this.persistWorkspaceDraft();
@@ -820,6 +968,14 @@ Page({
     this.setData({ templateStructureExpanded: !this.data.templateStructureExpanded }, this.syncComposerLayout.bind(this));
   },
 
+  switchComposerMode: function () {
+    var next = this.data.composerMode === 'chat' ? 'workspace' : 'chat';
+    this.setData({ composerMode: next }, function () {
+      this.refreshSendState();
+      this.syncComposerLayout();
+    }.bind(this));
+  },
+
   finishTemplateFields: function () {
     this.setData({
       composerMoreVisible: false,
@@ -831,11 +987,13 @@ Page({
 
   openTemplateFieldEditor: function (e) {
     var label = String(e.currentTarget.dataset.label || '').trim();
+    var key = String(e.currentTarget.dataset.key || label).trim();
     if (!label) return;
     this.setData({
       templateFieldEditorVisible: true,
+      templateFieldEditorKey: key,
       templateFieldEditorLabel: label,
-      templateFieldEditorValue: String((this.data.templateFieldValues || {})[label] || '')
+      templateFieldEditorValue: String((this.data.templateFieldValues || {})[key] || (this.data.templateFieldValues || {})[label] || '')
     });
   },
 
@@ -843,6 +1001,7 @@ Page({
     if (wx.hideKeyboard) wx.hideKeyboard();
     this.setData({
       templateFieldEditorVisible: false,
+      templateFieldEditorKey: '',
       templateFieldEditorLabel: '',
       templateFieldEditorValue: '',
       templateFieldsPanelVisible: true,
@@ -856,16 +1015,19 @@ Page({
 
   saveTemplateFieldValue: function () {
     var label = String(this.data.templateFieldEditorLabel || '').trim();
+    var key = String(this.data.templateFieldEditorKey || label).trim();
     if (!label) return;
     var values = Object.assign({}, this.data.templateFieldValues || {});
     var value = String(this.data.templateFieldEditorValue || '').trim();
-    if (value) values[label] = value;
-    else delete values[label];
+    if (value) values[key] = value;
+    else delete values[key];
+    if (key !== label) delete values[label];
     var guideState = buildTemplateGuideState(this.data.selectedTemplate, this.data.templateGuideExpanded, values);
     this.setData(Object.assign({
       templateFieldValues: values,
       templateFieldFilledCount: templateFieldMaterial.countFilledFields(guideState.templateGuideFields),
       templateFieldEditorVisible: false,
+      templateFieldEditorKey: '',
       templateFieldEditorLabel: '',
       templateFieldEditorValue: '',
       templateFieldsPanelVisible: true,
@@ -877,6 +1039,11 @@ Page({
       this.syncComposerLayout();
       wx.showToast({ title: value ? '字段已保存' : '字段已清空', icon: 'none' });
     }.bind(this));
+    if (this.data.activeWorkspaceId) {
+      aiWorkspace.saveField(this.data.activeWorkspaceId, key, value).catch(function (error) {
+        wx.showToast({ title: (error && error.message) || '字段已保存在本机，请稍后重试', icon: 'none' });
+      });
+    }
   },
 
   selectDetailLevel: function (e) {
@@ -886,6 +1053,7 @@ Page({
       this.persistWorkspaceDraft();
       this.syncComposerLayout();
     }.bind(this));
+    if (this.data.activeWorkspaceId) aiWorkspace.updateWorkspace(this.data.activeWorkspaceId, { detailLevel: value }).catch(function () {});
   },
 
   closeTemplateConfirm: function () {
@@ -927,8 +1095,9 @@ Page({
   persistWorkspaceDraft: function () {
     var inputText = String(this.data.inputText || '');
     var templateId = this.data.selectedTemplateId || '';
+    var workspaceId = this.data.activeWorkspaceId || '';
     var voiceMaterials = this.data.pendingVoiceMaterials || [];
-    if (!inputText && !templateId && !voiceMaterials.length) {
+    if (!inputText && !templateId && !workspaceId && !voiceMaterials.length) {
       wx.removeStorageSync(AI_WORKSPACE_DRAFT_KEY);
       return;
     }
@@ -937,6 +1106,7 @@ Page({
       voiceMaterials: voiceMaterials,
       templateId: templateId,
       templateFieldValues: this.data.templateFieldValues || {},
+      workspaceId: workspaceId,
       detailLevel: this.data.detailLevel,
       updatedAt: Date.now()
     });
@@ -954,8 +1124,67 @@ Page({
     var hasAttachment = attachments.length > 0;
     var recognizing = hasRecognizingAttachment(attachments);
     var failed = hasFailedAttachment(attachments);
-    var canSend = (hasText || hasAttachment) && !this.data.sending && !recognizing && !failed;
+    var canSend = (hasText || hasAttachment) && !this.data.sending && !recognizing && !failed
+      && !this.data.workspaceLocked && !this.data.workspaceSyncing;
     this.setData({ canSend: canSend, sendDisabled: !canSend, recognizingAttachments: recognizing });
+  },
+
+  prepareServerGeneration: function (options, rawInputText, voiceMaterials, attachments) {
+    var that = this;
+    var selected = this.data.selectedTemplate;
+    var ensureWorkspace = this.data.activeWorkspaceId
+      ? Promise.resolve({ id: this.data.activeWorkspaceId })
+      : this.createServerWorkspace(selected);
+    this.setData({ sendingStageLabel: '正在整理材料…' });
+    ensureWorkspace.then(function (workspace) {
+      if (!workspace || !workspace.id) throw new Error('整理任务尚未建立，请重试');
+      var workspaceId = workspace.id;
+      var operations = [];
+      (that.data.templateGuideFields || []).forEach(function (field) {
+        var values = that.data.templateFieldValues || {};
+        var value = String(values[field.key] !== undefined ? values[field.key] : (values[field.label] || '')).trim();
+        if (value) operations.push(aiWorkspace.saveField(workspaceId, field.key, value));
+      });
+      var typed = stripEmptyTemplateFields(rawInputText, that.data.templateGuideFields);
+      var batchId = options.workspaceMaterialBatchId || ('batch-' + Date.now() + '-' + Math.floor(Math.random() * 100000));
+      if (typed) {
+        operations.push(aiWorkspace.addMaterial(workspaceId, {
+          kind: 'typed', text: typed, clientMaterialId: batchId + '-typed', status: 'included', sourceMeta: { source: 'composer' }
+        }));
+      }
+      (voiceMaterials || []).forEach(function (item, index) {
+        var text = String(item && item.text || '').trim();
+        if (!text) return;
+        operations.push(aiWorkspace.addMaterial(workspaceId, {
+          kind: 'asr', text: text, clientMaterialId: item.id || (batchId + '-voice-' + index), status: 'included',
+          sourceMeta: { durationText: String(item.durationText || '') }
+        }));
+      });
+      (attachments || []).forEach(function (item, index) {
+        var text = String(item && item.ocrText || '').trim();
+        if (!text) return;
+        operations.push(aiWorkspace.addMaterial(workspaceId, {
+          kind: 'ocr', text: text, clientMaterialId: item.id || (batchId + '-ocr-' + index), status: 'included',
+          sourceMeta: { source: 'image' }
+        }));
+      });
+      return Promise.all(operations).then(function () {
+        return aiWorkspace.createGeneration(workspaceId, 'generate-' + batchId);
+      }).then(function (generation) {
+        that.setData({ sendingStageLabel: '' });
+        that.sendMessage(Object.assign({}, options, {
+          workspacePrepared: true,
+          workspaceId: workspaceId,
+          generationId: generation.id,
+          workspaceMaterialBatchId: batchId,
+          skipTemplateConfirm: true
+        }));
+      });
+    }).catch(function (error) {
+      that.setData({ sending: false, sendingStageLabel: '' });
+      that.refreshSendState();
+      wx.showToast({ title: (error && error.message) || '材料同步失败，请重试', icon: 'none' });
+    });
   },
 
   sendMessage: function (options) {
@@ -978,7 +1207,11 @@ Page({
     var message = options.materialsCombined
       ? String(options.message || '').trim()
       : combineInputMaterials(rawInputText, voiceMaterials);
-    var templateId = options.templateId !== undefined ? options.templateId : (this.data.selectedTemplateId || '');
+    var templateId = options.templateId !== undefined
+      ? options.templateId
+      : (this.data.composerMode === 'chat' ? '' : (this.data.selectedTemplateId || ''));
+    var generateCommand = Boolean(templateId && isGenerateCommand(rawInputText));
+    if (generateCommand) rawInputText = '';
     var freeMessage = message;
     if (templateId && !isDocumentRevision) {
       var cleanTypedText = stripEmptyTemplateFields(rawInputText, this.data.templateGuideFields);
@@ -987,13 +1220,22 @@ Page({
         message = templateFieldMaterial.combineMaterials(freeMessage, this.data.templateGuideFields);
       }
     }
-    if (!message && !attachments.length) {
+    if (!message && !attachments.length && !(generateCommand && this.data.activeWorkspaceId)) {
       wx.showToast({ title: '请提供一段记录或至少填写一项', icon: 'none' });
       this.refreshSendState();
       return;
     }
-    if (templateId && !isDocumentRevision && !options.skipTemplateConfirm) {
-      this._pendingTemplateSend = { message: message, restoreMessage: rawInputText, voiceMaterials: voiceMaterials, attachments: attachments, templateId: templateId, detailLevel: this.data.detailLevel, materialsCombined: true };
+    if (templateId && !isDocumentRevision && !options.skipTemplateConfirm && !generateCommand) {
+      this._pendingTemplateSend = {
+        message: message,
+        restoreMessage: rawInputText,
+        voiceMaterials: voiceMaterials,
+        attachments: attachments,
+        templateId: templateId,
+        detailLevel: this.data.detailLevel,
+        materialsCombined: true,
+        workspaceMaterialBatchId: 'batch-' + Date.now() + '-' + Math.floor(Math.random() * 100000)
+      };
       this.setData({
         templateConfirmVisible: true,
         templateConfirmPreview: buildTemplateConfirmPreview(rawInputText, attachments, voiceMaterials, this.data.templateGuideFields),
@@ -1002,18 +1244,26 @@ Page({
       }, this.scrollChatToBottom.bind(this));
       return;
     }
+    if (templateId && !isDocumentRevision && !options.workspacePrepared && this._serverWorkspaceSelected) {
+      this.prepareServerGeneration(options, rawInputText, voiceMaterials, attachments);
+      return;
+    }
     // Template generation keeps source material separate from instructions. The server
     // owns the template contract and professional processing rules.
     var materialText = templateId && !isDocumentRevision ? message : '';
     var apiMessage = templateId && !isDocumentRevision ? '' : message;
-    var visibleMessage = isDocumentRevision ? '正在按补充信息修订文书' : message;
+    var visibleMessage = isDocumentRevision ? '正在按补充信息修订文书' : (generateCommand ? '开始整理当前材料' : message);
     // Bind server memory to one generated document, not to the whole page. Every new
     // template draft gets a fresh context; a revision reuses only its target draft's
     // context. This prevents consecutive drafts from sharing facts.
     var documentContextId = isDocumentRevision
       ? (options.contextId || createDocumentContextId())
-      : (templateId ? createDocumentContextId() : (this.data.documentContextId || createDocumentContextId()));
-    var taskMessages = templateId ? [] : this.data.messages;
+      : (templateId
+        ? (options.workspaceId || this.data.activeWorkspaceId || createDocumentContextId())
+        : (this.data.selectedTemplateId && this.data.composerMode === 'chat'
+          ? (this.data.sideChatContextId || createDocumentContextId())
+          : (this.data.documentContextId || createDocumentContextId())));
+    var taskMessages = templateId || (this.data.selectedTemplateId && this.data.composerMode === 'chat') ? [] : this.data.messages;
     var conversationHistory = buildConversationHistory(taskMessages);
 
     var userMessage = createMessage('user', visibleMessage, {
@@ -1040,7 +1290,9 @@ Page({
         detailLevel: options.detailLevel || this.data.detailLevel,
         applyToDocumentId: options.applyToDocumentId || '',
         forceDocument: Boolean(options.forceDocument),
-        documentContextId: documentContextId
+        documentContextId: documentContextId,
+        workspaceId: options.generationId ? (options.workspaceId || this.data.activeWorkspaceId || '') : '',
+        generationId: options.generationId || ''
       }
     });
 
@@ -1078,7 +1330,9 @@ Page({
       messages: conversationHistory,
       templateId: templateId,
       detailLevel: options.detailLevel || this.data.detailLevel,
-      contextId: documentContextId
+      contextId: documentContextId,
+      workspaceId: options.generationId ? (options.workspaceId || this.data.activeWorkspaceId || '') : '',
+      generationId: options.generationId || ''
     }, {
       onStatus: function (status) {
         if (!status || !status.label) return;
@@ -1158,7 +1412,11 @@ Page({
             chatContent: buildChatContentParts(bodyText, item.thinkingText || ''),
             confirmItems: nextConfirmItems,
             revisedAt: Date.now(),
-            isDocument: true
+            isDocument: true,
+            request: Object.assign({}, item.request || {}, {
+              generationId: request.generationId || (item.request && item.request.generationId) || '',
+              workspaceId: request.workspaceId || (item.request && item.request.workspaceId) || ''
+            })
           });
         })
       }, function () {
@@ -1183,7 +1441,7 @@ Page({
         confirmItems: Array.isArray(finalResult.confirmItems) ? finalResult.confirmItems.map(function (text) { return { text: text, checked: false }; }) : []
       })
     };
-    if (request.templateId) {
+    if (request.templateId && !request.workspaceId) {
       completedState = Object.assign(completedState, {
         templateFieldValues: {},
         templateFieldFilledCount: 0,
@@ -1259,14 +1517,30 @@ Page({
     }
 
     var selectedPaths = paths.slice(0, remaining);
+    var sourceWorkspaceId = this.data.activeWorkspaceId || '';
     var placeholders = selectedPaths.map(function (path) {
-      return createAttachmentPlaceholder(path);
+      return Object.assign(createAttachmentPlaceholder(path), { workspaceId: sourceWorkspaceId });
     });
 
     that.setPendingAttachments(current.concat(placeholders), that.refreshSendState.bind(that));
 
     placeholders.forEach(function (placeholder) {
       buildAttachmentFromPath(placeholder.previewUrl, placeholder.id).then(function (ready) {
+        ready.workspaceId = placeholder.workspaceId || '';
+        if (ready.workspaceId && ready.workspaceId !== that.data.activeWorkspaceId) {
+          that.setPendingAttachments((that.data.pendingAttachments || []).filter(function (item) { return item.id !== placeholder.id; }), that.refreshSendState.bind(that));
+          if (ready.ocrText) {
+            aiWorkspace.addMaterial(ready.workspaceId, {
+              kind: 'ocr', text: ready.ocrText, clientMaterialId: ready.id,
+              status: 'included', sourceMeta: { source: 'image' }
+            }).then(function () {
+              wx.showToast({ title: '图片文字已加入原整理任务', icon: 'none' });
+            }).catch(function () {
+              wx.showToast({ title: '图片识别完成，但同步原任务失败', icon: 'none' });
+            });
+          }
+          return;
+        }
         var next = replaceAttachmentById(that.data.pendingAttachments, placeholder.id, ready);
         that.setPendingAttachments(next, function () {
           that.refreshSendState();
@@ -1350,14 +1624,28 @@ Page({
     this.closeComposerPanels();
     featureEntitlements.guardAiFeature('asr', '语音转写').then(function (ok) {
       if (!ok) return;
-      wx.navigateTo({ url: '/pages/asr/index?returnTo=ai' });
-    });
+      var workspaceId = encodeURIComponent(this.data.activeWorkspaceId || '');
+      wx.navigateTo({ url: '/pages/asr/index?returnTo=ai&workspaceId=' + workspaceId });
+    }.bind(this));
   },
 
   consumeMediaInputDraft: function () {
     var draft = wx.getStorageSync(AI_MEDIA_INPUT_DRAFT_KEY);
     if (!draft || !draft.text) return;
     wx.removeStorageSync(AI_MEDIA_INPUT_DRAFT_KEY);
+    if (draft.workspaceId && draft.workspaceId !== this.data.activeWorkspaceId) {
+      aiWorkspace.addMaterial(draft.workspaceId, {
+        kind: 'asr', text: String(draft.text || '').trim(),
+        clientMaterialId: draft.id || '', status: 'included',
+        sourceMeta: { durationText: String(draft.durationText || '') }
+      }).then(function () {
+        wx.showToast({ title: '录音已加入原整理任务', icon: 'none' });
+      }).catch(function () {
+        wx.setStorageSync(AI_MEDIA_INPUT_DRAFT_KEY, draft);
+        wx.showToast({ title: '录音暂未同步，请返回原任务重试', icon: 'none' });
+      });
+      return;
+    }
     var incoming = String(draft.text || '').trim();
     var items = (this.data.pendingVoiceMaterials || []).slice();
     items.push({
@@ -1524,6 +1812,35 @@ Page({
       return line || index !== 6;
     }).join('\n');
     this.setData({ confirmEditorVisible: false, confirmEditorText: '' });
+    var workspaceId = documentMessage.request && documentMessage.request.workspaceId || '';
+    var baseGenerationId = documentMessage.request && documentMessage.request.generationId || '';
+    if (workspaceId && baseGenerationId) {
+      var that = this;
+      this.setData({ sendingStageLabel: '正在准备修订…' });
+      aiWorkspace.createGeneration(workspaceId, {
+        idempotencyKey: 'revision-' + Date.now() + '-' + Math.floor(Math.random() * 100000),
+        baseGenerationId: baseGenerationId,
+        revisionInstruction: instruction
+      }).then(function (generation) {
+        that.setData({ sendingStageLabel: '' });
+        that.sendMessage({
+          message: instruction,
+          attachments: [],
+          applyToDocumentId: messageId,
+          forceDocument: true,
+          workspacePrepared: true,
+          workspaceId: workspaceId,
+          generationId: generation.id,
+          templateId: documentMessage.request.templateId || that.data.selectedTemplateId || '',
+          detailLevel: documentMessage.request.detailLevel || that.data.detailLevel,
+          contextId: workspaceId
+        });
+      }).catch(function (error) {
+        that.setData({ sendingStageLabel: '' });
+        wx.showToast({ title: (error && error.message) || '暂时无法修订，请重试', icon: 'none' });
+      });
+      return;
+    }
     this.sendMessage({
       message: instruction,
       attachments: [],
@@ -1690,10 +2007,15 @@ Page({
       templateFieldEditorLabel: '',
       templateFieldEditorValue: '',
       documentTaskStartIndex: 0,
-      documentContextId: createDocumentContextId()
+      documentContextId: createDocumentContextId(),
+      sideChatContextId: createDocumentContextId(),
+      activeWorkspaceId: '',
+      workspaceLocked: false,
+      composerMode: 'workspace'
     }, function () {
       this.persistWorkspaceDraft();
       this.refreshSendState();
+      if (this.data.selectedTemplate) this.createServerWorkspace(this.data.selectedTemplate);
     }.bind(this));
   },
 

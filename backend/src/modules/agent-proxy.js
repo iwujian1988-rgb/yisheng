@@ -108,7 +108,9 @@ async function streamAgentChat(payload, options, res) {
       var chunk = await reader.read();
       if (chunk.done) break;
       if (chunk.value) {
-        res.write(decoder.decode(chunk.value, { stream: true }));
+        var decoded = decoder.decode(chunk.value, { stream: true });
+        if (options && typeof options.onChunk === 'function') options.onChunk(decoded);
+        res.write(decoded);
       }
     }
   } finally {

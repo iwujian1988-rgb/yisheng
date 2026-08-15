@@ -77,7 +77,8 @@ Page({
     errorMessage: '',
     statusText: '点击录音开始，手动停止后转写；长录音会自动分段保存。',
     hasRecoverableAudio: false,
-    returnToAi: false
+    returnToAi: false,
+    returnWorkspaceId: ''
   },
 
   _shouldContinueRecording: false,
@@ -95,7 +96,10 @@ Page({
         return;
       }
 
-      that.setData({ returnToAi: Boolean(options && options.returnTo === 'ai') });
+      that.setData({
+        returnToAi: Boolean(options && options.returnTo === 'ai'),
+        returnWorkspaceId: String(options && options.workspaceId || '')
+      });
       that.restoreRecoverableDraft();
       that.setupRecorder();
       that.enableLeaveGuard();
@@ -479,6 +483,7 @@ Page({
         text,
         source: 'asr',
         durationText: this.data.recordDurationText || '',
+        workspaceId: this.data.returnWorkspaceId || '',
         updatedAt: new Date().toISOString()
       });
       wx.removeStorageSync(ASR_DRAFT_KEY);

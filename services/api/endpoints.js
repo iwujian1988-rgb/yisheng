@@ -62,6 +62,14 @@ const ENDPOINTS = {
     chat: '/api/agent/chat',
     chatStream: '/api/agent/chat/stream'
   },
+  aiWorkspaces: {
+    create: '/api/ai/workspaces',
+    detail: '/api/ai/workspaces/{id}',
+    fields: '/api/ai/workspaces/{id}/fields',
+    materials: '/api/ai/workspaces/{id}/materials',
+    materialDetail: '/api/ai/workspaces/{id}/materials/{materialId}',
+    generations: '/api/ai/workspaces/{id}/generations'
+  },
   templates: {
     list: '/api/templates',
     detail: '/api/templates/{id}',

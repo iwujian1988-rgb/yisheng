@@ -88,6 +88,8 @@ function sendChat(options) {
       templateId: options.templateId || '',
       templateType: options.templateType || '',
       detailLevel: options.detailLevel || 'standard',
+      workspaceId: options.workspaceId || '',
+      generationId: options.generationId || '',
       mode: options.mode || ''
     }
   });
@@ -127,6 +129,8 @@ function sendChatStream(options, handlers) {
       templateId: options.templateId || '',
       templateType: options.templateType || '',
       detailLevel: options.detailLevel || 'standard',
+      workspaceId: options.workspaceId || '',
+      generationId: options.generationId || '',
       mode: options.mode || ''
     },
     header: Object.assign({

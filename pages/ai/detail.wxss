@@ -668,3 +668,19 @@
 .template-load-state--error {
   color: #6F3DFF;
 }
+.composer-mode-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 14rpx 18rpx 4rpx;
+  color: #64739a;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+.composer-mode-strip__switch {
+  flex: none;
+  color: #6f3dff;
+  font-weight: 600;
+}

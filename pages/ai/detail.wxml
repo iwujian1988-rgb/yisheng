@@ -131,13 +131,17 @@
       <view class="document-workbench__head" catchtap="openTemplateToolsPanel">
         <view class="document-workbench__title-wrap">
           <view class="document-workbench__icon"><t-icon name="template" size="28rpx" color="#6F3DFF" /></view>
-          <view class="document-workbench__title-content"><text class="document-workbench__title">整理为：{{selectedTemplateName}}</text><text class="document-workbench__compact-status">文字、图片和录音会合并使用{{templateFieldFilledCount ? ('，已填 ' + templateFieldFilledCount + ' 项') : ''}}</text></view>
+          <view class="document-workbench__title-content"><text class="document-workbench__title">整理为：{{selectedTemplateName}}</text><text class="document-workbench__compact-status">{{workspaceLocked ? '连接设备后可继续，草稿已保留' : (workspaceSyncing ? '正在建立整理任务…' : (templateFieldFilledCount ? ('已填 ' + templateFieldFilledCount + ' 项；还可继续补充') : templateNextStepText))}}</text></view>
         </view>
         <view class="document-workbench__settings-link"><text>补充/调整</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view>
       </view>
     </view>
 
     <form class="composer-box" bindsubmit="sendMessage">
+      <view wx:if="{{selectedTemplateId && !workspaceLocked}}" class="composer-mode-strip">
+        <text>{{composerMode === 'chat' ? '本次是普通对话，不加入当前整理' : ('本次内容将加入“' + selectedTemplateName + '”')}}</text>
+        <text class="composer-mode-strip__switch" catchtap="switchComposerMode">{{composerMode === 'chat' ? '返回整理' : '改为普通对话'}}</text>
+      </view>
       <scroll-view wx:if="{{pendingVoiceMaterials.length}}" class="voice-materials" scroll-x enhanced="{{true}}" show-scrollbar="{{false}}">
         <view class="voice-materials__row">
           <view wx:for="{{pendingVoiceMaterials}}" wx:key="id" class="voice-material">
@@ -194,7 +198,7 @@
 
       <textarea
         class="composer-textarea {{pendingPreviewItems.length || pendingVoiceMaterials.length ? 'composer-textarea--with-thumbs' : ''}}"
-        placeholder="输入、粘贴或补充要整理的原始内容"
+        placeholder="{{selectedTemplateId && composerMode === 'chat' ? '输入普通问题，本次内容不会加入整理' : '输入、粘贴或补充要整理的原始内容'}}"
         placeholder-class="composer-placeholder"
         value="{{inputText}}"
         bindinput="onInput"
@@ -221,7 +225,7 @@
           disabled="{{!canSend || sending}}"
         >
           <t-icon name="send-filled" size="28rpx" color="{{canSend ? '#FFFFFF' : 'rgba(0,0,0,0.28)'}}" />
-          <text wx:if="{{selectedTemplateId}}">预览并生成</text>
+          <text wx:if="{{selectedTemplateId && composerMode !== 'chat'}}">预览并生成</text>
         </button>
       </view>
       <view wx:if="{{composerMoreVisible}}" class="composer-extension">
@@ -245,7 +249,7 @@
         <view wx:if="{{templateStructureExpanded}}" class="document-workbench__structure-detail">{{templateStructureFullText}}</view>
         <view class="document-workbench__field-toggle"><view><text class="document-workbench__field-toggle-title">按字段补充（可选）</text><text class="document-workbench__field-toggle-note">{{templateFieldFilledCount ? ('已填写 ' + templateFieldFilledCount + ' 项，还可以继续') : '不要求全部填写'}}</text></view><button class="document-workbench__field-button" catchtap="toggleTemplateFieldChoices">{{templateFieldChoicesVisible ? '收起字段' : (templateFieldFilledCount ? '继续填写' : '开始填写')}}</button></view>
         <scroll-view wx:if="{{templateFieldChoicesVisible}}" scroll-y class="document-workbench__fields">
-          <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}} {{item.filled ? 'template-field--filled' : ''}}" data-label="{{item.label}}" bindtap="openTemplateFieldEditor"><view class="template-field__content"><text class="template-field__label">{{item.label}}</text><text class="template-field__value">{{item.filled ? item.value : '点击填写，可跳过'}}</text></view><view class="template-field__status"><text>{{item.filled ? '修改' : '填写'}}</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view></view>
+          <view wx:for="{{visibleTemplateGuideFields}}" wx:key="key" class="template-field {{item.required ? 'template-field--priority' : ''}} {{item.filled ? 'template-field--filled' : ''}}" data-key="{{item.key}}" data-label="{{item.label}}" bindtap="openTemplateFieldEditor"><view class="template-field__content"><text class="template-field__label">{{item.label}}</text><text class="template-field__value">{{item.filled ? item.value : '点击填写，可跳过'}}</text></view><view class="template-field__status"><text>{{item.filled ? '修改' : '填写'}}</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view></view>
           <view class="document-workbench__field-actions"><text wx:if="{{templateGuideFields.length > 8}}" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text></view>
           <text class="document-workbench__field-note">已填写内容会和文字、图片及录音一起用于生成。</text>
         </scroll-view>

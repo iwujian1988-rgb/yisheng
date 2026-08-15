@@ -45,6 +45,31 @@ function splitSectionedOutput(text) {
   };
 }
 
+function unavailableSignature(value) {
+  return Array.from(new Set(String(value || '')
+    .replace(/[\s，。；：、,.;:（）()【】\-]/g, '')
+    .split(''))).sort().join('');
+}
+
+function removeUnavailableBodyFragments(bodyText) {
+  var movedItems = [];
+  var marker = /(未提供|不详|待补充|____+)/;
+  var lines = String(bodyText || '').split(/\r?\n/).map(function (line) {
+    if (!marker.test(line)) return line;
+    var fragments = line.match(/[^。！？；;]+[。！？；;]?/g) || [line];
+    return fragments.filter(function (fragment) {
+      if (!marker.test(fragment)) return true;
+      var moved = fragment.trim().replace(/[。；;]+$/, '');
+      if (moved) movedItems.push(moved);
+      return false;
+    }).join('').trim();
+  });
+  return {
+    bodyText: lines.join('\n').replace(/\n{3,}/g, '\n\n').trim(),
+    movedItems: movedItems
+  };
+}
+
 function buildMessages(data, agentType) {
   var system = [
     'You are the AI writing assistant in the Xiaoke Typing Ape (小科打字猿) mini program.',
@@ -159,6 +184,50 @@ async function callDirectAi(agentType, data) {
     }
     if (!content) throw new Error('AI provider returned an empty response after retry');
 
+    var sourceText = [String(data.materialText || data.text || data.message || '').trim()];
+    (data.attachments || []).forEach(function (attachment) {
+      var attachmentText = String(attachment && attachment.ocrText || '').trim();
+      if (attachmentText) sourceText.push(attachmentText);
+    });
+    var joinedSourceText = sourceText.filter(Boolean).join('\n\n');
+    var preliminarySections = splitSectionedOutput(content);
+    var preliminaryQuality = assessTextQuality(joinedSourceText, preliminarySections.bodyText, data.template);
+    if (data.template && preliminaryQuality.richness && preliminaryQuality.richness.status === 'thin') {
+      var refinementMessages = baseMessages.concat([
+        { role: 'assistant', content: content },
+        {
+          role: 'user',
+          content: 'Revise this draft once because it is over-compressed. Follow the writing blueprint headings and standard-detail structure whenever the source supports them. Preserve every source fact and number. Expand only by organizing existing facts into complete sentences and sections; do not add, infer, or repeat facts. Keep exactly the 【正文】 and 【待确认】 sections.'
+        }
+      ]);
+      try {
+        var refinementResponse = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + config.aiApiKey
+          },
+          body: JSON.stringify({
+            model: config.aiResolvedModel,
+            messages: refinementMessages,
+            temperature: 0.2,
+            max_tokens: 4096
+          }),
+          signal: controller.signal
+        });
+        var refinementPayload = await refinementResponse.json().catch(function () { return {}; });
+        var refinementContent = refinementResponse.ok && refinementPayload.choices && refinementPayload.choices[0] && refinementPayload.choices[0].message
+          ? String(refinementPayload.choices[0].message.content || '').trim()
+          : '';
+        if (refinementContent) {
+          content = refinementContent;
+          payload = refinementPayload;
+        }
+      } catch (refinementError) {
+        // Keep the factually usable first draft if the optional richness refinement times out.
+      }
+    }
+
     var sectioned = splitSectionedOutput(content);
     var safeContent = await wxContentCheck.sanitizeText(content);
     var safeBodyText = await wxContentCheck.sanitizeText(sectioned.bodyText);
@@ -168,12 +237,16 @@ async function callDirectAi(agentType, data) {
       if (confirmItem === '无' || confirmItem === '无。') continue;
       safeConfirmItems.push(await wxContentCheck.sanitizeText(confirmItem));
     }
-    var sourceText = [String(data.materialText || data.text || data.message || '').trim()];
-    (data.attachments || []).forEach(function (attachment) {
-      var attachmentText = String(attachment && attachment.ocrText || '').trim();
-      if (attachmentText) sourceText.push(attachmentText);
+    var cleanedBody = removeUnavailableBodyFragments(safeBodyText);
+    safeBodyText = cleanedBody.bodyText;
+    cleanedBody.movedItems.forEach(function (item) {
+      var signature = unavailableSignature(item);
+      var duplicate = safeConfirmItems.some(function (existing) {
+        return unavailableSignature(existing) === signature;
+      });
+      if (!duplicate) safeConfirmItems.push(item);
     });
-    var quality = assessTextQuality(sourceText.filter(Boolean).join('\n\n'), safeBodyText, data.template);
+    var quality = assessTextQuality(joinedSourceText, safeBodyText, data.template);
     for (var warningIndex = 0; warningIndex < quality.warnings.length; warningIndex += 1) {
       var warningText = quality.warnings[warningIndex].message;
       if (safeConfirmItems.indexOf(warningText) < 0) safeConfirmItems.push(warningText);
@@ -201,5 +274,6 @@ module.exports = {
   buildMessages,
   callDirectAi,
   isConfigured,
+  removeUnavailableBodyFragments,
   splitSectionedOutput
 };

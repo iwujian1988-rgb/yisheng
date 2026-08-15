@@ -14,7 +14,10 @@ const { createUserApiModule } = require('./modules/user-api');
 const { createProviderGatewayModule } = require('./modules/provider-gateway');
 const { createTemplatesModule } = require('./modules/templates');
 const { createAgentApiModule } = require('./modules/agent-api');
+const { createAiWorkspacesModule } = require('./modules/ai-workspaces');
+const { createAiWorkspaceRepository } = require('./repositories/ai-workspace-repository');
 const { createOrderEntitlementsModule } = require('./modules/order-entitlements');
+const contentAccess = require('./security/content-access');
 
 function serveAdminAsset(req, res) {
   var url = new URL(req.url, 'http://localhost');
@@ -100,8 +103,16 @@ const auth = createAuthModule({ store, sessions });
 const admin = createAdminModule({ store, auth });
 const userApi = createUserApiModule({ store, auth });
 const providers = createProviderGatewayModule({ auth, store });
-const templatesModule = createTemplatesModule({ store, auth, contentAccess: require('./security/content-access') });
-const agentApi = createAgentApiModule({ store, auth, templates: templatesModule });
+const templatesModule = createTemplatesModule({ store, auth, contentAccess });
+const aiWorkspaceRepository = createAiWorkspaceRepository(store);
+const agentApi = createAgentApiModule({ store, auth, templates: templatesModule, workspaceRepository: aiWorkspaceRepository });
+const aiWorkspaces = createAiWorkspacesModule({
+  store,
+  auth,
+  templates: templatesModule,
+  contentAccess,
+  repository: aiWorkspaceRepository
+});
 const orderEntitlements = createOrderEntitlementsModule({ store, auth });
 const router = createRouter();
 
@@ -207,6 +218,13 @@ router.post('/api/agent/ocr', agentApi.agentOcr);
 router.post('/api/agent/asr', agentApi.agentAsr);
 router.post('/api/agent/chat', agentApi.agentChat);
 router.post('/api/agent/chat/stream', agentApi.agentChatStream);
+router.post('/api/ai/workspaces', aiWorkspaces.createWorkspace);
+router.get('/api/ai/workspaces/:id', aiWorkspaces.getWorkspace);
+router.patch('/api/ai/workspaces/:id', aiWorkspaces.updateWorkspace);
+router.post('/api/ai/workspaces/:id/fields', aiWorkspaces.saveField);
+router.post('/api/ai/workspaces/:id/materials', aiWorkspaces.addMaterial);
+router.patch('/api/ai/workspaces/:id/materials/:materialId', aiWorkspaces.updateMaterial);
+router.post('/api/ai/workspaces/:id/generations', aiWorkspaces.createGeneration);
 router.get('/api/templates', templatesModule.listTemplates);
 router.get('/api/templates/:id', templatesModule.getTemplate);
 router.post('/api/templates', templatesModule.saveTemplate);
