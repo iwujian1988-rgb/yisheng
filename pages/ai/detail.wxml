@@ -128,17 +128,12 @@
 
   <view class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}" style="{{composerBottomStyle}}">
     <view wx:if="{{selectedTemplateName}}" class="document-workbench">
-      <view class="document-workbench__head">
+      <view class="document-workbench__head" catchtap="toggleTemplateFieldsPanel">
         <view class="document-workbench__title-wrap">
           <view class="document-workbench__icon"><t-icon name="template" size="28rpx" color="#6F3DFF" /></view>
-          <view><text class="document-workbench__eyebrow">整理为</text><text class="document-workbench__title">{{selectedTemplateName}}</text></view>
+          <view class="document-workbench__title-content"><text class="document-workbench__title">{{selectedTemplateName}}</text><text class="document-workbench__compact-status">{{detailLevelLabel}} · {{materialSummaryText}}</text></view>
         </view>
-        <text class="document-workbench__change" catchtap="openTemplatePicker">更换</text>
-      </view>
-      <text class="document-workbench__guide">文字、照片和录音会一起按模板整理</text>
-      <view class="document-workbench__summary">
-        <view class="document-workbench__materials {{materialReady ? 'is-ready' : ''}}"><t-icon name="{{materialReady ? 'check-circle' : 'info-circle'}}" size="26rpx" color="{{materialReady ? '#168761' : '#64739A'}}" /><text>{{materialSummaryText}}</text></view>
-        <view class="document-workbench__settings-link" catchtap="toggleTemplateFieldsPanel"><text>{{detailLevelLabel}} · 设置</text><t-icon name="chevron-{{templateFieldsPanelVisible ? 'up' : 'down'}}" size="24rpx" color="#6F3DFF" /></view>
+        <view class="document-workbench__settings-link"><text>{{templateFieldsPanelVisible ? '收起' : '设置'}}</text><t-icon name="chevron-{{templateFieldsPanelVisible ? 'up' : 'down'}}" size="24rpx" color="#6F3DFF" /></view>
       </view>
       <view wx:if="{{templateFieldsPanelVisible}}" class="document-workbench__settings">
         <view class="document-workbench__setting-row">
@@ -158,6 +153,7 @@
           </view>
           <text class="document-workbench__field-note">带 ✓ 的字段会和文字、照片、录音一起用于生成。</text>
         </view>
+        <text class="document-workbench__change-link" catchtap="openTemplatePicker">更换模板</text>
       </view>
     </view>
 

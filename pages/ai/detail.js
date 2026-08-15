@@ -762,7 +762,14 @@ Page({
   },
 
   closeTemplateFieldEditor: function () {
-    this.setData({ templateFieldEditorVisible: false, templateFieldEditorLabel: '', templateFieldEditorValue: '' });
+    if (wx.hideKeyboard) wx.hideKeyboard();
+    this.setData({
+      templateFieldEditorVisible: false,
+      templateFieldEditorLabel: '',
+      templateFieldEditorValue: '',
+      templateFieldsPanelVisible: false,
+      templateFieldChoicesVisible: false
+    }, this.syncComposerLayout.bind(this));
   },
 
   onTemplateFieldEditorInput: function (e) {
@@ -782,8 +789,11 @@ Page({
       templateFieldFilledCount: templateFieldMaterial.countFilledFields(guideState.templateGuideFields),
       templateFieldEditorVisible: false,
       templateFieldEditorLabel: '',
-      templateFieldEditorValue: ''
+      templateFieldEditorValue: '',
+      templateFieldsPanelVisible: false,
+      templateFieldChoicesVisible: false
     }, guideState), function () {
+      if (wx.hideKeyboard) wx.hideKeyboard();
       this.persistWorkspaceDraft();
       this.refreshSendState();
       this.syncComposerLayout();
@@ -823,10 +833,15 @@ Page({
 
   onInput: function (e) {
     var text = (e.detail && e.detail.value !== undefined) ? e.detail.value : '';
-    this.setData({ inputText: text }, function () {
+    this.setData({
+      inputText: text,
+      templateFieldsPanelVisible: false,
+      templateFieldChoicesVisible: false
+    }, function () {
       this.persistWorkspaceDraft();
       this.refreshMaterialSummary();
       this.refreshSendState();
+      this.syncComposerLayout();
     }.bind(this));
   },
 
@@ -1078,6 +1093,7 @@ Page({
       completedState = Object.assign(completedState, {
         templateFieldValues: {},
         templateFieldFilledCount: 0,
+        templateFieldsPanelVisible: false,
         templateFieldChoicesVisible: false
       }, buildTemplateGuideState(this.data.selectedTemplate, false, {}));
     }
@@ -1564,6 +1580,19 @@ Page({
       this.persistWorkspaceDraft();
       this.refreshSendState();
     }.bind(this));
+  },
+
+  onHide: function () {
+    if (wx.hideKeyboard) wx.hideKeyboard();
+    if (this.data.templateFieldEditorVisible || this.data.templateFieldsPanelVisible || this.data.templateFieldChoicesVisible) {
+      this.setData({
+        templateFieldEditorVisible: false,
+        templateFieldEditorLabel: '',
+        templateFieldEditorValue: '',
+        templateFieldsPanelVisible: false,
+        templateFieldChoicesVisible: false
+      });
+    }
   },
 
   onUnload: function () {

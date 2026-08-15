@@ -51,9 +51,14 @@ page.data.selectedTemplate = {
   ['出院诊断', '社区获得性肺炎'],
   ['入院诊断', '肺部感染']
 ].forEach(function (pair) {
+  page.data.templateFieldsPanelVisible = true;
+  page.data.templateFieldChoicesVisible = true;
   page.data.templateFieldEditorLabel = pair[0];
   page.data.templateFieldEditorValue = pair[1];
   page.saveTemplateFieldValue();
+  if (page.data.templateFieldsPanelVisible || page.data.templateFieldChoicesVisible || page.data.templateFieldEditorVisible) {
+    throw new Error('template tools did not collapse after saving a field');
+  }
 });
 
 if (!page.data.canSend || page.data.templateFieldFilledCount !== 2) {

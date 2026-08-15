@@ -140,7 +140,7 @@ function main() {
     "if(!js.includes('buildMaterialSummary') || !js.includes('OCR 已加入') || !js.includes('录音转写已加入')) throw new Error('Document workbench must explain how sources join the selected template');",
     "for(const text of ['整理为','补充字段','详细程度','生成结构','预览并生成','templateConfirmSources','编辑正文','让 AI 修改','AI 整理·尚未核对']){if(!wxml.includes(text)) throw new Error('Document workbench missing: '+text);}",
     "if(!js.includes('buildTemplateConfirmPreview') || !js.includes('documentTaskStartIndex') || !js.includes(\"confirmEditorMode: 'direct'\") || !js.includes('syncComposerLayout') || !js.includes('detailLevel') || !js.includes('templateFieldChoicesVisible') || !js.includes('templateFieldMaterial.combineMaterials')) throw new Error('Document isolation, material review, filled-field routing, progressive disclosure, responsive layout, or detail control regressed');",
-    "if(!wxss.includes('.document-workbench') || !wxss.includes('.document-workbench__materials.is-ready') || !wxss.includes('.document-workbench__segment.is-active') || !wxss.includes('.confirm-editor__textarea--document')) throw new Error('Document workbench states are missing');"
+    "if(!wxss.includes('.document-workbench') || !wxss.includes('.document-workbench__compact-status') || !wxss.includes('.document-workbench__segment.is-active') || !wxss.includes('.confirm-editor__textarea--document')) throw new Error('Document workbench states are missing');"
   ].join(' '));
   runNodeEval('PUBLIC_AI_COPY_GUARD', [
     "const fs=require('fs');",
