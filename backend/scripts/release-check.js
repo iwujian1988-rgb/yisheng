@@ -125,7 +125,7 @@ function main() {
     "if(!js.includes('stripEmptyTemplateFields') || !js.includes('wx.onKeyboardHeightChange')) throw new Error('AI composer must filter empty template labels and track keyboard height');",
     "if(!wxml.includes('style=\"{{composerBottomStyle}}\"') || !wxml.includes('adjust-position=\"{{false}}\"')) throw new Error('AI composer keyboard positioning regressed');",
     "if(!wxss.includes('.composer-toolbar__left') || !wxss.includes('flex: 0 0 176rpx') || !wxss.includes('z-index: 12000')) throw new Error('AI send button or confirmation dialog layout regressed');",
-    "if(!wxml.includes('可选字段') || !wxml.includes('材料无误，生成草稿') || !wxml.includes('templateConfirmSources')) throw new Error('Template workflow guidance regressed');",
+    "if(!wxml.includes('补充字段') || !wxml.includes('材料无误，生成草稿') || !wxml.includes('templateConfirmSources')) throw new Error('Template workflow guidance regressed');",
     "if(!direct.includes('Omit empty sections and field labels') || !agent.includes('正文只保留有事实内容的章节')) throw new Error('Template generation must produce a document instead of echoing empty fields');",
     "if(!direct.includes('writing blueprint') || !agent.includes('当前模板写作蓝图') || !blueprints.includes('standard-rich') || !quality.includes('richnessThin')) throw new Error('Template format imitation or richness signal regressed');",
     "if(!direct.includes('Never infer or add a diagnosis') || !direct.includes('splitSectionedOutput') || !agent.includes('严禁新增诊断')) throw new Error('Medical generation fact boundaries regressed');"
@@ -136,8 +136,8 @@ function main() {
     "const fs=require('fs');",
     "const js=fs.readFileSync('pages/ai/detail.js','utf8'); const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8'); const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8');",
     "if(!js.includes('buildMaterialSummary') || !js.includes('OCR 已加入') || !js.includes('录音转写已加入')) throw new Error('Document workbench must explain how sources join the selected template');",
-    "for(const text of ['整理为','可选字段','详细程度','生成结构','预览并生成','templateConfirmSources','编辑正文','让 AI 修改','AI 整理·尚未核对']){if(!wxml.includes(text)) throw new Error('Document workbench missing: '+text);}",
-    "if(!js.includes('buildTemplateConfirmPreview') || !js.includes('documentTaskStartIndex') || !js.includes(\"confirmEditorMode: 'direct'\") || !js.includes('syncComposerLayout') || !js.includes('detailLevel')) throw new Error('Document isolation, material review, responsive layout, or detail control regressed');",
+    "for(const text of ['整理为','补充字段','详细程度','生成结构','预览并生成','templateConfirmSources','编辑正文','让 AI 修改','AI 整理·尚未核对']){if(!wxml.includes(text)) throw new Error('Document workbench missing: '+text);}",
+    "if(!js.includes('buildTemplateConfirmPreview') || !js.includes('documentTaskStartIndex') || !js.includes(\"confirmEditorMode: 'direct'\") || !js.includes('syncComposerLayout') || !js.includes('detailLevel') || !js.includes('templateFieldChoicesVisible')) throw new Error('Document isolation, material review, progressive disclosure, responsive layout, or detail control regressed');",
     "if(!wxss.includes('.document-workbench') || !wxss.includes('.document-workbench__materials.is-ready') || !wxss.includes('.document-workbench__segment.is-active') || !wxss.includes('.confirm-editor__textarea--document')) throw new Error('Document workbench states are missing');"
   ].join(' '));
   runNodeEval('PUBLIC_AI_COPY_GUARD', [

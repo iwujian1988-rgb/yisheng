@@ -133,27 +133,32 @@
           <view class="document-workbench__icon"><t-icon name="template" size="28rpx" color="#6F3DFF" /></view>
           <view><text class="document-workbench__eyebrow">整理为</text><text class="document-workbench__title">{{selectedTemplateName}}</text></view>
         </view>
-        <view class="document-workbench__head-actions"><text class="document-workbench__fields-link" catchtap="toggleTemplateFieldsPanel">{{templateFieldsPanelVisible ? '收起' : '可选字段'}}</text><text class="document-workbench__change" catchtap="openTemplatePicker">更换</text></view>
+        <text class="document-workbench__change" catchtap="openTemplatePicker">更换</text>
       </view>
-      <text class="document-workbench__guide">文字、照片和录音会合并为同一份材料，再按模板结构整理。</text>
-      <view class="document-workbench__materials {{materialReady ? 'is-ready' : ''}}"><t-icon name="{{materialReady ? 'check-circle' : 'info-circle'}}" size="24rpx" color="{{materialReady ? '#168761' : '#64739A'}}" /><text>{{materialSummaryText}}</text></view>
-      <view class="document-workbench__setting-row">
-        <text class="document-workbench__setting-label">详细程度</text>
-        <view class="document-workbench__segments">
-          <view wx:for="{{detailLevelOptions}}" wx:key="value" class="document-workbench__segment {{detailLevel === item.value ? 'is-active' : ''}}" data-value="{{item.value}}" catchtap="selectDetailLevel">{{item.label}}</view>
-        </view>
+      <text class="document-workbench__guide">文字、照片和录音会一起按模板整理</text>
+      <view class="document-workbench__summary">
+        <view class="document-workbench__materials {{materialReady ? 'is-ready' : ''}}"><t-icon name="{{materialReady ? 'check-circle' : 'info-circle'}}" size="26rpx" color="{{materialReady ? '#168761' : '#64739A'}}" /><text>{{materialSummaryText}}</text></view>
+        <view class="document-workbench__settings-link" catchtap="toggleTemplateFieldsPanel"><text>{{detailLevelLabel}} · 设置</text><t-icon name="chevron-{{templateFieldsPanelVisible ? 'up' : 'down'}}" size="24rpx" color="#6F3DFF" /></view>
       </view>
-      <view class="document-workbench__structure"><text>生成结构</text><text>{{templateStructureText}}</text></view>
-      <text wx:if="{{materialFeedbackText}}" class="document-workbench__feedback">{{materialFeedbackText}}</text>
-      <view wx:if="{{templateFieldsPanelVisible}}" class="document-workbench__fields">
-        <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}}" data-label="{{item.label}}" bindtap="insertTemplateField">
-          <text class="template-field__label">{{item.label}}</text><text class="template-field__add">＋</text>
+      <view wx:if="{{templateFieldsPanelVisible}}" class="document-workbench__settings">
+        <view class="document-workbench__setting-row">
+          <text class="document-workbench__setting-label">详细程度</text>
+          <view class="document-workbench__segments">
+            <view wx:for="{{detailLevelOptions}}" wx:key="value" class="document-workbench__segment {{detailLevel === item.value ? 'is-active' : ''}}" data-value="{{item.value}}" catchtap="selectDetailLevel">{{item.label}}</view>
+          </view>
         </view>
-        <view class="document-workbench__field-actions">
-          <text bindtap="insertTemplateOutline">把字段提纲加入输入框</text>
-          <text wx:if="{{templateGuideFields.length > 8}}" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起字段' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text>
+        <view class="document-workbench__structure"><text>生成结构</text><text>{{templateStructureText}}</text></view>
+        <view class="document-workbench__field-toggle" catchtap="toggleTemplateFieldChoices"><view><text class="document-workbench__field-toggle-title">补充字段</text><text class="document-workbench__field-toggle-note">可选，不用全部填写</text></view><t-icon name="chevron-{{templateFieldChoicesVisible ? 'up' : 'down'}}" size="26rpx" color="#64739A" /></view>
+        <view wx:if="{{templateFieldChoicesVisible}}" class="document-workbench__fields">
+          <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}}" data-label="{{item.label}}" bindtap="insertTemplateField">
+            <text class="template-field__label">{{item.label}}</text><text class="template-field__add">＋</text>
+          </view>
+          <view class="document-workbench__field-actions">
+            <text bindtap="insertTemplateOutline">全部加入输入框</text>
+            <text wx:if="{{templateGuideFields.length > 8}}" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text>
+          </view>
+          <text class="document-workbench__field-note">点击字段后直接在输入框补充，未填写的内容不会猜测。</text>
         </view>
-        <text class="document-workbench__field-note">这些字段用于补充材料，不要求全部填写。AI 只使用你确认过的内容。</text>
       </view>
     </view>
 

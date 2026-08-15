@@ -381,6 +381,7 @@ Page({
     templateGuideExpanded: false,
     templateGuideHiddenCount: 0,
     templateFieldsPanelVisible: false,
+    templateFieldChoicesVisible: false,
     templateConfirmVisible: false,
     templateConfirmPreview: '',
     templateConfirmSources: '',
@@ -671,6 +672,7 @@ Page({
       selectedTemplateName: selected ? selected.name : '',
       templateLabel: selected ? ('已选：' + selected.name) : '选择模板（可选）',
       templateFieldsPanelVisible: false,
+      templateFieldChoicesVisible: false,
       documentTaskStartIndex: (this.data.messages || []).length
     }, buildTemplateGuideState(selected, false)), function () {
       this.persistWorkspaceDraft();
@@ -700,6 +702,7 @@ Page({
       templateConfirmSources: '',
       templateConfirmImages: [],
       templateFieldsPanelVisible: false,
+      templateFieldChoicesVisible: false,
       documentTaskStartIndex: (this.data.messages || []).length
     }, buildTemplateGuideState(null, false)), function () {
       this.persistWorkspaceDraft();
@@ -714,7 +717,15 @@ Page({
   },
 
   toggleTemplateFieldsPanel: function () {
-    this.setData({ templateFieldsPanelVisible: !this.data.templateFieldsPanelVisible }, this.syncComposerLayout.bind(this));
+    var visible = !this.data.templateFieldsPanelVisible;
+    this.setData({
+      templateFieldsPanelVisible: visible,
+      templateFieldChoicesVisible: visible ? this.data.templateFieldChoicesVisible : false
+    }, this.syncComposerLayout.bind(this));
+  },
+
+  toggleTemplateFieldChoices: function () {
+    this.setData({ templateFieldChoicesVisible: !this.data.templateFieldChoicesVisible }, this.syncComposerLayout.bind(this));
   },
 
   selectDetailLevel: function (e) {
@@ -1483,6 +1494,7 @@ Page({
       activeStreamTask: null,
       cancelledMessageId: '',
       templateFieldsPanelVisible: false,
+      templateFieldChoicesVisible: false,
       documentTaskStartIndex: 0,
       documentContextId: createDocumentContextId()
     }, function () {
