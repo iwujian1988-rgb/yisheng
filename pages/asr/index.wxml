@@ -39,13 +39,13 @@
     </view>
   </view>
 
-  <view class="action-section">
+  <view class="action-section {{returnToAi ? 'action-section--ai' : 'action-section--standard'}}">
     <button
-      class="secondary-btn"
+      class="secondary-btn action-retry"
       disabled="{{recording || transcribing || !hasRecoverableAudio}}"
       bindtap="retryTranscribe"
     >
-      重试转写
+      重新转写
     </button>
     <button
       wx:if="{{!returnToAi}}"
@@ -56,11 +56,11 @@
       专业整理
     </button>
     <button
-      class="primary-btn"
+      class="primary-btn action-confirm"
       disabled="{{recording || transcribing || !editableText}}"
       bindtap="confirmResult"
     >
-      {{returnToAi ? '填入 AI' : '发送到电脑'}}
+      {{returnToAi ? '加入本次整理' : '发送到电脑'}}
     </button>
   </view>
 </view>

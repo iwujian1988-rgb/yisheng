@@ -26,6 +26,13 @@ function runNodeEval(label, code, env) {
 
 function main() {
   run('ASR_RECORDING_FLOW_SMOKE', process.execPath, ['backend/scripts/asr-recording-flow-smoke.js']);
+  runNodeEval('ASR_ACTION_HIERARCHY', [
+    "const fs=require('fs');",
+    "const wxml=fs.readFileSync('pages/asr/index.wxml','utf8');",
+    "const wxss=fs.readFileSync('pages/asr/index.wxss','utf8');",
+    "if(!wxml.includes('action-section--ai')||!wxml.includes('加入本次整理')||!wxml.includes('重新转写')) throw new Error('ASR return actions are unclear');",
+    "if(!wxss.includes('.action-section--ai .action-confirm')||!wxss.includes('safe-area-inset-bottom')||!wxss.includes('white-space: nowrap')) throw new Error('ASR action hierarchy or safe area is missing');"
+  ].join(' '));
   run('NODE_CHECK_ADMIN_UI', process.execPath, ['--check', 'backend/public/admin/app.js']);
   run('NODE_CHECK_API_CLIENT', process.execPath, ['--check', 'services/api/client.js']);
   run('NODE_CHECK_AGENT_CHAT_CLIENT', process.execPath, ['--check', 'services/agent/chat.js']);
