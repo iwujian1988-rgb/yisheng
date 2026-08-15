@@ -150,7 +150,7 @@
 .document-workbench__field-toggle-title { color: #27324D; font-size: 24rpx; font-weight: 600; }
 .document-workbench__field-toggle-note { margin-top: 2rpx; color: #8A93A8; font-size: 21rpx; }
 .document-workbench__fields { max-height: 250rpx; margin-top: 8rpx; padding-top: 12rpx; overflow-y: auto; border-top: 1rpx solid #F1EEF7; display: flex; flex-wrap: wrap; gap: 10rpx; }
-.document-workbench__field-actions { width: 100%; justify-content: space-between; margin-top: 8rpx; color: #6F3DFF; font-size: 24rpx; font-weight: 600; }
+.document-workbench__field-actions { width: 100%; justify-content: flex-end; margin-top: 8rpx; color: #6F3DFF; font-size: 24rpx; font-weight: 600; }
 .document-workbench__field-note { width: 100%; color: #8A93A8; font-size: 21rpx; line-height: 1.45; }
 
 .composer-box {
@@ -460,8 +460,10 @@
 
 .template-field { display: flex; align-items: center; gap: 5rpx; padding: 12rpx 15rpx; border-radius: 12rpx; border: 1rpx solid #E4E7EF; background: #F7F8FB; color: #46516B; font-size: 25rpx; }
 .template-field--priority { border-color: #D9CCFF; background: #F3EFFF; color: #5A32CD; }
+.template-field--filled { border-color: rgba(24, 168, 114, 0.35); background: rgba(24, 168, 114, 0.09); color: #236E55; }
 .template-field__label { max-width: 230rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .template-field__add { color: #6F3DFF; font-weight: 700; }
+.template-field--filled .template-field__add { color: #168761; }
 
 .document-message,
 .failed-message {
@@ -550,6 +552,18 @@
 .confirm-editor__textarea { width: 100%; height: 220rpx; margin-top: 22rpx; padding: 20rpx; box-sizing: border-box; border-radius: 16rpx; background: #F6F4FB; color: #1D2948; font-size: 28rpx; line-height: 1.55; }
 .confirm-editor__textarea--document { height: 56vh; min-height: 280rpx; flex: 1; }
 .confirm-editor__actions { display: flex; flex-shrink: 0; justify-content: flex-end; align-items: center; gap: 34rpx; margin-top: 24rpx; font-size: 28rpx; color: #64739A; }.confirm-editor__submit { color: #6F3DFF; font-weight: 700; }
+
+.field-editor-mask { position: fixed; inset: 0; z-index: 12000; display: flex; align-items: flex-end; background: rgba(13, 20, 45, 0.48); }
+.field-editor { width: 100%; padding: 28rpx 28rpx calc(28rpx + env(safe-area-inset-bottom)); box-sizing: border-box; border-radius: 28rpx 28rpx 0 0; background: #FFFFFF; }
+.field-editor__eyebrow, .field-editor__title { display: block; }
+.field-editor__eyebrow { color: #7A849D; font-size: 23rpx; }
+.field-editor__title { margin-top: 5rpx; color: #101936; font-size: 34rpx; line-height: 1.35; font-weight: 700; }
+.field-editor__textarea { width: 100%; height: 220rpx; margin-top: 20rpx; padding: 20rpx; box-sizing: border-box; border: 1rpx solid #E2DDF0; border-radius: 16rpx; background: #F8F7FB; color: #1D2948; font-size: 29rpx; line-height: 1.55; }
+.field-editor__actions { display: flex; gap: 16rpx; margin-top: 22rpx; }
+.field-editor__cancel, .field-editor__save { height: 76rpx; margin: 0; padding: 0 18rpx; border-radius: 15rpx; font-size: 27rpx; font-weight: 600; line-height: 76rpx; }
+.field-editor__cancel { flex: 1; background: #F0F1F5; color: #4D5870; }
+.field-editor__save { flex: 1.6; background: #6F3DFF; color: #FFFFFF; }
+.field-editor__cancel::after, .field-editor__save::after { border: 0; }
 
 .inline-confirm-row { display: flex; align-items: flex-start; gap: 14rpx; padding: 12rpx 20rpx 20rpx; }
 .inline-confirm-card { width: calc(100% - 76rpx); padding: 22rpx; box-sizing: border-box; border: 1rpx solid #E2DAFF; border-radius: 22rpx; background: #FFFFFF; box-shadow: 0 8rpx 24rpx rgba(30, 24, 62, 0.08); }

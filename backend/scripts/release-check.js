@@ -28,6 +28,7 @@ function main() {
   run('NODE_CHECK_ADMIN_UI', process.execPath, ['--check', 'backend/public/admin/app.js']);
   run('NODE_CHECK_API_CLIENT', process.execPath, ['--check', 'services/api/client.js']);
   run('NODE_CHECK_AGENT_CHAT_CLIENT', process.execPath, ['--check', 'services/agent/chat.js']);
+  run('AI_FIELD_FLOW_SMOKE', process.execPath, ['backend/scripts/ai-field-flow-smoke.js']);
   run('NODE_CHECK_BLE_TRANSFER', process.execPath, ['--check', 'behaviors/ble-transfer.js']);
   runNodeEval('FIRMWARE_RELIABLE_HID', [
     "const fs=require('fs');",
@@ -135,9 +136,10 @@ function main() {
   runNodeEval('AI_DOCUMENT_WORKBENCH', [
     "const fs=require('fs');",
     "const js=fs.readFileSync('pages/ai/detail.js','utf8'); const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8'); const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8');",
+    "const fieldMaterial=require('./services/templates/field-material'); const twoFields=[{label:'字段一',value:'内容一'},{label:'字段二',value:'内容二'}]; if(fieldMaterial.countFilledFields(twoFields)!==2 || !fieldMaterial.combineMaterials('',twoFields).includes('字段二：内容二') || fieldMaterial.combineMaterials('',[{label:'空字段',value:''}])) throw new Error('Filled template fields must become sendable material while empty fields stay excluded');",
     "if(!js.includes('buildMaterialSummary') || !js.includes('OCR 已加入') || !js.includes('录音转写已加入')) throw new Error('Document workbench must explain how sources join the selected template');",
     "for(const text of ['整理为','补充字段','详细程度','生成结构','预览并生成','templateConfirmSources','编辑正文','让 AI 修改','AI 整理·尚未核对']){if(!wxml.includes(text)) throw new Error('Document workbench missing: '+text);}",
-    "if(!js.includes('buildTemplateConfirmPreview') || !js.includes('documentTaskStartIndex') || !js.includes(\"confirmEditorMode: 'direct'\") || !js.includes('syncComposerLayout') || !js.includes('detailLevel') || !js.includes('templateFieldChoicesVisible')) throw new Error('Document isolation, material review, progressive disclosure, responsive layout, or detail control regressed');",
+    "if(!js.includes('buildTemplateConfirmPreview') || !js.includes('documentTaskStartIndex') || !js.includes(\"confirmEditorMode: 'direct'\") || !js.includes('syncComposerLayout') || !js.includes('detailLevel') || !js.includes('templateFieldChoicesVisible') || !js.includes('templateFieldMaterial.combineMaterials')) throw new Error('Document isolation, material review, filled-field routing, progressive disclosure, responsive layout, or detail control regressed');",
     "if(!wxss.includes('.document-workbench') || !wxss.includes('.document-workbench__materials.is-ready') || !wxss.includes('.document-workbench__segment.is-active') || !wxss.includes('.confirm-editor__textarea--document')) throw new Error('Document workbench states are missing');"
   ].join(' '));
   runNodeEval('PUBLIC_AI_COPY_GUARD', [

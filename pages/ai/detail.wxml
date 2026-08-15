@@ -148,16 +148,15 @@
           </view>
         </view>
         <view class="document-workbench__structure"><text>生成结构</text><text>{{templateStructureText}}</text></view>
-        <view class="document-workbench__field-toggle" catchtap="toggleTemplateFieldChoices"><view><text class="document-workbench__field-toggle-title">补充字段</text><text class="document-workbench__field-toggle-note">可选，不用全部填写</text></view><t-icon name="chevron-{{templateFieldChoicesVisible ? 'up' : 'down'}}" size="26rpx" color="#64739A" /></view>
+        <view class="document-workbench__field-toggle" catchtap="toggleTemplateFieldChoices"><view><text class="document-workbench__field-toggle-title">补充字段{{templateFieldFilledCount ? (' · 已填 ' + templateFieldFilledCount + ' 项') : ''}}</text><text class="document-workbench__field-toggle-note">点击字段后填写，可随时跳过</text></view><t-icon name="chevron-{{templateFieldChoicesVisible ? 'up' : 'down'}}" size="26rpx" color="#64739A" /></view>
         <view wx:if="{{templateFieldChoicesVisible}}" class="document-workbench__fields">
-          <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}}" data-label="{{item.label}}" bindtap="insertTemplateField">
-            <text class="template-field__label">{{item.label}}</text><text class="template-field__add">＋</text>
+          <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}} {{item.filled ? 'template-field--filled' : ''}}" data-label="{{item.label}}" bindtap="openTemplateFieldEditor">
+            <text class="template-field__label">{{item.label}}</text><text class="template-field__add">{{item.filled ? '✓' : '＋'}}</text>
           </view>
           <view class="document-workbench__field-actions">
-            <text bindtap="insertTemplateOutline">全部加入输入框</text>
             <text wx:if="{{templateGuideFields.length > 8}}" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text>
           </view>
-          <text class="document-workbench__field-note">点击字段后直接在输入框补充，未填写的内容不会猜测。</text>
+          <text class="document-workbench__field-note">带 ✓ 的字段会和文字、照片、录音一起用于生成。</text>
         </view>
       </view>
     </view>
@@ -280,6 +279,15 @@
       <text class="confirm-editor__hint">{{confirmEditorHint}}</text>
       <textarea class="confirm-editor__textarea {{confirmEditorMode === 'direct' ? 'confirm-editor__textarea--document' : ''}}" value="{{confirmEditorText}}" placeholder="例如：补充时间或结果；删除不准确表述" maxlength="10000" auto-focus="{{true}}" adjust-position="{{false}}" cursor-spacing="16" bindinput="onConfirmEditorInput" />
       <view class="confirm-editor__actions"><text bindtap="closeConfirmEditor">取消</text><text class="confirm-editor__submit" bindtap="applyDocumentChange">{{confirmEditorMode === 'direct' ? '保存正文' : '确认并更新'}}</text></view>
+    </view>
+  </view>
+
+  <view wx:if="{{templateFieldEditorVisible}}" class="field-editor-mask" catchtap="closeTemplateFieldEditor">
+    <view class="field-editor" catchtap="noop">
+      <text class="field-editor__eyebrow">填写模板字段</text>
+      <text class="field-editor__title">{{templateFieldEditorLabel}}</text>
+      <textarea class="field-editor__textarea" value="{{templateFieldEditorValue}}" placeholder="输入已确认的内容，留空表示不提供" maxlength="3000" auto-focus="{{true}}" adjust-position="{{true}}" cursor-spacing="24" bindinput="onTemplateFieldEditorInput" />
+      <view class="field-editor__actions"><button class="field-editor__cancel" bindtap="closeTemplateFieldEditor">取消</button><button class="field-editor__save" bindtap="saveTemplateFieldValue">保存字段</button></view>
     </view>
   </view>
 </view>
