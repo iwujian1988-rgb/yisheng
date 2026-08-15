@@ -1,7 +1,7 @@
 <view class="asr-container">
   <view class="record-panel">
     <text class="panel-title">语音转文字</text>
-    <text class="panel-desc">录音时会分段转写，文字会持续追加到下方。最长支持 60 分钟，每 30 秒自动保存草稿。</text>
+    <text class="panel-desc">每次点击录音都会新建一条独立材料，不会混入上次内容。最长支持 60 分钟，停止后自动转写。</text>
 
     <view
       class="record-btn {{recording ? 'recording' : ''}}"
@@ -11,7 +11,7 @@
     </view>
 
     <text class="record-status">{{recording ? '正在录音 ' + recordDurationText : statusText}}</text>
-    <text wx:if="{{recording}}" class="record-hint">请保持小程序在前台，转写结果会分段出现。</text>
+    <text wx:if="{{recording}}" class="record-hint">请保持小程序在前台，需要结束时点击“停止”。</text>
     <text wx:elif="{{transcribing}}" class="record-hint">正在处理 {{transcribingCount}} 段录音，请稍等。</text>
     <text wx:elif="{{savedAtText}}" class="record-hint">{{savedAtText}}，退出后可恢复草稿。</text>
     <text wx:elif="{{hasRecoverableAudio}}" class="record-hint">检测到草稿或录音，可以继续编辑或重试。</text>
@@ -35,7 +35,7 @@
       />
       <text wx:elif="{{recording || transcribing}}" class="result-empty">正在等待第一段转写结果...</text>
       <text wx:elif="{{errorMessage}}" class="result-empty">{{errorMessage}}</text>
-      <text wx:else class="result-empty">开始录音后，文字会每隔一段时间自动追加到这里。</text>
+      <text wx:else class="result-empty">开始一段新录音，停止后转写文字会显示在这里。</text>
     </view>
   </view>
 

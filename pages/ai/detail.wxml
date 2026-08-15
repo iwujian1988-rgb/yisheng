@@ -158,6 +158,16 @@
     </view>
 
     <form class="composer-box" bindsubmit="sendMessage">
+      <scroll-view wx:if="{{pendingVoiceMaterials.length}}" class="voice-materials" scroll-x enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view class="voice-materials__row">
+          <view wx:for="{{pendingVoiceMaterials}}" wx:key="id" class="voice-material">
+            <t-icon name="microphone" size="28rpx" color="#6F3DFF" />
+            <view class="voice-material__content"><text class="voice-material__title">录音 {{index + 1}}{{item.durationText ? (' · ' + item.durationText) : ''}}</text><text class="voice-material__preview">{{item.text}}</text></view>
+            <view class="voice-material__remove" catchtap="removeVoiceMaterial" data-id="{{item.id}}"><t-icon name="close" size="24rpx" color="#64739A" /></view>
+          </view>
+          <view class="voice-material voice-material--add" catchtap="goVoice"><t-icon name="add" size="28rpx" color="#6F3DFF" /><text>再录一条</text></view>
+        </view>
+      </scroll-view>
       <scroll-view
         wx:if="{{pendingPreviewItems.length}}"
         class="composer-thumbs"
@@ -203,7 +213,7 @@
       </scroll-view>
 
       <textarea
-        class="composer-textarea {{pendingPreviewItems.length ? 'composer-textarea--with-thumbs' : ''}}"
+        class="composer-textarea {{pendingPreviewItems.length || pendingVoiceMaterials.length ? 'composer-textarea--with-thumbs' : ''}}"
         placeholder="输入、粘贴或补充要整理的原始内容"
         placeholder-class="composer-placeholder"
         value="{{inputText}}"

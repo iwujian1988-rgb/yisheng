@@ -1,7 +1,8 @@
+var storage = {};
 global.wx = {
-  getStorageSync: function () { return ''; },
-  setStorageSync: function () {},
-  removeStorageSync: function () {},
+  getStorageSync: function (key) { return storage[key] || ''; },
+  setStorageSync: function (key, value) { storage[key] = value; },
+  removeStorageSync: function (key) { delete storage[key]; },
   showToast: function () {},
   hideKeyboard: function () {},
   createSelectorQuery: function () {
@@ -65,6 +66,17 @@ if (!page.data.canSend || page.data.templateFieldFilledCount !== 2) {
   throw new Error('two filled fields did not enable generation');
 }
 
+storage.aiMediaInputDraft = { id: 'voice-1', text: '第一段独立录音', durationText: '00:12' };
+page.consumeMediaInputDraft();
+storage.aiMediaInputDraft = { id: 'voice-2', text: '第二段独立录音', durationText: '00:09' };
+page.consumeMediaInputDraft();
+if (page.data.inputText !== ''
+  || page.data.pendingVoiceMaterials.length !== 2
+  || page.data.pendingVoiceMaterials[0].text !== '第一段独立录音'
+  || page.data.pendingVoiceMaterials[1].text !== '第二段独立录音') {
+  throw new Error('separate recordings were mixed into the main input');
+}
+
 page.sendMessage({});
 var pending = page._pendingTemplateSend || {};
 if (!page.data.templateConfirmVisible
@@ -76,11 +88,16 @@ if (!page.data.templateConfirmVisible
 
 page.confirmTemplateSubmission();
 var streamMessage = page.data.messages[page.data.messages.length - 1] || {};
+var firstVoiceOccurrences = String(capturedChatOptions && capturedChatOptions.materialText || '').split('【录音转写 1】').length - 1;
 if (!capturedChatOptions
   || String(capturedChatOptions.materialText || '').indexOf('出院诊断：社区获得性肺炎') < 0
   || String(capturedChatOptions.materialText || '').indexOf('入院诊断：肺部感染') < 0
+  || String(capturedChatOptions.materialText || '').indexOf('【录音转写 1】\n第一段独立录音') < 0
+  || String(capturedChatOptions.materialText || '').indexOf('【录音转写 2】\n第二段独立录音') < 0
+  || firstVoiceOccurrences !== 1
   || !streamMessage.request
   || streamMessage.request.restoreMessage !== ''
+  || streamMessage.request.voiceMaterials.length !== 2
   || streamMessage.request.templateFieldValues['出院诊断'] !== '社区获得性肺炎') {
   throw new Error('confirmed field values did not reach the agent request');
 }

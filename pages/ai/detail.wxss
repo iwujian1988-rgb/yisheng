@@ -275,6 +275,16 @@
   box-sizing: border-box;
 }
 
+.voice-materials { width: 100%; border-bottom: 1rpx solid rgba(111, 61, 255, 0.08); white-space: nowrap; }
+.voice-materials__row { display: inline-flex; align-items: stretch; gap: 12rpx; padding: 14rpx 16rpx; }
+.voice-material { width: 300rpx; min-height: 76rpx; padding: 12rpx 12rpx 12rpx 14rpx; display: flex; align-items: center; gap: 10rpx; border: 1rpx solid #DDD5F5; border-radius: 16rpx; background: #F8F6FF; box-sizing: border-box; }
+.voice-material__content { flex: 1; min-width: 0; }
+.voice-material__title, .voice-material__preview { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.voice-material__title { color: #27324D; font-size: 23rpx; font-weight: 700; }
+.voice-material__preview { margin-top: 3rpx; color: #7A849D; font-size: 21rpx; }
+.voice-material__remove { width: 48rpx; height: 48rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.voice-material--add { width: auto; min-width: 174rpx; justify-content: center; color: #6F3DFF; font-size: 23rpx; font-weight: 600; }
+
 .composer-toolbar__left {
   display: flex;
   align-items: center;

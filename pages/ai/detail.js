@@ -153,10 +153,21 @@ function stripEmptyTemplateFields(text, fields) {
   }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
-function buildMaterialSummary(inputText, attachments, voiceTextChars, fields) {
+function buildVoiceMaterialText(voiceMaterials) {
+  return (voiceMaterials || []).map(function (item, index) {
+    var text = String(item && item.text || '').trim();
+    return text ? '【录音转写 ' + (index + 1) + '】\n' + text : '';
+  }).filter(Boolean).join('\n\n');
+}
+
+function combineInputMaterials(inputText, voiceMaterials) {
+  return [String(inputText || '').trim(), buildVoiceMaterialText(voiceMaterials)].filter(Boolean).join('\n\n');
+}
+
+function buildMaterialSummary(inputText, attachments, voiceMaterials, fields) {
   var textLength = String(inputText || '').trim().length;
-  var voiceChars = Math.min(textLength, Math.max(0, Number(voiceTextChars || 0)));
-  var typedChars = Math.max(0, textLength - voiceChars);
+  var voiceItems = voiceMaterials || [];
+  var voiceChars = voiceItems.reduce(function (total, item) { return total + String(item && item.text || '').trim().length; }, 0);
   var images = attachments || [];
   var ocrChars = images.reduce(function (total, item) {
     return total + String(item && item.ocrText || '').trim().length;
@@ -166,23 +177,24 @@ function buildMaterialSummary(inputText, attachments, voiceTextChars, fields) {
   var filledFields = templateFieldMaterial.countFilledFields(fields);
   if (filledFields) parts.push('已填字段 ' + filledFields + '项');
   if (images.length) parts.push('OCR ' + images.length + '张' + (ocrChars ? '（' + ocrChars + '字）' : ''));
-  if (voiceChars) parts.push('录音转写 ' + voiceChars + '字');
-  if (typedChars) parts.push('输入文字 ' + typedChars + '字');
+  if (voiceChars) parts.push('录音 ' + voiceItems.length + '条（' + voiceChars + '字）');
+  if (textLength) parts.push('输入文字 ' + textLength + '字');
   if (recognizing) parts.push('正在识别 ' + recognizing + '张');
   return {
     materialSummaryText: parts.length ? parts.join(' · ') : '还没有添加材料',
-    materialReady: Boolean(textLength || images.length || filledFields),
+    materialReady: Boolean(textLength || voiceChars || images.length || filledFields),
     materialRecognizing: recognizing > 0
   };
 }
 
-function buildTemplateConfirmPreview(inputText, attachments, voiceTextChars, fields) {
+function buildTemplateConfirmPreview(inputText, attachments, voiceMaterials, fields) {
   var text = String(inputText || '').trim();
-  var voiceChars = Math.min(text.length, Math.max(0, Number(voiceTextChars || 0)));
   var parts = [];
   if (text) {
-    parts.push((voiceChars ? '【输入与录音转写】' : '【输入文字】') + '\n' + text);
+    parts.push('【输入文字】\n' + text);
   }
+  var voiceText = buildVoiceMaterialText(voiceMaterials);
+  if (voiceText) parts.push(voiceText);
   var fieldText = templateFieldMaterial.buildFieldMaterial(fields);
   if (fieldText) parts.push('【已填模板字段】\n' + fieldText);
   (attachments || []).forEach(function (item, index) {
@@ -426,7 +438,7 @@ Page({
     activeStreamTask: null,
     cancelledMessageId: '',
     composerBottomStyle: '',
-    voiceTextChars: 0,
+    pendingVoiceMaterials: [],
     materialSummaryText: '还没有添加材料',
     materialReady: false,
     materialRecognizing: false,
@@ -460,6 +472,7 @@ Page({
       var workspaceDraft = wx.getStorageSync(AI_WORKSPACE_DRAFT_KEY) || {};
       that.setData({
         inputText: initialText || workspaceDraft.inputText || '',
+        pendingVoiceMaterials: Array.isArray(workspaceDraft.voiceMaterials) ? workspaceDraft.voiceMaterials : [],
         templateFieldValues: workspaceDraft.templateFieldValues || {},
         detailLevel: normalizeDetailLevel(workspaceDraft.detailLevel),
         detailLevelLabel: ({ concise: '简洁', standard: '标准', detailed: '详细' })[normalizeDetailLevel(workspaceDraft.detailLevel)],
@@ -511,7 +524,7 @@ Page({
     this.setData(buildMaterialSummary(
       this.data.inputText,
       this.data.pendingAttachments,
-      this.data.voiceTextChars,
+      this.data.pendingVoiceMaterials,
       this.data.templateGuideFields
     ));
   },
@@ -848,12 +861,14 @@ Page({
   persistWorkspaceDraft: function () {
     var inputText = String(this.data.inputText || '');
     var templateId = this.data.selectedTemplateId || '';
-    if (!inputText && !templateId) {
+    var voiceMaterials = this.data.pendingVoiceMaterials || [];
+    if (!inputText && !templateId && !voiceMaterials.length) {
       wx.removeStorageSync(AI_WORKSPACE_DRAFT_KEY);
       return;
     }
     wx.setStorageSync(AI_WORKSPACE_DRAFT_KEY, {
       inputText: inputText,
+      voiceMaterials: voiceMaterials,
       templateId: templateId,
       templateFieldValues: this.data.templateFieldValues || {},
       detailLevel: this.data.detailLevel,
@@ -863,7 +878,10 @@ Page({
 
   refreshSendState: function () {
     this.refreshMaterialSummary();
-    var freeText = stripEmptyTemplateFields(this.data.inputText, this.data.templateGuideFields);
+    var freeText = combineInputMaterials(
+      stripEmptyTemplateFields(this.data.inputText, this.data.templateGuideFields),
+      this.data.pendingVoiceMaterials
+    );
     var materialText = templateFieldMaterial.combineMaterials(freeText, this.data.templateGuideFields);
     var hasText = materialText.length > 0;
     var attachments = this.data.pendingAttachments || [];
@@ -883,13 +901,22 @@ Page({
       wx.hideKeyboard({ fail: function () {} });
     }
 
-    var message = String(options.message !== undefined ? options.message : this.data.inputText || '').trim();
+    var rawInputText = String(
+      options.materialsCombined && options.restoreMessage !== undefined
+        ? options.restoreMessage
+        : (options.message !== undefined ? options.message : this.data.inputText || '')
+    ).trim();
     var attachments = options.attachments || (this.data.pendingAttachments || []).slice();
     var isDocumentRevision = Boolean(options.applyToDocumentId);
+    var voiceMaterials = isDocumentRevision ? [] : (options.voiceMaterials || (this.data.pendingVoiceMaterials || []).slice());
+    var message = options.materialsCombined
+      ? String(options.message || '').trim()
+      : combineInputMaterials(rawInputText, voiceMaterials);
     var templateId = options.templateId !== undefined ? options.templateId : (this.data.selectedTemplateId || '');
     var freeMessage = message;
     if (templateId && !isDocumentRevision) {
-      freeMessage = stripEmptyTemplateFields(message, this.data.templateGuideFields);
+      var cleanTypedText = stripEmptyTemplateFields(rawInputText, this.data.templateGuideFields);
+      freeMessage = combineInputMaterials(cleanTypedText, voiceMaterials);
       if (!options.materialsCombined) {
         message = templateFieldMaterial.combineMaterials(freeMessage, this.data.templateGuideFields);
       }
@@ -900,11 +927,11 @@ Page({
       return;
     }
     if (templateId && !isDocumentRevision && !options.skipTemplateConfirm) {
-      this._pendingTemplateSend = { message: message, restoreMessage: freeMessage, attachments: attachments, templateId: templateId, detailLevel: this.data.detailLevel, materialsCombined: true };
+      this._pendingTemplateSend = { message: message, restoreMessage: rawInputText, voiceMaterials: voiceMaterials, attachments: attachments, templateId: templateId, detailLevel: this.data.detailLevel, materialsCombined: true };
       this.setData({
         templateConfirmVisible: true,
-        templateConfirmPreview: buildTemplateConfirmPreview(freeMessage, attachments, this.data.voiceTextChars, this.data.templateGuideFields),
-        templateConfirmSources: buildMaterialSummary(freeMessage, attachments, this.data.voiceTextChars, this.data.templateGuideFields).materialSummaryText,
+        templateConfirmPreview: buildTemplateConfirmPreview(rawInputText, attachments, voiceMaterials, this.data.templateGuideFields),
+        templateConfirmSources: buildMaterialSummary(rawInputText, attachments, voiceMaterials, this.data.templateGuideFields).materialSummaryText,
         templateConfirmImages: attachmentsToPreviewItems(attachments)
       }, this.scrollChatToBottom.bind(this));
       return;
@@ -940,6 +967,7 @@ Page({
         message: apiMessage,
         materialText: materialText,
         restoreMessage: isDocumentRevision ? '' : (options.restoreMessage !== undefined ? options.restoreMessage : freeMessage),
+        voiceMaterials: isDocumentRevision ? [] : voiceMaterials,
         templateFieldValues: templateId && !isDocumentRevision ? Object.assign({}, this.data.templateFieldValues || {}) : {},
         attachments: attachments,
         templateId: templateId,
@@ -959,7 +987,7 @@ Page({
       inputText: isDocumentRevision ? this.data.inputText : '',
       pendingAttachments: isDocumentRevision ? this.data.pendingAttachments : [],
       pendingPreviewItems: isDocumentRevision ? this.data.pendingPreviewItems : [],
-      voiceTextChars: isDocumentRevision ? this.data.voiceTextChars : 0,
+      pendingVoiceMaterials: isDocumentRevision ? this.data.pendingVoiceMaterials : [],
       materialSummaryText: isDocumentRevision ? this.data.materialSummaryText : '还没有添加材料',
       materialReady: isDocumentRevision ? this.data.materialReady : false,
       materialRecognizing: false,
@@ -1262,17 +1290,34 @@ Page({
     var draft = wx.getStorageSync(AI_MEDIA_INPUT_DRAFT_KEY);
     if (!draft || !draft.text) return;
     wx.removeStorageSync(AI_MEDIA_INPUT_DRAFT_KEY);
-    var current = String(this.data.inputText || '').trim();
     var incoming = String(draft.text || '').trim();
+    var items = (this.data.pendingVoiceMaterials || []).slice();
+    items.push({
+      id: draft.id || ('voice-' + Date.now() + '-' + Math.floor(Math.random() * 100000)),
+      text: incoming,
+      durationText: String(draft.durationText || ''),
+      createdAt: draft.updatedAt || new Date().toISOString()
+    });
     this.setData({
-      inputText: current ? current + '\n' + incoming : incoming,
-      voiceTextChars: this.data.voiceTextChars + incoming.length,
+      pendingVoiceMaterials: items,
       materialFeedbackText: this.data.selectedTemplateName
-        ? '录音转写已加入“' + this.data.selectedTemplateName + '”的生成材料'
-        : '录音转写已加入本次对话材料'
+        ? '第 ' + items.length + ' 条录音已独立加入“' + this.data.selectedTemplateName + '”'
+        : '第 ' + items.length + ' 条录音已独立加入本次对话'
     }, function () {
+      this.persistWorkspaceDraft();
       this.refreshMaterialSummary();
       this.refreshSendState();
+      this.syncComposerLayout();
+    }.bind(this));
+  },
+
+  removeVoiceMaterial: function (e) {
+    var id = String(e.currentTarget.dataset.id || '');
+    var items = (this.data.pendingVoiceMaterials || []).filter(function (item) { return item.id !== id; });
+    this.setData({ pendingVoiceMaterials: items }, function () {
+      this.persistWorkspaceDraft();
+      this.refreshSendState();
+      this.syncComposerLayout();
     }.bind(this));
   },
 
@@ -1435,6 +1480,7 @@ Page({
       inputText: request.restoreMessage !== undefined ? request.restoreMessage : (request.message || ''),
       pendingAttachments: request.attachments || [],
       pendingPreviewItems: attachmentsToPreviewItems(request.attachments || []),
+      pendingVoiceMaterials: request.voiceMaterials || [],
       templateFieldValues: restoredValues,
       detailLevel: normalizeDetailLevel(request.detailLevel || this.data.detailLevel),
       detailLevelLabel: ({ concise: '简洁', standard: '标准', detailed: '详细' })[normalizeDetailLevel(request.detailLevel || this.data.detailLevel)]
@@ -1557,7 +1603,7 @@ Page({
       inputText: '',
       pendingAttachments: [],
       pendingPreviewItems: [],
-      voiceTextChars: 0,
+      pendingVoiceMaterials: [],
       materialSummaryText: '还没有添加材料',
       materialReady: false,
       materialRecognizing: false,

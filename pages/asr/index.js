@@ -9,7 +9,10 @@ let chunkTimer = null;
 let autosaveTimer = null;
 
 const MAX_RECORD_MS = 60 * 60 * 1000;
-const CHUNK_RECORD_MS = 8 * 1000;
+// RecorderManager supports long recordings. Keep chunks comfortably below the
+// platform limit so a normal recording is not stopped and restarted every few
+// seconds on a real device.
+const CHUNK_RECORD_MS = 9 * 60 * 1000;
 const AUTOSAVE_MS = 30 * 1000;
 const ASR_DRAFT_KEY = 'asrRecoverableDraft';
 const AI_MEDIA_INPUT_DRAFT_KEY = 'aiMediaInputDraft';
@@ -72,7 +75,7 @@ Page({
     segmentCount: 0,
     savedAtText: '',
     errorMessage: '',
-    statusText: '点击录音后会边录边转写，每 8 秒自动保存一次草稿。',
+    statusText: '点击录音开始，手动停止后转写；长录音会自动分段保存。',
     hasRecoverableAudio: false,
     returnToAi: false
   },
@@ -110,6 +113,12 @@ Page({
     this._shouldContinueRecording = false;
     this._manualStop = true;
     if (this.data.recording && recorderManager) recorderManager.stop();
+    if (recorderManager && this._recorderStopHandler && recorderManager.offStop) {
+      recorderManager.offStop(this._recorderStopHandler);
+    }
+    if (recorderManager && this._recorderErrorHandler && recorderManager.offError) {
+      recorderManager.offError(this._recorderErrorHandler);
+    }
   },
 
   onHide() {
@@ -118,7 +127,7 @@ Page({
 
   setupRecorder() {
     recorderManager = wx.getRecorderManager();
-    recorderManager.onStop((res) => {
+    this._recorderStopHandler = (res) => {
       const audioPath = res && res.tempFilePath ? res.tempFilePath : '';
       const audioFormat = inferAudioFormat(audioPath);
       const durationMs = Math.min(Date.now() - this.data.recordStartedAt, MAX_RECORD_MS);
@@ -153,9 +162,10 @@ Page({
         setTimeout(() => this.startSegment(), 120);
       }
       this.transcribeAudio(audioPath, audioFormat, true);
-    });
+    };
+    recorderManager.onStop(this._recorderStopHandler);
 
-    recorderManager.onError((error) => {
+    this._recorderErrorHandler = (error) => {
       this.clearTimers();
       this._shouldContinueRecording = false;
       this.setData({
@@ -165,7 +175,8 @@ Page({
         errorMessage: error && error.errMsg ? error.errMsg : '录音失败，请检查麦克风权限。'
       });
       this.persistDraft('error');
-    });
+    };
+    recorderManager.onError(this._recorderErrorHandler);
   },
 
   restoreRecoverableDraft() {
@@ -188,6 +199,10 @@ Page({
   toggleRecord() {
     if (this.data.recording) {
       this.stopRecord();
+      return;
+    }
+    if (this.data.transcribing) {
+      wx.showToast({ title: '上一段正在转写，请稍等', icon: 'none' });
       return;
     }
     this.requestRecordPermission().then(() => this.startRecord());
@@ -230,14 +245,23 @@ Page({
     const startedAt = Date.now();
     this._shouldContinueRecording = true;
     this._manualStop = false;
+    // A tap on “录音” always starts a new recording material. Never append a
+    // new visit/meeting to the transcript restored from the previous session.
+    wx.removeStorageSync(ASR_DRAFT_KEY);
     this.setData({
       recording: true,
       recordStartedAt: startedAt,
       recordDurationText: '00:00',
       audioPath: '',
+      audioFormat: '',
+      resultText: '',
+      editableText: '',
       resultMeta: null,
+      segmentCount: 0,
+      savedAtText: '',
+      hasRecoverableAudio: false,
       errorMessage: '',
-      statusText: '正在录音，文字会分段出现。请保持小程序在前台。'
+      statusText: '正在录音。停止后会自动转写，请保持小程序在前台。'
     });
     this.startRecordTimer(startedAt);
     this.startAutosaveTimer();
@@ -257,7 +281,7 @@ Page({
       this.clearChunkTimer();
       chunkTimer = setTimeout(() => {
         if (this.data.recording && recorderManager) recorderManager.stop();
-      }, CHUNK_RECORD_MS + 500);
+      }, CHUNK_RECORD_MS + 1500);
     } catch (error) {
       this.setData({
         errorMessage: '录音启动失败，请稍后重试。',
@@ -320,7 +344,7 @@ Page({
     this.persistDraft('stop');
     if (recorderManager) recorderManager.stop();
     this.setData({
-      statusText: this._activeTranscribes > 0 ? '录音已停止，正在完成最后一段转写。' : '录音已停止，可以编辑文字。'
+      statusText: '录音已停止，正在转写。'
     });
   },
 
@@ -451,8 +475,10 @@ Page({
     this.disableLeaveGuard();
     if (this.data.returnToAi) {
       wx.setStorageSync(AI_MEDIA_INPUT_DRAFT_KEY, {
+        id: 'voice-' + Date.now() + '-' + Math.floor(Math.random() * 100000),
         text,
         source: 'asr',
+        durationText: this.data.recordDurationText || '',
         updatedAt: new Date().toISOString()
       });
       wx.removeStorageSync(ASR_DRAFT_KEY);
