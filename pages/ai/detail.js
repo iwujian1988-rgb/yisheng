@@ -132,7 +132,8 @@ function buildTemplateGuideState(template, expanded, fieldValues) {
     templateGuideExpanded: Boolean(expanded),
     templateGuideHiddenCount: Math.max(0, prioritized.length - limit),
     templateFieldFilledCount: templateFieldMaterial.countFilledFields(fields),
-    templateStructureText: prioritized.slice(0, 5).map(function (item) { return item.label; }).join('、') || '由模板自动确定'
+    templateStructureText: prioritized.slice(0, 5).map(function (item) { return item.label; }).join('、') || '由模板自动确定',
+    templateStructureFullText: prioritized.map(function (item) { return item.label; }).join('、') || '由模板自动确定'
   };
 }
 
@@ -405,6 +406,8 @@ Page({
     templateGuideHiddenCount: 0,
     templateFieldsPanelVisible: false,
     templateFieldChoicesVisible: false,
+    templateStructureExpanded: false,
+    composerMoreVisible: false,
     templateFieldValues: {},
     templateFieldFilledCount: 0,
     templateFieldEditorVisible: false,
@@ -453,6 +456,7 @@ Page({
       { value: 'detailed', label: '详细', hint: '在不增加事实的前提下充分展开' }
     ],
     templateStructureText: '由模板自动确定',
+    templateStructureFullText: '由模板自动确定',
     chatBottomStyle: ''
   },
 
@@ -629,6 +633,9 @@ Page({
       if (!ok) return;
       that.setData({
         templatePickerVisible: true,
+        composerMoreVisible: false,
+        templateFieldsPanelVisible: false,
+        templateFieldChoicesVisible: false,
         templateSearchKeyword: '',
         templatePickerItems: that.buildTemplatePickerItems(that.data.templates, '')
       });
@@ -756,12 +763,70 @@ Page({
     var visible = !this.data.templateFieldsPanelVisible;
     this.setData({
       templateFieldsPanelVisible: visible,
-      templateFieldChoicesVisible: visible ? this.data.templateFieldChoicesVisible : false
+      templateFieldChoicesVisible: visible ? this.data.templateFieldChoicesVisible : false,
+      templateStructureExpanded: visible ? this.data.templateStructureExpanded : false
+    }, this.syncComposerLayout.bind(this));
+  },
+
+  toggleComposerMorePanel: function () {
+    if (wx.hideKeyboard) wx.hideKeyboard({ fail: function () {} });
+    var visible = !this.data.composerMoreVisible;
+    this.setData({
+      composerMoreVisible: visible,
+      templateFieldsPanelVisible: false,
+      templateFieldChoicesVisible: false,
+      templateStructureExpanded: false,
+      composerBottomStyle: ''
+    }, this.syncComposerLayout.bind(this));
+  },
+
+  openTemplateToolsPanel: function () {
+    if (!this.data.selectedTemplateId) {
+      this.openTemplatePicker();
+      return;
+    }
+    if (wx.hideKeyboard) wx.hideKeyboard({ fail: function () {} });
+    this.setData({
+      composerMoreVisible: false,
+      templateFieldsPanelVisible: true,
+      composerBottomStyle: ''
+    }, this.syncComposerLayout.bind(this));
+  },
+
+  backToComposerMorePanel: function () {
+    this.setData({
+      composerMoreVisible: true,
+      templateFieldsPanelVisible: false,
+      templateFieldChoicesVisible: false,
+      templateStructureExpanded: false
+    }, this.syncComposerLayout.bind(this));
+  },
+
+  closeComposerPanels: function () {
+    if (!this.data.composerMoreVisible && !this.data.templateFieldsPanelVisible) return;
+    this.setData({
+      composerMoreVisible: false,
+      templateFieldsPanelVisible: false,
+      templateFieldChoicesVisible: false,
+      templateStructureExpanded: false
     }, this.syncComposerLayout.bind(this));
   },
 
   toggleTemplateFieldChoices: function () {
     this.setData({ templateFieldChoicesVisible: !this.data.templateFieldChoicesVisible }, this.syncComposerLayout.bind(this));
+  },
+
+  toggleTemplateStructure: function () {
+    this.setData({ templateStructureExpanded: !this.data.templateStructureExpanded }, this.syncComposerLayout.bind(this));
+  },
+
+  finishTemplateFields: function () {
+    this.setData({
+      composerMoreVisible: false,
+      templateFieldsPanelVisible: false,
+      templateFieldChoicesVisible: false,
+      templateStructureExpanded: false
+    }, this.syncComposerLayout.bind(this));
   },
 
   openTemplateFieldEditor: function (e) {
@@ -780,8 +845,8 @@ Page({
       templateFieldEditorVisible: false,
       templateFieldEditorLabel: '',
       templateFieldEditorValue: '',
-      templateFieldsPanelVisible: false,
-      templateFieldChoicesVisible: false
+      templateFieldsPanelVisible: true,
+      templateFieldChoicesVisible: true
     }, this.syncComposerLayout.bind(this));
   },
 
@@ -803,8 +868,8 @@ Page({
       templateFieldEditorVisible: false,
       templateFieldEditorLabel: '',
       templateFieldEditorValue: '',
-      templateFieldsPanelVisible: false,
-      templateFieldChoicesVisible: false
+      templateFieldsPanelVisible: true,
+      templateFieldChoicesVisible: true
     }, guideState), function () {
       if (wx.hideKeyboard) wx.hideKeyboard();
       this.persistWorkspaceDraft();
@@ -848,6 +913,7 @@ Page({
     var text = (e.detail && e.detail.value !== undefined) ? e.detail.value : '';
     this.setData({
       inputText: text,
+      composerMoreVisible: false,
       templateFieldsPanelVisible: false,
       templateFieldChoicesVisible: false
     }, function () {
@@ -1261,6 +1327,7 @@ Page({
 
   goImage: function () {
     var that = this;
+    this.closeComposerPanels();
     featureEntitlements.guardAiFeature('ocr', '图片识别').then(function (ok) {
       if (!ok) return;
       var remaining = MAX_PENDING_IMAGES - (that.data.pendingAttachments || []).length;
@@ -1280,6 +1347,7 @@ Page({
   },
 
   goVoice: function () {
+    this.closeComposerPanels();
     featureEntitlements.guardAiFeature('asr', '语音转写').then(function (ok) {
       if (!ok) return;
       wx.navigateTo({ url: '/pages/asr/index?returnTo=ai' });
@@ -1604,6 +1672,7 @@ Page({
       pendingAttachments: [],
       pendingPreviewItems: [],
       pendingVoiceMaterials: [],
+      composerMoreVisible: false,
       materialSummaryText: '还没有添加材料',
       materialReady: false,
       materialRecognizing: false,
@@ -1630,8 +1699,9 @@ Page({
 
   onHide: function () {
     if (wx.hideKeyboard) wx.hideKeyboard();
-    if (this.data.templateFieldEditorVisible || this.data.templateFieldsPanelVisible || this.data.templateFieldChoicesVisible) {
+    if (this.data.templateFieldEditorVisible || this.data.templateFieldsPanelVisible || this.data.templateFieldChoicesVisible || this.data.composerMoreVisible) {
       this.setData({
+        composerMoreVisible: false,
         templateFieldEditorVisible: false,
         templateFieldEditorLabel: '',
         templateFieldEditorValue: '',

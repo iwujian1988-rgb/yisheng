@@ -150,6 +150,15 @@ function main() {
     "if(!js.includes('buildTemplateConfirmPreview') || !js.includes('documentTaskStartIndex') || !js.includes(\"confirmEditorMode: 'direct'\") || !js.includes('syncComposerLayout') || !js.includes('detailLevel') || !js.includes('templateFieldChoicesVisible') || !js.includes('templateFieldMaterial.combineMaterials')) throw new Error('Document isolation, material review, filled-field routing, progressive disclosure, responsive layout, or detail control regressed');",
     "if(!wxss.includes('.document-workbench') || !wxss.includes('.document-workbench__compact-status') || !wxss.includes('.document-workbench__segment.is-active') || !wxss.includes('.confirm-editor__textarea--document')) throw new Error('Document workbench states are missing');"
   ].join(' '));
+  runNodeEval('AI_COMPOSER_EXTENSION_MODEL', [
+    "const fs=require('fs');",
+    "const js=fs.readFileSync('pages/ai/detail.js','utf8');",
+    "const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8');",
+    "const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8');",
+    "for(const text of ['添加材料（可同时使用）','整理方式（可选）','文字、图片和录音会合并','补充字段','模板负责整理，不是第二个聊天框']){if(!wxml.includes(text)) throw new Error('Composer relationship missing: '+text);}",
+    "if(!js.includes('toggleComposerMorePanel')||!js.includes('openTemplateToolsPanel')||!js.includes('backToComposerMorePanel')||!js.includes('closeComposerPanels')) throw new Error('Composer extension interactions are incomplete');",
+    "if(!wxss.includes('.composer-extension__grid')||!wxss.includes('.composer-template-panel')||!wxss.includes('.composer-plus.is-active')) throw new Error('Composer extension visual states are incomplete');"
+  ].join(' '));
   runNodeEval('PUBLIC_AI_COPY_GUARD', [
     "const fs=require('fs');",
     "const home=fs.readFileSync('pages/home/home.wxml','utf8'); const detail=fs.readFileSync('pages/ai/detail.wxml','utf8'); const js=fs.readFileSync('pages/ai/detail.js','utf8');",

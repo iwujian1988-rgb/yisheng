@@ -128,32 +128,12 @@
 
   <view class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}" style="{{composerBottomStyle}}">
     <view wx:if="{{selectedTemplateName}}" class="document-workbench">
-      <view class="document-workbench__head" catchtap="toggleTemplateFieldsPanel">
+      <view class="document-workbench__head" catchtap="openTemplateToolsPanel">
         <view class="document-workbench__title-wrap">
           <view class="document-workbench__icon"><t-icon name="template" size="28rpx" color="#6F3DFF" /></view>
-          <view class="document-workbench__title-content"><text class="document-workbench__title">{{selectedTemplateName}}</text><text class="document-workbench__compact-status">{{detailLevelLabel}} · {{materialSummaryText}}</text></view>
+          <view class="document-workbench__title-content"><text class="document-workbench__title">整理为：{{selectedTemplateName}}</text><text class="document-workbench__compact-status">文字、图片和录音会合并使用{{templateFieldFilledCount ? ('，已填 ' + templateFieldFilledCount + ' 项') : ''}}</text></view>
         </view>
-        <view class="document-workbench__settings-link"><text>{{templateFieldsPanelVisible ? '收起' : '设置'}}</text><t-icon name="chevron-{{templateFieldsPanelVisible ? 'up' : 'down'}}" size="24rpx" color="#6F3DFF" /></view>
-      </view>
-      <view wx:if="{{templateFieldsPanelVisible}}" class="document-workbench__settings">
-        <view class="document-workbench__setting-row">
-          <text class="document-workbench__setting-label">详细程度</text>
-          <view class="document-workbench__segments">
-            <view wx:for="{{detailLevelOptions}}" wx:key="value" class="document-workbench__segment {{detailLevel === item.value ? 'is-active' : ''}}" data-value="{{item.value}}" catchtap="selectDetailLevel">{{item.label}}</view>
-          </view>
-        </view>
-        <view class="document-workbench__structure"><text>生成结构</text><text>{{templateStructureText}}</text></view>
-        <view class="document-workbench__field-toggle" catchtap="toggleTemplateFieldChoices"><view><text class="document-workbench__field-toggle-title">补充字段{{templateFieldFilledCount ? (' · 已填 ' + templateFieldFilledCount + ' 项') : ''}}</text><text class="document-workbench__field-toggle-note">点击字段后填写，可随时跳过</text></view><t-icon name="chevron-{{templateFieldChoicesVisible ? 'up' : 'down'}}" size="26rpx" color="#64739A" /></view>
-        <view wx:if="{{templateFieldChoicesVisible}}" class="document-workbench__fields">
-          <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}} {{item.filled ? 'template-field--filled' : ''}}" data-label="{{item.label}}" bindtap="openTemplateFieldEditor">
-            <text class="template-field__label">{{item.label}}</text><text class="template-field__add">{{item.filled ? '✓' : '＋'}}</text>
-          </view>
-          <view class="document-workbench__field-actions">
-            <text wx:if="{{templateGuideFields.length > 8}}" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text>
-          </view>
-          <text class="document-workbench__field-note">带 ✓ 的字段会和文字、照片、录音一起用于生成。</text>
-        </view>
-        <text class="document-workbench__change-link" catchtap="openTemplatePicker">更换模板</text>
+        <view class="document-workbench__settings-link"><text>补充/调整</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view>
       </view>
     </view>
 
@@ -218,6 +198,7 @@
         placeholder-class="composer-placeholder"
         value="{{inputText}}"
         bindinput="onInput"
+        bindfocus="closeComposerPanels"
         bindconfirm="sendMessage"
         confirm-type="send"
         confirm-hold="false"
@@ -229,25 +210,8 @@
       />
       <view class="composer-toolbar">
         <view class="composer-toolbar__left">
-          <view class="composer-tool" catchtap="goVoice">
-            <view class="composer-tool__icon"><t-icon t-class="composer-tool__glyph" name="microphone" size="38rpx" color="#47516A" /></view>
-            <text class="composer-tool__label">录音</text>
-          </view>
-          <view class="composer-tool" catchtap="goImage">
-            <view class="composer-tool__icon"><t-icon t-class="composer-tool__glyph" name="camera" size="38rpx" color="#47516A" /></view>
-            <text class="composer-tool__label">拍照识别</text>
-          </view>
-          <view
-            class="composer-tool {{selectedTemplateId ? 'composer-tool--active' : ''}}"
-            catchtap="openTemplatePicker"
-          >
-            <view class="composer-tool__icon"><t-icon t-class="composer-tool__glyph"
-              name="template"
-              size="38rpx"
-              color="{{selectedTemplateId ? '#6F3DFF' : 'rgba(0,0,0,0.55)'}}"
-            /></view>
-            <text class="composer-tool__label">模板</text>
-          </view>
+          <view class="composer-plus {{composerMoreVisible || templateFieldsPanelVisible ? 'is-active' : ''}}" catchtap="toggleComposerMorePanel"><t-icon name="add" size="38rpx" color="{{composerMoreVisible || templateFieldsPanelVisible ? '#FFFFFF' : '#47516A'}}" /></view>
+          <text class="composer-plus__hint">添加材料或选择模板</text>
         </view>
         <button wx:if="{{sending}}" class="composer-stop {{selectedTemplateId ? 'composer-stop--wide' : ''}}" bindtap="stopGeneration"><t-icon name="pause" size="28rpx" color="#FFFFFF" /><text wx:if="{{selectedTemplateId}}">停止</text></button>
         <button
@@ -259,6 +223,33 @@
           <t-icon name="send-filled" size="28rpx" color="{{canSend ? '#FFFFFF' : 'rgba(0,0,0,0.28)'}}" />
           <text wx:if="{{selectedTemplateId}}">预览并生成</text>
         </button>
+      </view>
+      <view wx:if="{{composerMoreVisible}}" class="composer-extension">
+        <text class="composer-extension__group-title">添加材料（可同时使用）</text>
+        <view class="composer-extension__grid">
+          <view class="composer-extension__item" catchtap="goImage"><view class="composer-extension__icon"><t-icon name="camera" size="42rpx" color="#47516A" /></view><text>拍照识别</text><text class="composer-extension__note">添加图片文字</text></view>
+          <view class="composer-extension__item" catchtap="goVoice"><view class="composer-extension__icon"><t-icon name="microphone" size="42rpx" color="#47516A" /></view><text>录音转写</text><text class="composer-extension__note">添加语音内容</text></view>
+        </view>
+        <text class="composer-extension__group-title composer-extension__group-title--second">整理方式（可选）</text>
+        <view class="composer-extension__grid">
+          <view class="composer-extension__item" catchtap="openTemplatePicker"><view class="composer-extension__icon composer-extension__icon--template"><t-icon name="template" size="42rpx" color="#6F3DFF" /></view><text>{{selectedTemplateId ? '更换模板' : '选择模板'}}</text><text class="composer-extension__note">决定生成结构</text></view>
+          <view wx:if="{{selectedTemplateId}}" class="composer-extension__item" catchtap="openTemplateToolsPanel"><view class="composer-extension__icon composer-extension__icon--template"><t-icon name="edit" size="42rpx" color="#6F3DFF" /></view><text>补充字段</text><text class="composer-extension__note">已填 {{templateFieldFilledCount}} 项</text></view>
+        </view>
+        <text class="composer-extension__relation">文字、图片和录音会合并，再按所选模板整理。</text>
+      </view>
+      <view wx:if="{{templateFieldsPanelVisible}}" class="composer-template-panel">
+        <view class="composer-template-panel__head"><view class="composer-template-panel__back" catchtap="backToComposerMorePanel"><t-icon name="chevron-left" size="26rpx" color="#47516A" /><text>返回</text></view><text class="composer-template-panel__title">{{selectedTemplateName}}</text><text class="composer-template-panel__done" catchtap="finishTemplateFields">完成</text></view>
+        <view class="document-workbench__howto"><text class="document-workbench__howto-title">模板负责整理，不是第二个聊天框</text><text>字段可以逐项填写，下方输入框仍可输入整段记录。</text><text class="document-workbench__howto-result">两处内容会合并生成，不会互相覆盖。</text></view>
+        <view class="document-workbench__setting-row"><text class="document-workbench__setting-label">详细程度</text><view class="document-workbench__segments"><view wx:for="{{detailLevelOptions}}" wx:key="value" class="document-workbench__segment {{detailLevel === item.value ? 'is-active' : ''}}" data-value="{{item.value}}" catchtap="selectDetailLevel">{{item.label}}</view></view></view>
+        <view class="document-workbench__structure-entry" catchtap="toggleTemplateStructure"><view><text class="document-workbench__field-toggle-title">生成结构</text><text class="document-workbench__field-toggle-note">查看 AI 最终会整理出的栏目</text></view><view class="document-workbench__row-action"><text>{{templateStructureExpanded ? '收起' : '查看结构'}}</text><t-icon name="chevron-{{templateStructureExpanded ? 'up' : 'down'}}" size="24rpx" color="#6F3DFF" /></view></view>
+        <view wx:if="{{templateStructureExpanded}}" class="document-workbench__structure-detail">{{templateStructureFullText}}</view>
+        <view class="document-workbench__field-toggle"><view><text class="document-workbench__field-toggle-title">按字段补充（可选）</text><text class="document-workbench__field-toggle-note">{{templateFieldFilledCount ? ('已填写 ' + templateFieldFilledCount + ' 项，还可以继续') : '不要求全部填写'}}</text></view><button class="document-workbench__field-button" catchtap="toggleTemplateFieldChoices">{{templateFieldChoicesVisible ? '收起字段' : (templateFieldFilledCount ? '继续填写' : '开始填写')}}</button></view>
+        <scroll-view wx:if="{{templateFieldChoicesVisible}}" scroll-y class="document-workbench__fields">
+          <view wx:for="{{visibleTemplateGuideFields}}" wx:key="label" class="template-field {{item.required ? 'template-field--priority' : ''}} {{item.filled ? 'template-field--filled' : ''}}" data-label="{{item.label}}" bindtap="openTemplateFieldEditor"><view class="template-field__content"><text class="template-field__label">{{item.label}}</text><text class="template-field__value">{{item.filled ? item.value : '点击填写，可跳过'}}</text></view><view class="template-field__status"><text>{{item.filled ? '修改' : '填写'}}</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view></view>
+          <view class="document-workbench__field-actions"><text wx:if="{{templateGuideFields.length > 8}}" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text></view>
+          <text class="document-workbench__field-note">已填写内容会和文字、图片及录音一起用于生成。</text>
+        </scroll-view>
+        <text class="document-workbench__change-link" catchtap="openTemplatePicker">更换模板</text>
       </view>
     </form>
   </view>
