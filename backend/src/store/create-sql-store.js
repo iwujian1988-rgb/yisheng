@@ -38,7 +38,7 @@ const JSON_COLUMNS_BY_TABLE = {
   users: ['features'],
   templates: ['variable_defs', 'output_structure', 'quality_rules', 'missing_info_rules', 'forbidden_rules'],
   user_templates: ['fields'],
-  agent_templates: ['fields'],
+  agent_templates: ['fields', 'generation_contract', 'writing_blueprint'],
   quick_actions: ['output_structure', 'quality_rules', 'missing_info_rules', 'forbidden_rules'],
   device_sessions: ['capabilities']
 };

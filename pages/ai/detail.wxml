@@ -1,10 +1,13 @@
 <view class="detail-page">
   <view class="detail-chat-wrap" style="{{chatBottomStyle}}">
-    <t-chat-list
+    <scroll-view
       id="chatList"
       class="detail-chat-list"
-      reverse="{{false}}"
-      layout="both"
+      scroll-y="{{true}}"
+      enhanced="{{true}}"
+      show-scrollbar="{{false}}"
+      scroll-with-animation="{{true}}"
+      scroll-into-view="{{chatScrollAnchor}}"
     >
       <view wx:if="{{messages.length === 0 && !sending}}" class="welcome-message">
         <view class="bot-avatar">智</view>
@@ -61,19 +64,17 @@
           <view class="ai-msg-avatar">智</view>
           <view class="failed-card"><text class="failed-card__title">生成未完成</text><text class="failed-card__desc">{{item.errorMessage}}</text><text class="failed-card__action" bindtap="restoreFailedRequest" data-id="{{item.id}}">恢复后重发</text></view>
         </view>
-        <t-chat-message
-          wx:else
-          chatId="{{item.id}}"
-          role="{{item.role}}"
-          placement="{{item.role === 'user' ? 'right' : 'left'}}"
-          variant="outline"
-          content="{{item.chatContent}}"
-          status="{{item.status || ''}}"
-          animation="{{item.status === 'streaming' ? 'moving' : (item.status === 'pending' ? 'moving' : 'skeleton')}}"
-        >
-          <view slot="avatar" wx:if="{{item.role === 'assistant'}}" class="ai-msg-avatar">智</view>
+        <view wx:else class="assistant-message-row">
+          <view class="ai-msg-avatar">智</view>
+          <view class="assistant-message-content">
+            <view class="assistant-message-bubble">
+              <view wx:if="{{item.status === 'pending'}}" class="assistant-message-loading"><t-loading theme="circular" size="30rpx" /><text>正在整理…</text></view>
+              <block wx:else wx:for="{{item.chatContent}}" wx:for-item="part" wx:key="index">
+                <text wx:if="{{part.type === 'thinking'}}" class="assistant-thinking">{{part.data}}</text>
+                <text wx:else selectable class="assistant-message-text">{{part.data}}</text>
+              </block>
+            </view>
           <view
-            slot="actionbar"
             wx:if="{{item.role === 'assistant' && (item.bodyText || item.templateDraft)}}"
             class="msg-actionbar"
           >
@@ -92,7 +93,8 @@
               data-id="{{item.id}}"
             >保存为模板</text>
           </view>
-        </t-chat-message>
+          </view>
+        </view>
       </block>
 
       <view wx:if="{{templateConfirmVisible}}" class="inline-confirm-row">
@@ -123,7 +125,8 @@
       <view class="disclaimer">
         <text class="disclaimer-text">AI 生成内容仅供参考，请核实后使用。</text>
       </view>
-    </t-chat-list>
+      <view id="chat-bottom-anchor" class="chat-bottom-anchor"></view>
+    </scroll-view>
   </view>
 
   <view class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}" style="{{composerBottomStyle}}">

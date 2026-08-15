@@ -10,6 +10,10 @@ function parseJson(value, fallback) {
   try { return JSON.parse(value); } catch (error) { return clone(fallback); }
 }
 
+function sqlNow() {
+  return new Date();
+}
+
 function rowToWorkspace(row) {
   if (!row) return null;
   return {
@@ -145,7 +149,7 @@ function createSqlImplementation(pool) {
   }
   return {
     async createWorkspace(input) {
-      var id = createId('aiw'); var now = nowIso();
+      var id = createId('aiw'); var now = sqlNow();
       await pool.query('INSERT INTO ai_workspaces (id,user_id,template_id,template_version,audience,detail_level,status,field_values,material_revision,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
         [id, input.userId, input.templateId, input.templateVersion || 1, input.audience || 'general', input.detailLevel || 'standard', 'active', JSON.stringify({}), 0, now, now]);
       return this.getWorkspace(id, input.userId);
@@ -158,7 +162,7 @@ function createSqlImplementation(pool) {
       if (changes.detailLevel) { sets.push('detail_level=?'); values.push(changes.detailLevel); }
       if (changes.status) { sets.push('status=?'); values.push(changes.status); }
       if (!sets.length) return this.getWorkspace(id, userId);
-      sets.push('updated_at=?'); values.push(nowIso(), id, userId);
+      sets.push('updated_at=?'); values.push(sqlNow(), id, userId);
       await pool.query('UPDATE ai_workspaces SET ' + sets.join(',') + ' WHERE id=? AND user_id=?', values);
       return this.getWorkspace(id, userId);
     },
@@ -171,7 +175,7 @@ function createSqlImplementation(pool) {
         var existing = await queryOne('SELECT * FROM ai_materials WHERE workspace_id=? AND client_material_id=? LIMIT 1', [input.workspaceId, input.clientMaterialId], rowToMaterial);
         if (existing) return existing;
       }
-      var id = createId('aim'); var now = nowIso();
+      var id = createId('aim'); var now = sqlNow();
       var conn = await pool.getConnection();
       try {
         await conn.beginTransaction();
@@ -185,7 +189,7 @@ function createSqlImplementation(pool) {
         : queryOne('SELECT * FROM ai_materials WHERE id=?', [id], rowToMaterial);
     },
     async updateMaterial(id, workspaceId, userId, status) {
-      var now = nowIso(); var conn = await pool.getConnection();
+      var now = sqlNow(); var conn = await pool.getConnection();
       try {
         await conn.beginTransaction();
         var [result] = await conn.query('UPDATE ai_materials SET status=?,updated_at=? WHERE id=? AND workspace_id=? AND user_id=? AND status<>?', [status, now, id, workspaceId, userId, status]);
@@ -196,14 +200,14 @@ function createSqlImplementation(pool) {
     },
     async saveField(workspaceId, userId, fieldKey, value) {
       var jsonPath = '$."' + String(fieldKey).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
-      var [result] = await pool.query('UPDATE ai_workspaces SET field_values=JSON_SET(field_values,?,?),material_revision=material_revision+1,updated_at=? WHERE id=? AND user_id=?', [jsonPath, value, nowIso(), workspaceId, userId]);
+      var [result] = await pool.query('UPDATE ai_workspaces SET field_values=JSON_SET(field_values,?,?),material_revision=material_revision+1,updated_at=? WHERE id=? AND user_id=?', [jsonPath, value, sqlNow(), workspaceId, userId]);
       if (!result.affectedRows) return null;
       return this.getWorkspace(workspaceId, userId);
     },
     async createGeneration(input) {
       var existing = await queryOne('SELECT * FROM ai_generations WHERE workspace_id=? AND idempotency_key=? LIMIT 1', [input.workspaceId, input.idempotencyKey], rowToGeneration);
       if (existing) return existing;
-      var id = createId('aig'); var now = nowIso();
+      var id = createId('aig'); var now = sqlNow();
       await pool.query('INSERT IGNORE INTO ai_generations (id,workspace_id,user_id,input_revision,idempotency_key,snapshot,body_text,pending_items,status,created_at,completed_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
         [id, input.workspaceId, input.userId, input.inputRevision, input.idempotencyKey, JSON.stringify(input.snapshot || {}), '', JSON.stringify([]), 'running', now, null]);
       return queryOne('SELECT * FROM ai_generations WHERE workspace_id=? AND idempotency_key=? LIMIT 1', [input.workspaceId, input.idempotencyKey], rowToGeneration);
@@ -212,7 +216,7 @@ function createSqlImplementation(pool) {
       return queryOne('SELECT * FROM ai_generations WHERE id=? AND workspace_id=? AND user_id=? LIMIT 1', [id, workspaceId, userId], rowToGeneration);
     },
     async completeGeneration(id, userId, result) {
-      var completedAt = nowIso();
+      var completedAt = sqlNow();
       await pool.query('UPDATE ai_generations SET status=?,body_text=?,pending_items=?,completed_at=? WHERE id=? AND user_id=?',
         [result.status || 'completed', result.bodyText || '', JSON.stringify(result.pendingItems || []), completedAt, id, userId]);
       return queryOne('SELECT * FROM ai_generations WHERE id=? AND user_id=?', [id, userId], rowToGeneration);

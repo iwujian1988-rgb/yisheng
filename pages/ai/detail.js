@@ -473,7 +473,8 @@ Page({
     templateStructureText: '由模板自动确定',
     templateStructureFullText: '由模板自动确定',
     templateNextStepText: '直接添加文字、图片或录音',
-    chatBottomStyle: ''
+    chatBottomStyle: '',
+    chatScrollAnchor: ''
   },
 
   onLoad: function (options) {
@@ -516,10 +517,10 @@ Page({
   },
 
   scrollChatToBottom: function () {
-    var chatList = this.selectComponent('#chatList');
-    if (chatList && typeof chatList.scrollToBottom === 'function') {
-      chatList.scrollToBottom();
-    }
+    var that = this;
+    this.setData({ chatScrollAnchor: '' }, function () {
+      that.setData({ chatScrollAnchor: 'chat-bottom-anchor' });
+    });
   },
 
   syncComposerLayout: function () {

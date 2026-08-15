@@ -5,6 +5,30 @@ const contentAccess = require('../src/security/content-access');
 const deviceSession = require('../src/security/device-session');
 
 async function main() {
+  var insertedWorkspaceValues = null;
+  var sqlRepository = createAiWorkspaceRepository({
+    __pool: {
+      query: async function (sql, values) {
+        if (sql.indexOf('INSERT INTO ai_workspaces') === 0) {
+          insertedWorkspaceValues = values;
+          return [{ affectedRows: 1 }];
+        }
+        if (sql.indexOf('SELECT * FROM ai_workspaces') === 0) {
+          return [[{
+            id: values[0], user_id: values[1], template_id: 'tpl_general', template_version: 1,
+            audience: 'general', detail_level: 'standard', status: 'active', field_values: '{}',
+            material_revision: 0, created_at: new Date(), updated_at: new Date()
+          }]];
+        }
+        throw new Error('unexpected SQL in date smoke: ' + sql);
+      }
+    }
+  });
+  await sqlRepository.createWorkspace({ userId: 'sql-user', templateId: 'tpl_general' });
+  if (!(insertedWorkspaceValues[9] instanceof Date) || !(insertedWorkspaceValues[10] instanceof Date)) {
+    throw new Error('MySQL DATETIME values must be Date objects');
+  }
+
   const store = createMemoryStore();
   const repository = createAiWorkspaceRepository(store);
   const user = store.users[0];

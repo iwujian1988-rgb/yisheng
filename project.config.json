@@ -119,6 +119,30 @@
         "type": "folder"
       },
       {
+        "value": "miniprogram_npm/tdesign-miniprogram/chat-list",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/chat-message",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/chat-content",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/chat-thinking",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/chat-loading",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/attachments",
+        "type": "folder"
+      },
+      {
         "value": "miniprogram_npm/tdesign-miniprogram/guide",
         "type": "folder"
       },
