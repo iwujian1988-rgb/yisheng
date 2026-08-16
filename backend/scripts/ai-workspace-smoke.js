@@ -1,6 +1,6 @@
 const { createMemoryStore } = require('../src/store/memory-store');
 const { createAiWorkspaceRepository } = require('../src/repositories/ai-workspace-repository');
-const { collectTemplateFields } = require('../src/modules/ai-workspaces');
+const { collectTemplateFields, resolveTemplateFieldKey } = require('../src/modules/ai-workspaces');
 const contentAccess = require('../src/security/content-access');
 const deviceSession = require('../src/security/device-session');
 
@@ -40,6 +40,15 @@ async function main() {
   });
   if (fields.length !== 2 || fields[0].key === fields[1].key) {
     throw new Error('nested fields must keep stable unique paths even when labels match');
+  }
+  if (resolveTemplateFieldKey(fields, fields[0].key) !== fields[0].key) {
+    throw new Error('canonical nested field key was not accepted');
+  }
+  if (resolveTemplateFieldKey([{ key: 'section.unique', label: '唯一字段' }], 'unique') !== 'section.unique') {
+    throw new Error('unique legacy leaf field key was not mapped for compatibility');
+  }
+  if (resolveTemplateFieldKey(fields, 'item')) {
+    throw new Error('ambiguous legacy leaf field key must not be guessed');
   }
 
   const first = await repository.createWorkspace({ userId: user.id, templateId: 'tpl-a', templateVersion: 3, audience: 'general' });

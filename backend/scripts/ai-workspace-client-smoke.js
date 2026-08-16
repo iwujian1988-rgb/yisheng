@@ -141,6 +141,19 @@ async function main() {
   if (!confirmPage.data.templateFieldsPanelVisible || !confirmPage.data.templateFieldChoicesVisible || confirmPage.data.templateFieldValues.first !== '值一' || confirmPage.data.templateFieldValues.second !== '值二') {
     throw new Error('filling one template field made the next field hard to continue');
   }
+
+  var nestedPage = createPage();
+  nestedPage.data.templates = [{
+    id: 'tpl-nested',
+    name: '嵌套模板',
+    fields: { section: { nested: { label: '嵌套字段' }, _label: '分组标题' } }
+  }];
+  nestedPage.selectTemplateByIndex(0);
+  await new Promise(function (resolve) { setTimeout(resolve, 0); });
+  if (!nestedPage.data.templateGuideFields.length || nestedPage.data.templateGuideFields[0].key !== 'section.nested') {
+    throw new Error('client nested field key no longer matches the server field path');
+  }
+
   confirmPage.data.inputText = '一段原始记录';
   confirmPage.refreshSendState();
   confirmPage.sendMessage({});

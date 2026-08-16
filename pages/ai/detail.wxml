@@ -239,7 +239,7 @@
       <view wx:if="{{templateFieldsPanelVisible}}" class="composer-template-panel">
         <view class="composer-template-panel__head"><text class="composer-template-panel__title">补充资料</text><text class="composer-template-panel__done" catchtap="finishTemplateFields">关闭</text></view>
         <view class="composer-template-panel__summary"><text class="composer-template-panel__template">{{selectedTemplateName}}</text><text>{{templateNextStepText}}</text></view>
-        <scroll-view wx:if="{{templateFieldChoicesVisible}}" scroll-y class="document-workbench__fields">
+        <scroll-view wx:if="{{templateFieldChoicesVisible}}" scroll-y enable-flex="{{true}}" class="document-workbench__fields">
           <view wx:for="{{visibleTemplateGuideFields}}" wx:key="key" class="template-field {{item.required ? 'template-field--priority' : ''}} {{item.filled ? 'template-field--filled' : ''}}" data-key="{{item.key}}" data-label="{{item.label}}" bindtap="openTemplateFieldEditor"><view class="template-field__content"><text class="template-field__label">{{item.label}}</text><text class="template-field__value">{{item.filled ? item.value : '点击填写，可跳过'}}</text></view><view class="template-field__status"><text>{{item.filled ? '修改' : '填写'}}</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view></view>
           <view class="document-workbench__field-actions"><text wx:if="{{templateGuideFields.length > 8}}" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text></view>
           <text class="document-workbench__field-note">已填写内容会和文字、图片及录音一起用于生成。</text>

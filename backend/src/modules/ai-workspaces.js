@@ -37,6 +37,20 @@ function collectTemplateFields(fields) {
   return result;
 }
 
+function resolveTemplateFieldKey(fields, submittedKey) {
+  var key = String(submittedKey || '').trim();
+  if (!key) return '';
+  if (fields.some(function (field) { return field.key === key; })) return key;
+
+  // Compatibility for clients that used only the leaf key before nested paths
+  // were aligned with the server. Never guess when two fields share a leaf key.
+  var legacyMatches = fields.filter(function (field) {
+    var parts = String(field.key || '').split('.');
+    return parts[parts.length - 1] === key;
+  });
+  return legacyMatches.length === 1 ? legacyMatches[0].key : '';
+}
+
 function createAiWorkspacesModule(deps) {
   var auth = deps.auth;
   var store = deps.store;
@@ -148,9 +162,10 @@ function createAiWorkspacesModule(deps) {
     var loaded = await loadOwnedWorkspace(req, res, actor, ctx.params.id);
     if (!loaded) return;
     var body = await parseBody(req);
-    var fieldKey = String(body.fieldKey || '').trim();
+    var submittedFieldKey = String(body.fieldKey || '').trim();
     var fields = collectTemplateFields(loaded.template.fields);
-    if (!fields.some(function (field) { return field.key === fieldKey; })) {
+    var fieldKey = resolveTemplateFieldKey(fields, submittedFieldKey);
+    if (!fieldKey) {
       return fail(res, 400, 'AI_FIELD_INVALID', 'field is not part of this template');
     }
     var guarded = redactSensitiveText(String(body.value || '').trim());
@@ -262,4 +277,4 @@ function createAiWorkspacesModule(deps) {
   };
 }
 
-module.exports = { collectTemplateFields, createAiWorkspacesModule };
+module.exports = { collectTemplateFields, createAiWorkspacesModule, resolveTemplateFieldKey };

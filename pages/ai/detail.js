@@ -86,27 +86,29 @@ function hasRecognizingAttachment(attachments) {
 function collectTemplateGuideFields(fields) {
   var result = [];
 
-  function visit(value, key) {
+  function visit(value, path) {
     if (value === undefined || value === null) return;
     if (typeof value === 'string') {
-      result.push({ key: key || value, label: value, required: false, description: '' });
+      result.push({ key: path || value, label: value, required: false, description: '' });
       return;
     }
     if (Array.isArray(value)) {
-      value.forEach(function (item, index) { visit(item, String(index)); });
+      value.forEach(function (item, index) { visit(item, path ? path + '.' + index : String(index)); });
       return;
     }
     if (typeof value !== 'object') return;
     if (value.label) {
       result.push({
-        key: key || value.label,
+        key: path || value.label,
         label: String(value.label),
         required: Boolean(value.is_required || value.isRequired || value.required),
         description: String(value.description || '')
       });
       return;
     }
-    Object.keys(value).forEach(function (childKey) { visit(value[childKey], childKey); });
+    Object.keys(value).filter(function (childKey) { return childKey.charAt(0) !== '_'; }).forEach(function (childKey) {
+      visit(value[childKey], path ? path + '.' + childKey : childKey);
+    });
   }
 
   visit(fields, '');
