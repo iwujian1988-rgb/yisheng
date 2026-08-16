@@ -68,10 +68,14 @@
           <view class="ai-msg-avatar">智</view>
           <view class="assistant-message-content">
             <view class="assistant-message-bubble">
-              <view wx:if="{{item.status === 'pending'}}" class="assistant-message-loading"><t-loading theme="circular" size="30rpx" /><text>正在整理…</text></view>
-              <block wx:else wx:for="{{item.chatContent}}" wx:for-item="part" wx:key="index">
-                <text wx:if="{{part.type === 'thinking'}}" class="assistant-thinking">{{part.data}}</text>
-                <text wx:else selectable class="assistant-message-text">{{part.data}}</text>
+              <block wx:if="{{item.status === 'pending'}}">
+                <view class="assistant-message-loading"><t-loading theme="circular" size="30rpx" /><text>正在整理…</text></view>
+              </block>
+              <block wx:else>
+                <block wx:for="{{item.chatContent}}" wx:for-item="part" wx:key="index">
+                  <text wx:if="{{part.type === 'thinking'}}" class="assistant-thinking">{{part.data}}</text>
+                  <text wx:else selectable class="assistant-message-text">{{part.data}}</text>
+                </block>
               </block>
             </view>
           <view
