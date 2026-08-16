@@ -1,11 +1,13 @@
 var storage = {};
 var lastActionSheet = null;
+var lastModal = null;
 global.wx = {
   getStorageSync: function (key) { return storage[key] || ''; },
   setStorageSync: function (key, value) { storage[key] = value; },
   removeStorageSync: function (key) { delete storage[key]; },
   showToast: function () {}, hideKeyboard: function () {},
   showActionSheet: function (options) { lastActionSheet = options; },
+  showModal: function (options) { lastModal = options; },
   createSelectorQuery: function () { return { in: function () { return this; }, select: function () { return this; }, boundingClientRect: function (cb) { cb({ height: 300 }); return this; }, exec: function () {} }; }
 };
 global.getApp = function () { return { globalData: {} }; };
@@ -141,6 +143,30 @@ async function main() {
   if (!confirmPage.data.templateFieldsPanelVisible || !confirmPage.data.templateFieldChoicesVisible || confirmPage.data.templateFieldValues.first !== '值一' || confirmPage.data.templateFieldValues.second !== '值二') {
     throw new Error('filling one template field made the next field hard to continue');
   }
+
+  lastModal = null;
+  confirmPage.data.materialReady = true;
+  confirmPage.data.inputText = '原始文字';
+  confirmPage.requestCloseTemplate();
+  if (!lastModal) throw new Error('closing a template with material skipped confirmation');
+  lastModal.success({ confirm: true });
+  if (confirmPage.data.selectedTemplateId || confirmPage.data.inputText.indexOf('字段一：值一') < 0 || confirmPage.data.inputText.indexOf('字段二：值二') < 0) {
+    throw new Error('closing a template lost filled fields or left the template active');
+  }
+
+  confirmPage.data.selectedTemplateId = 'tpl-confirm';
+  confirmPage.data.selectedTemplateName = '确认模板';
+  confirmPage.data.selectedTemplate = { id: 'tpl-confirm', fields: { first: { label: '字段一' }, second: { label: '字段二' } } };
+  confirmPage.data.templateGuideFields = [
+    { key: 'first', label: '字段一', value: '值一', filled: true },
+    { key: 'second', label: '字段二', value: '值二', filled: true }
+  ];
+  confirmPage.data.templateFieldValues = { first: '值一', second: '值二' };
+  confirmPage.data.templateFieldFilledCount = 2;
+  confirmPage.data.activeWorkspaceId = 'aiw-confirm';
+  confirmPage.data.documentContextId = 'aiw-confirm';
+  confirmPage.data.materialReady = false;
+  confirmPage._serverWorkspaceSelected = true;
 
   var nestedPage = createPage();
   nestedPage.data.templates = [{

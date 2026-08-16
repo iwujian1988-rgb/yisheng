@@ -940,6 +940,36 @@ Page({
     }.bind(this));
   },
 
+  requestCloseTemplate: function () {
+    if (!this.data.selectedTemplateId || this.data.sending || this.data.workspaceSyncing) return;
+    var filledFields = Number(this.data.templateFieldFilledCount || 0);
+    var hasMaterials = Boolean(this.data.materialReady || filledFields);
+    var close = function () {
+      var preservedText = templateFieldMaterial.combineMaterials(
+        String(this.data.inputText || '').trim(),
+        this.data.templateGuideFields || []
+      );
+      if (preservedText !== String(this.data.inputText || '').trim()) {
+        this.setData({ inputText: preservedText });
+      }
+      this.clearTemplateSelection();
+      this.refreshMaterialSummary();
+      this.refreshSendState();
+      wx.showToast({ title: '已关闭模板，内容已保留', icon: 'none' });
+    }.bind(this);
+    if (!hasMaterials) {
+      close();
+      return;
+    }
+    wx.showModal({
+      title: '关闭当前模板？',
+      content: '文字、图片和录音会保留；已填字段会转成普通文字。',
+      confirmText: '关闭模板',
+      cancelText: '继续使用',
+      success: function (res) { if (res.confirm) close(); }
+    });
+  },
+
   toggleTemplateGuide: function () {
     var selected = this.data.selectedTemplate;
     if (!selected) return;

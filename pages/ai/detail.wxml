@@ -131,7 +131,7 @@
           <view class="document-workbench__icon"><t-icon name="template" size="28rpx" color="#6F3DFF" /></view>
           <view class="document-workbench__title-content"><text class="document-workbench__title">{{selectedTemplateName}}</text><text class="document-workbench__compact-status">{{workspaceLocked ? '连接设备后可继续，草稿已保留' : (workspaceSyncing ? '正在建立整理任务…' : templateNextStepText)}}</text></view>
         </view>
-        <view class="document-workbench__settings-link"><text>{{templateFieldFilledCount ? '继续补充' : '填写字段'}}</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view>
+        <view class="document-workbench__actions"><view class="document-workbench__settings-link"><text>{{templateFieldFilledCount ? '继续补充' : '填写字段'}}</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view><view class="document-workbench__close" catchtap="requestCloseTemplate"><t-icon name="close" size="28rpx" color="#788198" /></view></view>
       </view>
     </view>
 
