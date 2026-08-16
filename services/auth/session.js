@@ -7,6 +7,8 @@ const {
 } = require('../constants/account-status');
 const deviceSession = require('../device/session');
 
+let refreshCurrentSessionPromise = null;
+
 function normalizeSessionPayload(payload) {
   const data = payload && payload.data ? payload.data : payload;
   const profile = {
@@ -121,14 +123,43 @@ function getStoredSessionSummary() {
   };
 }
 
+function fetchWechatLoginCode(timeoutMs) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (code) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(code || '');
+    };
+    const timer = setTimeout(() => finish(''), timeoutMs || 6000);
+    wx.login({
+      success: (res) => finish((res && res.code) || ''),
+      fail: () => finish('')
+    });
+  });
+}
+
+function redirectExpiredSessionToLogin() {
+  clearSession();
+  try {
+    const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : [];
+    const current = pages && pages.length ? pages[pages.length - 1] : null;
+    if (current && current.route) wx.setStorageSync('postLoginReturnUrl', '/' + current.route);
+  } catch (e) {}
+  wx.reLaunch({ url: '/pages/login/login' });
+}
+
 function refreshCurrentSession() {
   if (!getBaseUrl()) {
     return Promise.resolve(getStoredSessionSummary());
   }
+  if (refreshCurrentSessionPromise) return refreshCurrentSessionPromise;
 
-  return request({
+  refreshCurrentSessionPromise = request({
     url: ENDPOINTS.auth.me,
-    method: 'GET'
+    method: 'GET',
+    suppressAuthRedirect: true
   }).then((payload) => {
     const current = getStoredSessionSummary();
     const profile = normalizeSessionPayload(Object.assign({}, payload || {}, {
@@ -136,7 +167,21 @@ function refreshCurrentSession() {
     }));
     persistSession(profile);
     return profile;
+  }).catch((error) => {
+    if (!error || error.code !== 'AUTH_REQUIRED' || !getStoredSessionSummary().token) throw error;
+    return fetchWechatLoginCode(6000).then((code) => {
+      if (!code) throw { code: 'WECHAT_LOGIN_TIMEOUT', message: '微信登录超时' };
+      return loginWithWechat(code, null);
+    });
+  }).catch((error) => {
+    if (error && (error.code === 'AUTH_REQUIRED' || error.code === 'WECHAT_LOGIN_TIMEOUT')) {
+      redirectExpiredSessionToLogin();
+    }
+    throw error;
+  }).finally(() => {
+    refreshCurrentSessionPromise = null;
   });
+  return refreshCurrentSessionPromise;
 }
 
 function requestRegisterCode(phone) {

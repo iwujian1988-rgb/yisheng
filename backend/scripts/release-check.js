@@ -39,6 +39,7 @@ function main() {
   run('AI_FIELD_FLOW_SMOKE', process.execPath, ['backend/scripts/ai-field-flow-smoke.js']);
   run('AI_WORKSPACE_SMOKE', process.execPath, ['backend/scripts/ai-workspace-smoke.js']);
   run('AI_WORKSPACE_CLIENT_SMOKE', process.execPath, ['backend/scripts/ai-workspace-client-smoke.js']);
+  run('AUTH_SESSION_CLIENT_SMOKE', process.execPath, ['backend/scripts/auth-session-client-smoke.js']);
   run('MINIPROGRAM_COMPONENT_GRAPH_SMOKE', process.execPath, ['backend/scripts/miniprogram-component-graph-smoke.js']);
   runNodeEval('AI_CONFIRM_ITEM_NORMALIZATION', [
     "const direct=require('./backend/src/modules/direct-ai-chat');",

@@ -169,7 +169,7 @@ function request(options) {
           return;
         }
 
-        if (res.statusCode === 401) {
+        if (res.statusCode === 401 && !config.suppressAuthRedirect) {
           handleUnauthorized(token, body.code);
         }
 
