@@ -1070,6 +1070,17 @@ Page({
     }, this.syncComposerLayout.bind(this));
   },
 
+  previewTemplateFromFields: function () {
+    if (this.data.workspaceLocked || this.data.workspaceSyncing) return;
+    this.refreshSendState();
+    if (!this.data.materialReady) {
+      wx.showToast({ title: '请先填写一项或添加文字、图片、录音', icon: 'none' });
+      return;
+    }
+    this.finishTemplateFields();
+    this.sendMessage({});
+  },
+
   openTemplateFieldEditor: function (e) {
     var label = String(e.currentTarget.dataset.label || '').trim();
     var key = String(e.currentTarget.dataset.key || label).trim();

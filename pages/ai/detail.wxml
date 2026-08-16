@@ -196,7 +196,7 @@
 
       <textarea
         class="composer-textarea {{pendingPreviewItems.length || pendingVoiceMaterials.length ? 'composer-textarea--with-thumbs' : ''}}"
-        placeholder="{{selectedTemplateId && composerMode === 'chat' ? '输入普通问题，本次内容不会加入整理' : '输入、粘贴或补充要整理的原始内容'}}"
+        placeholder="{{selectedTemplateId && composerMode === 'chat' ? '输入普通问题，本次内容不会加入整理' : (selectedTemplateId ? '补充整段记录（可选）' : '输入、粘贴或补充要整理的原始内容')}}"
         placeholder-class="composer-placeholder"
         value="{{inputText}}"
         bindinput="onInput"
@@ -250,6 +250,7 @@
           <view class="document-workbench__structure-detail">{{templateStructureFullText}}</view>
         </view>
         <text class="document-workbench__change-link" catchtap="openTemplatePicker">更换模板</text>
+        <view class="composer-template-panel__footer"><text>填完已知内容即可继续，其他内容可跳过</text><button class="composer-template-panel__primary {{materialReady && !workspaceLocked && !workspaceSyncing ? 'is-active' : ''}}" disabled="{{!materialReady || workspaceLocked || workspaceSyncing}}" catchtap="previewTemplateFromFields">下一步：核对并生成</button></view>
       </view>
     </form>
   </view>

@@ -143,6 +143,11 @@ async function main() {
   if (!confirmPage.data.templateFieldsPanelVisible || !confirmPage.data.templateFieldChoicesVisible || confirmPage.data.templateFieldValues.first !== '值一' || confirmPage.data.templateFieldValues.second !== '值二') {
     throw new Error('filling one template field made the next field hard to continue');
   }
+  confirmPage.previewTemplateFromFields();
+  if (!confirmPage.data.templateConfirmVisible || confirmPage.data.templateFieldsPanelVisible) {
+    throw new Error('filled template fields did not expose a direct next step to review and generate');
+  }
+  confirmPage.closeTemplateConfirm();
 
   lastModal = null;
   confirmPage.data.materialReady = true;

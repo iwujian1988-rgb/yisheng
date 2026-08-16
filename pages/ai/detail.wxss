@@ -352,6 +352,11 @@
 .composer-template-panel__summary text { display: block; }
 .composer-template-panel__template { margin-bottom: 3rpx; color: #27324D; font-size: 26rpx; font-weight: 700; }
 .composer-template-panel__settings { padding: 12rpx 0 4rpx; }
+.composer-template-panel__footer { padding-top: 10rpx; border-top: 1rpx solid #E8E5EF; }
+.composer-template-panel__footer > text { display: block; margin-bottom: 10rpx; color: #788198; font-size: 23rpx; line-height: 1.4; text-align: center; }
+.composer-template-panel__primary { width: 100%; height: 76rpx; margin: 0; border-radius: 16rpx; background: #E7E3EF; color: #9A94A8; font-size: 27rpx; font-weight: 700; line-height: 76rpx; }
+.composer-template-panel__primary.is-active { background: #6F3DFF; color: #FFFFFF; }
+.composer-template-panel__primary::after { border: none; }
 
 .composer-tool {
   width: 92rpx;
