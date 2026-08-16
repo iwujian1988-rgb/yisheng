@@ -39,10 +39,21 @@ function splitSectionedOutput(text) {
   }
   return {
     bodyText: bodyText,
-    confirmItems: confirmRaw.split(/\r?\n/).map(function (line) {
-      return line.trim().replace(/^[-*\d.、）)\s]+/, '');
-    }).filter(Boolean)
+    confirmItems: normalizeConfirmItems(confirmRaw.split(/\r?\n/))
   };
+}
+
+function normalizeConfirmItems(items) {
+  var seen = {};
+  return (items || []).map(function (line) {
+    return String(line || '').trim().replace(/^[-*\d.、）)\s]+/, '').replace(/[；;，,。\s]+$/, '').trim();
+  }).filter(function (item) {
+    if (!item || item === '无') return false;
+    var key = item.replace(/[\s，。；：、,.;:（）()【】\-]/g, '');
+    if (!key || seen[key]) return false;
+    seen[key] = true;
+    return true;
+  });
 }
 
 function unavailableSignature(value) {
@@ -251,6 +262,7 @@ async function callDirectAi(agentType, data) {
       var warningText = quality.warnings[warningIndex].message;
       if (safeConfirmItems.indexOf(warningText) < 0) safeConfirmItems.push(warningText);
     }
+    safeConfirmItems = normalizeConfirmItems(safeConfirmItems);
     return {
       type: 'text',
       status: 'ok',
@@ -274,6 +286,7 @@ module.exports = {
   buildMessages,
   callDirectAi,
   isConfigured,
+  normalizeConfirmItems,
   removeUnavailableBodyFragments,
   splitSectionedOutput
 };

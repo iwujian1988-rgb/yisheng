@@ -122,20 +122,22 @@ function buildTemplateGuideState(template, expanded, fieldValues) {
     var value = String(values[item.key] !== undefined ? values[item.key] : (values[item.label] || '')).trim();
     return Object.assign({}, item, { value: value, filled: Boolean(value) });
   });
-  var prioritized = fields.filter(function (item) { return item.required; }).concat(
-    fields.filter(function (item) { return !item.required; })
-  );
+  var prioritized = fields.filter(function (item) { return item.required; }).concat(fields.filter(function (item) { return !item.required; }));
+  var remaining = prioritized.filter(function (item) { return !item.filled; });
+  var completed = prioritized.filter(function (item) { return item.filled; });
+  var displayFields = remaining.concat(completed);
   var limit = expanded ? 16 : 8;
   return {
     selectedTemplate: template || null,
     templateGuideFields: fields,
-    visibleTemplateGuideFields: prioritized.slice(0, limit),
+    visibleTemplateGuideFields: displayFields.slice(0, limit),
     templateGuideExpanded: Boolean(expanded),
-    templateGuideHiddenCount: Math.max(0, prioritized.length - limit),
+    templateGuideHiddenCount: Math.max(0, displayFields.length - limit),
     templateFieldFilledCount: templateFieldMaterial.countFilledFields(fields),
-    templateNextStepText: prioritized.length
-      ? '建议补充：' + prioritized.slice(0, 3).map(function (item) { return item.label; }).join('、') + '；也可跳过'
-      : '直接添加文字、图片或录音',
+    templateRemainingFieldCount: remaining.length,
+    templateNextStepText: remaining.length
+      ? '可补充：' + remaining.slice(0, 3).map(function (item) { return item.label; }).join('、') + '（均可跳过）'
+      : (prioritized.length ? '建议字段已填写，可继续添加材料或直接生成' : '直接添加文字、图片或录音'),
     templateStructureText: prioritized.slice(0, 5).map(function (item) { return item.label; }).join('、') || '由模板自动确定',
     templateStructureFullText: prioritized.map(function (item) { return item.label; }).join('、') || '由模板自动确定'
   };
@@ -148,6 +150,13 @@ function normalizeDetailLevel(value) {
 function isGenerateCommand(text) {
   var value = String(text || '').trim().replace(/\s+/g, '').replace(/[！!。,.，]/g, '');
   return /^(就这样吧?|可以了?|开始(写|生成|整理)吧?|直接(写|生成|整理)吧?|按这些(写|生成|整理)吧?|(就这样吧?)?你?开始(写|生成|整理)吧?)$/.test(value);
+}
+
+function looksLikeStandaloneQuestion(text) {
+  var value = String(text || '').trim();
+  if (!value || value.length > 180 || isGenerateCommand(value)) return false;
+  if (/[?？]\s*$/.test(value)) return true;
+  return /^(今天|明天|后天).{0,10}天气|^(你是谁|你能做什么|为什么|怎么回事|怎么办|如何|什么是|能不能|可不可以)/.test(value);
 }
 
 function stripEmptyTemplateFields(text, fields) {
@@ -419,6 +428,7 @@ Page({
     composerMoreVisible: false,
     templateFieldValues: {},
     templateFieldFilledCount: 0,
+    templateRemainingFieldCount: 0,
     templateFieldEditorVisible: false,
     templateFieldEditorKey: '',
     templateFieldEditorLabel: '',
@@ -943,6 +953,7 @@ Page({
     this.setData({
       composerMoreVisible: false,
       templateFieldsPanelVisible: true,
+      templateFieldChoicesVisible: true,
       composerBottomStyle: ''
     }, this.syncComposerLayout.bind(this));
   },
@@ -1240,6 +1251,21 @@ Page({
       : (oneShotChat ? '' : (this.data.selectedTemplateId || ''));
     var generateCommand = Boolean(templateId && isGenerateCommand(rawInputText));
     if (generateCommand) rawInputText = '';
+    if (templateId && !isDocumentRevision && !options.intentConfirmed && !options.skipTemplateConfirm
+      && !attachments.length && !voiceMaterials.length && looksLikeStandaloneQuestion(rawInputText)) {
+      var that = this;
+      wx.showActionSheet({
+        itemList: ['仅回答这个问题', '加入当前整理'],
+        success: function (res) {
+          if (res.tapIndex === 0) {
+            that.sendMessage({ message: rawInputText, oneShotChat: true, intentConfirmed: true });
+          } else if (res.tapIndex === 1) {
+            that.sendMessage({ message: rawInputText, intentConfirmed: true });
+          }
+        }
+      });
+      return;
+    }
     var freeMessage = message;
     if (templateId && !isDocumentRevision) {
       var cleanTypedText = stripEmptyTemplateFields(rawInputText, this.data.templateGuideFields);

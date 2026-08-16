@@ -12,13 +12,8 @@
       <view wx:if="{{messages.length === 0 && !sending}}" class="welcome-message">
         <view class="bot-avatar">智</view>
         <view class="welcome-bubble">
-          <text class="welcome-title">从一段记录开始</text>
-          <text class="welcome-desc">输入、粘贴、拍照或录音后，AI 会整理为可核对的内容草稿。</text>
-          <view class="quick-prompts">
-            <text class="quick-prompt" data-prompt="请整理以下文本记录：" bindtap="fillQuickPrompt">整理文本记录</text>
-            <text class="quick-prompt" data-action="template" bindtap="fillQuickPrompt">选择模板整理</text>
-            <text class="quick-prompt" data-prompt="请提取这段记录的重点：" bindtap="fillQuickPrompt">提取重点</text>
-          </view>
+          <text class="welcome-title">把记录整理成草稿</text>
+          <text class="welcome-desc">直接在下方输入。需要固定格式时，点加号选择模板。</text>
         </view>
       </view>
 
@@ -105,11 +100,7 @@
         <view class="ai-msg-avatar">智</view>
         <view class="inline-confirm-card">
           <text class="inline-confirm-card__title">材料无误后生成草稿</text>
-          <text class="inline-confirm-card__hint">整理为：{{selectedTemplateName}}</text>
-          <view class="inline-confirm-card__settings">
-            <view><text class="inline-confirm-card__setting-label">详细程度</text><text class="inline-confirm-card__setting-value">{{detailLevelLabel}}</text></view>
-            <view><text class="inline-confirm-card__setting-label">预计结构</text><text class="inline-confirm-card__setting-value">{{templateStructureText}}</text></view>
-          </view>
+          <text class="inline-confirm-card__hint">按“{{selectedTemplateName}}”整理</text>
           <view class="inline-confirm-card__sources"><t-icon name="check-circle" size="25rpx" color="#168761" /><text>{{templateConfirmSources}}</text></view>
           <scroll-view wx:if="{{templateConfirmImages.length}}" scroll-x class="inline-confirm-card__images" enhanced="{{true}}" show-scrollbar="{{false}}"><view class="inline-confirm-card__images-row"><image wx:for="{{templateConfirmImages}}" wx:key="id" class="inline-confirm-card__image" src="{{item.url}}" mode="aspectFill" data-url="{{item.url}}" bindtap="previewPendingImage" /></view></scroll-view>
           <scroll-view scroll-y class="inline-confirm-card__preview"><text selectable>{{templateConfirmPreview}}</text></scroll-view>
@@ -138,9 +129,9 @@
       <view class="document-workbench__head" catchtap="openTemplateToolsPanel">
         <view class="document-workbench__title-wrap">
           <view class="document-workbench__icon"><t-icon name="template" size="28rpx" color="#6F3DFF" /></view>
-          <view class="document-workbench__title-content"><text class="document-workbench__title">整理为：{{selectedTemplateName}}</text><text class="document-workbench__compact-status">{{workspaceLocked ? '连接设备后可继续，草稿已保留' : (workspaceSyncing ? '正在建立整理任务…' : (templateFieldFilledCount ? ('已填 ' + templateFieldFilledCount + ' 项；还可继续补充') : templateNextStepText))}}</text></view>
+          <view class="document-workbench__title-content"><text class="document-workbench__title">{{selectedTemplateName}}</text><text class="document-workbench__compact-status">{{workspaceLocked ? '连接设备后可继续，草稿已保留' : (workspaceSyncing ? '正在建立整理任务…' : templateNextStepText)}}</text></view>
         </view>
-        <view class="document-workbench__settings-link"><text>补充/调整</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view>
+        <view class="document-workbench__settings-link"><text>{{templateFieldFilledCount ? '继续补充' : '填写字段'}}</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view>
       </view>
     </view>
 
@@ -236,31 +227,28 @@
         </button>
       </view>
       <view wx:if="{{composerMoreVisible}}" class="composer-extension">
-        <text class="composer-extension__group-title">添加材料（可同时使用）</text>
-        <view class="composer-extension__grid">
-          <view class="composer-extension__item" catchtap="goImage"><view class="composer-extension__icon"><t-icon name="camera" size="42rpx" color="#47516A" /></view><text>拍照识别</text><text class="composer-extension__note">添加图片文字</text></view>
-          <view class="composer-extension__item" catchtap="goVoice"><view class="composer-extension__icon"><t-icon name="microphone" size="42rpx" color="#47516A" /></view><text>录音转写</text><text class="composer-extension__note">添加语音内容</text></view>
+        <text class="composer-extension__group-title">选择操作</text>
+        <view class="composer-extension__grid {{selectedTemplateId ? '' : 'composer-extension__grid--three'}}">
+          <view class="composer-extension__item" catchtap="goImage"><view class="composer-extension__icon"><t-icon name="camera" size="42rpx" color="#47516A" /></view><text>拍照识别</text></view>
+          <view class="composer-extension__item" catchtap="goVoice"><view class="composer-extension__icon"><t-icon name="microphone" size="42rpx" color="#47516A" /></view><text>录音转写</text></view>
+          <view class="composer-extension__item" catchtap="openTemplatePicker"><view class="composer-extension__icon composer-extension__icon--template"><t-icon name="template" size="42rpx" color="#6F3DFF" /></view><text>{{selectedTemplateId ? '更换模板' : '选择模板'}}</text></view>
+          <view wx:if="{{selectedTemplateId}}" class="composer-extension__item" catchtap="startOneShotChat"><view class="composer-extension__icon"><t-icon name="chat" size="42rpx" color="#47516A" /></view><text>普通问答</text></view>
         </view>
-        <text class="composer-extension__group-title composer-extension__group-title--second">整理方式（可选）</text>
-        <view class="composer-extension__grid">
-          <view class="composer-extension__item" catchtap="openTemplatePicker"><view class="composer-extension__icon composer-extension__icon--template"><t-icon name="template" size="42rpx" color="#6F3DFF" /></view><text>{{selectedTemplateId ? '更换模板' : '选择模板'}}</text><text class="composer-extension__note">决定生成结构</text></view>
-          <view wx:if="{{selectedTemplateId}}" class="composer-extension__item" catchtap="openTemplateToolsPanel"><view class="composer-extension__icon composer-extension__icon--template"><t-icon name="edit" size="42rpx" color="#6F3DFF" /></view><text>补充字段</text><text class="composer-extension__note">已填 {{templateFieldFilledCount}} 项</text></view>
-          <view wx:if="{{selectedTemplateId}}" class="composer-extension__item" catchtap="startOneShotChat"><view class="composer-extension__icon"><t-icon name="chat" size="42rpx" color="#47516A" /></view><text>本次仅对话</text><text class="composer-extension__note">发送后自动返回整理</text></view>
-        </view>
-        <text class="composer-extension__relation">文字、图片和录音会合并，再按所选模板整理。</text>
+        <text wx:if="{{selectedTemplateId}}" class="composer-extension__relation">文字、图片和录音会用于“{{selectedTemplateName}}”；普通问答不会加入。</text>
       </view>
       <view wx:if="{{templateFieldsPanelVisible}}" class="composer-template-panel">
-        <view class="composer-template-panel__head"><view class="composer-template-panel__back" catchtap="backToComposerMorePanel"><t-icon name="chevron-left" size="26rpx" color="#47516A" /><text>返回</text></view><text class="composer-template-panel__title">{{selectedTemplateName}}</text><text class="composer-template-panel__done" catchtap="finishTemplateFields">完成</text></view>
-        <view class="document-workbench__howto"><text class="document-workbench__howto-title">模板负责整理，不是第二个聊天框</text><text>字段可以逐项填写，下方输入框仍可输入整段记录。</text><text class="document-workbench__howto-result">两处内容会合并生成，不会互相覆盖。</text></view>
-        <view class="document-workbench__setting-row"><text class="document-workbench__setting-label">详细程度</text><view class="document-workbench__segments"><view wx:for="{{detailLevelOptions}}" wx:key="value" class="document-workbench__segment {{detailLevel === item.value ? 'is-active' : ''}}" data-value="{{item.value}}" catchtap="selectDetailLevel">{{item.label}}</view></view></view>
-        <view class="document-workbench__structure-entry" catchtap="toggleTemplateStructure"><view><text class="document-workbench__field-toggle-title">生成结构</text><text class="document-workbench__field-toggle-note">查看 AI 最终会整理出的栏目</text></view><view class="document-workbench__row-action"><text>{{templateStructureExpanded ? '收起' : '查看结构'}}</text><t-icon name="chevron-{{templateStructureExpanded ? 'up' : 'down'}}" size="24rpx" color="#6F3DFF" /></view></view>
-        <view wx:if="{{templateStructureExpanded}}" class="document-workbench__structure-detail">{{templateStructureFullText}}</view>
-        <view class="document-workbench__field-toggle"><view><text class="document-workbench__field-toggle-title">按字段补充（可选）</text><text class="document-workbench__field-toggle-note">{{templateFieldFilledCount ? ('已填写 ' + templateFieldFilledCount + ' 项，还可以继续') : '不要求全部填写'}}</text></view><button class="document-workbench__field-button" catchtap="toggleTemplateFieldChoices">{{templateFieldChoicesVisible ? '收起字段' : (templateFieldFilledCount ? '继续填写' : '开始填写')}}</button></view>
+        <view class="composer-template-panel__head"><text class="composer-template-panel__title">补充资料</text><text class="composer-template-panel__done" catchtap="finishTemplateFields">关闭</text></view>
+        <view class="composer-template-panel__summary"><text class="composer-template-panel__template">{{selectedTemplateName}}</text><text>{{templateNextStepText}}</text></view>
         <scroll-view wx:if="{{templateFieldChoicesVisible}}" scroll-y class="document-workbench__fields">
           <view wx:for="{{visibleTemplateGuideFields}}" wx:key="key" class="template-field {{item.required ? 'template-field--priority' : ''}} {{item.filled ? 'template-field--filled' : ''}}" data-key="{{item.key}}" data-label="{{item.label}}" bindtap="openTemplateFieldEditor"><view class="template-field__content"><text class="template-field__label">{{item.label}}</text><text class="template-field__value">{{item.filled ? item.value : '点击填写，可跳过'}}</text></view><view class="template-field__status"><text>{{item.filled ? '修改' : '填写'}}</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view></view>
           <view class="document-workbench__field-actions"><text wx:if="{{templateGuideFields.length > 8}}" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text></view>
           <text class="document-workbench__field-note">已填写内容会和文字、图片及录音一起用于生成。</text>
         </scroll-view>
+        <view class="document-workbench__structure-entry" catchtap="toggleTemplateStructure"><view><text class="document-workbench__field-toggle-title">生成设置</text><text class="document-workbench__field-toggle-note">{{detailLevelLabel}}，可查看最终栏目</text></view><view class="document-workbench__row-action"><text>{{templateStructureExpanded ? '收起' : '展开'}}</text><t-icon name="chevron-{{templateStructureExpanded ? 'up' : 'down'}}" size="24rpx" color="#6F3DFF" /></view></view>
+        <view wx:if="{{templateStructureExpanded}}" class="composer-template-panel__settings">
+          <view class="document-workbench__setting-row"><text class="document-workbench__setting-label">详细程度</text><view class="document-workbench__segments"><view wx:for="{{detailLevelOptions}}" wx:key="value" class="document-workbench__segment {{detailLevel === item.value ? 'is-active' : ''}}" data-value="{{item.value}}" catchtap="selectDetailLevel">{{item.label}}</view></view></view>
+          <view class="document-workbench__structure-detail">{{templateStructureFullText}}</view>
+        </view>
         <text class="document-workbench__change-link" catchtap="openTemplatePicker">更换模板</text>
       </view>
     </form>
@@ -291,11 +279,11 @@
     </view>
   </view>
 
-  <view wx:if="{{templateFieldEditorVisible}}" class="field-editor-mask" catchtap="closeTemplateFieldEditor">
+  <view wx:if="{{templateFieldEditorVisible}}" class="field-editor-mask" style="{{composerBottomStyle}}" catchtap="closeTemplateFieldEditor">
     <view class="field-editor" catchtap="noop">
       <text class="field-editor__eyebrow">填写模板字段</text>
       <text class="field-editor__title">{{templateFieldEditorLabel}}</text>
-      <textarea class="field-editor__textarea" value="{{templateFieldEditorValue}}" placeholder="输入已确认的内容，留空表示不提供" maxlength="3000" auto-focus="{{true}}" adjust-position="{{true}}" cursor-spacing="24" bindinput="onTemplateFieldEditorInput" />
+      <textarea class="field-editor__textarea" value="{{templateFieldEditorValue}}" placeholder="输入已确认的内容，留空表示不提供" maxlength="3000" auto-focus="{{true}}" adjust-position="{{false}}" cursor-spacing="24" bindinput="onTemplateFieldEditorInput" />
       <view class="field-editor__actions"><button class="field-editor__cancel" bindtap="closeTemplateFieldEditor">取消</button><button class="field-editor__save" bindtap="saveTemplateFieldValue">保存字段</button></view>
     </view>
   </view>

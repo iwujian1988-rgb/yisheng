@@ -1,9 +1,11 @@
 var storage = {};
+var lastActionSheet = null;
 global.wx = {
   getStorageSync: function (key) { return storage[key] || ''; },
   setStorageSync: function (key, value) { storage[key] = value; },
   removeStorageSync: function (key) { delete storage[key]; },
   showToast: function () {}, hideKeyboard: function () {},
+  showActionSheet: function (options) { lastActionSheet = options; },
   createSelectorQuery: function () { return { in: function () { return this; }, select: function () { return this; }, boundingClientRect: function (cb) { cb({ height: 300 }); return this; }, exec: function () {} }; }
 };
 global.getApp = function () { return { globalData: {} }; };
@@ -87,6 +89,23 @@ async function main() {
   var renderedOneShot = chatPage.data.messages.find(function (item) { return item.id === oneShotResponse.id; });
   if (renderedOneShot.isDocument) throw new Error('one-shot ordinary answer was incorrectly rendered as a document');
 
+  capturedChat = null;
+  lastActionSheet = null;
+  var questionPage = createPage();
+  questionPage.data.selectedTemplateId = 'tpl-client';
+  questionPage.data.selectedTemplateName = '测试模板';
+  questionPage.data.activeWorkspaceId = 'aiw-client';
+  questionPage.data.documentContextId = 'aiw-client';
+  questionPage.data.sideChatContextId = 'side-question';
+  questionPage.data.inputText = '今天天气怎么样？';
+  questionPage.data.canSend = true;
+  questionPage.sendMessage({});
+  if (!lastActionSheet || capturedChat) throw new Error('question-like input was not stopped before contaminating a template');
+  lastActionSheet.success({ tapIndex: 0 });
+  if (!capturedChat || capturedChat.workspaceId || capturedChat.templateId || capturedChat.contextId !== 'side-question') {
+    throw new Error('confirmed ordinary question was not isolated from the active template');
+  }
+
   var blockedOneShotPage = createPage();
   blockedOneShotPage.data.selectedTemplateId = 'tpl-client';
   blockedOneShotPage.data.pendingVoiceMaterials = [{ id: 'voice-pending', text: '尚未生成的模板录音' }];
@@ -112,6 +131,9 @@ async function main() {
   confirmPage.data.templateFieldEditorKey = 'first';
   confirmPage.data.templateFieldEditorValue = '值一';
   confirmPage.saveTemplateFieldValue();
+  if (confirmPage.data.templateNextStepText.indexOf('字段二') < 0 || confirmPage.data.templateNextStepText.indexOf('字段一') >= 0) {
+    throw new Error('next-step hint still suggested a field that was already filled');
+  }
   confirmPage.data.templateFieldEditorLabel = '字段二';
   confirmPage.data.templateFieldEditorKey = 'second';
   confirmPage.data.templateFieldEditorValue = '值二';
