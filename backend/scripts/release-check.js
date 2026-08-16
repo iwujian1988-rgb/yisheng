@@ -39,6 +39,7 @@ function main() {
   run('AI_FIELD_FLOW_SMOKE', process.execPath, ['backend/scripts/ai-field-flow-smoke.js']);
   run('AI_WORKSPACE_SMOKE', process.execPath, ['backend/scripts/ai-workspace-smoke.js']);
   run('AI_WORKSPACE_CLIENT_SMOKE', process.execPath, ['backend/scripts/ai-workspace-client-smoke.js']);
+  run('MINIPROGRAM_COMPONENT_GRAPH_SMOKE', process.execPath, ['backend/scripts/miniprogram-component-graph-smoke.js']);
   run('NODE_CHECK_BLE_TRANSFER', process.execPath, ['--check', 'behaviors/ble-transfer.js']);
   runNodeEval('FIRMWARE_RELIABLE_HID', [
     "const fs=require('fs');",

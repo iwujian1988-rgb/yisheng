@@ -715,6 +715,11 @@ Page({
     if (!workspaceId) return Promise.resolve();
     var batchId = 'switch-' + Date.now() + '-' + Math.floor(Math.random() * 100000);
     var operations = [];
+    var values = this.data.templateFieldValues || {};
+    (this.data.templateGuideFields || []).forEach(function (field) {
+      var value = String(values[field.key] !== undefined ? values[field.key] : (values[field.label] || '')).trim();
+      if (value) operations.push(aiWorkspace.saveField(workspaceId, field.key, value));
+    });
     var typed = stripEmptyTemplateFields(this.data.inputText, this.data.templateGuideFields);
     if (typed) operations.push(aiWorkspace.addMaterial(workspaceId, {
       kind: 'typed', text: typed, clientMaterialId: batchId + '-typed', status: 'included', sourceMeta: { source: 'composer' }
@@ -970,6 +975,10 @@ Page({
   },
 
   startOneShotChat: function () {
+    if ((this.data.pendingVoiceMaterials || []).length || (this.data.pendingAttachments || []).length) {
+      wx.showToast({ title: '请先生成或移除当前录音和图片', icon: 'none' });
+      return;
+    }
     if (wx.hideKeyboard) wx.hideKeyboard({ fail: function () {} });
     this.setData({
       composerMode: 'chat',
@@ -1130,9 +1139,10 @@ Page({
       stripEmptyTemplateFields(this.data.inputText, this.data.templateGuideFields),
       this.data.pendingVoiceMaterials
     );
-    var materialText = templateFieldMaterial.combineMaterials(freeText, this.data.templateGuideFields);
+    var oneShotChat = Boolean(this.data.selectedTemplateId && this.data.composerMode === 'chat');
+    var materialText = oneShotChat ? String(this.data.inputText || '').trim() : templateFieldMaterial.combineMaterials(freeText, this.data.templateGuideFields);
     var hasText = materialText.length > 0;
-    var attachments = this.data.pendingAttachments || [];
+    var attachments = oneShotChat ? [] : (this.data.pendingAttachments || []);
     var hasAttachment = attachments.length > 0;
     var recognizing = hasRecognizingAttachment(attachments);
     var failed = hasFailedAttachment(attachments);
@@ -1213,17 +1223,18 @@ Page({
         ? options.restoreMessage
         : (options.message !== undefined ? options.message : this.data.inputText || '')
     ).trim();
-    var attachments = options.attachments || (this.data.pendingAttachments || []).slice();
+    var oneShotChat = Boolean(
+      options.oneShotChat
+      || (options.templateId === undefined
+        && this.data.selectedTemplateId
+        && this.data.composerMode === 'chat')
+    );
+    var attachments = oneShotChat ? [] : (options.attachments || (this.data.pendingAttachments || []).slice());
     var isDocumentRevision = Boolean(options.applyToDocumentId);
-    var voiceMaterials = isDocumentRevision ? [] : (options.voiceMaterials || (this.data.pendingVoiceMaterials || []).slice());
+    var voiceMaterials = isDocumentRevision || oneShotChat ? [] : (options.voiceMaterials || (this.data.pendingVoiceMaterials || []).slice());
     var message = options.materialsCombined
       ? String(options.message || '').trim()
       : combineInputMaterials(rawInputText, voiceMaterials);
-    var oneShotChat = Boolean(
-      options.templateId === undefined
-      && this.data.selectedTemplateId
-      && this.data.composerMode === 'chat'
-    );
     var templateId = options.templateId !== undefined
       ? options.templateId
       : (oneShotChat ? '' : (this.data.selectedTemplateId || ''));
@@ -1309,7 +1320,8 @@ Page({
         forceDocument: Boolean(options.forceDocument),
         documentContextId: documentContextId,
         workspaceId: options.generationId ? (options.workspaceId || this.data.activeWorkspaceId || '') : '',
-        generationId: options.generationId || ''
+        generationId: options.generationId || '',
+        oneShotChat: oneShotChat
       }
     });
 
@@ -1320,11 +1332,11 @@ Page({
     this.setData({
       messages: this.data.messages.concat(userMessage, streamMessage),
       inputText: isDocumentRevision ? this.data.inputText : '',
-      pendingAttachments: isDocumentRevision ? this.data.pendingAttachments : [],
-      pendingPreviewItems: isDocumentRevision ? this.data.pendingPreviewItems : [],
-      pendingVoiceMaterials: isDocumentRevision ? this.data.pendingVoiceMaterials : [],
-      materialSummaryText: isDocumentRevision ? this.data.materialSummaryText : '还没有添加材料',
-      materialReady: isDocumentRevision ? this.data.materialReady : false,
+      pendingAttachments: isDocumentRevision || oneShotChat ? this.data.pendingAttachments : [],
+      pendingPreviewItems: isDocumentRevision || oneShotChat ? this.data.pendingPreviewItems : [],
+      pendingVoiceMaterials: isDocumentRevision || oneShotChat ? this.data.pendingVoiceMaterials : [],
+      materialSummaryText: isDocumentRevision || oneShotChat ? this.data.materialSummaryText : '还没有添加材料',
+      materialReady: isDocumentRevision || oneShotChat ? this.data.materialReady : false,
       materialRecognizing: false,
       materialFeedbackText: '',
       documentContextId: oneShotChat ? this.data.documentContextId : documentContextId,
@@ -1456,7 +1468,7 @@ Page({
         bodyText: bodyText,
         streamingText: '',
         resultType: 'text',
-        isDocument: Boolean(request.forceDocument) || shouldRenderDocument({ bodyText: bodyText }, request.templateId || this.data.selectedTemplateId),
+        isDocument: !request.oneShotChat && (Boolean(request.forceDocument) || shouldRenderDocument({ bodyText: bodyText }, request.templateId || this.data.selectedTemplateId)),
         confirmItems: Array.isArray(finalResult.confirmItems) ? finalResult.confirmItems.map(function (text) { return { text: text, checked: false }; }) : []
       })
     };
