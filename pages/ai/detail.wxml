@@ -125,7 +125,7 @@
   </view>
 
   <view class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}" style="{{composerBottomStyle}}">
-    <view wx:if="{{selectedTemplateName}}" class="document-workbench">
+    <view wx:if="{{selectedTemplateName && composerMode !== 'chat'}}" class="document-workbench">
       <view class="document-workbench__head" catchtap="openTemplateToolsPanel">
         <view class="document-workbench__title-wrap">
           <view class="document-workbench__icon"><t-icon name="template" size="28rpx" color="#6F3DFF" /></view>
@@ -137,8 +137,8 @@
 
     <form class="composer-box" bindsubmit="sendMessage">
       <view wx:if="{{selectedTemplateId && !workspaceLocked && composerMode === 'chat'}}" class="composer-mode-strip">
-        <text>本条仅作普通对话，不加入“{{selectedTemplateName}}”</text>
-        <text class="composer-mode-strip__switch" catchtap="cancelOneShotChat">取消</text>
+        <text>普通问答，不会加入整理任务</text>
+        <text class="composer-mode-strip__switch" catchtap="cancelOneShotChat">返回整理</text>
       </view>
       <scroll-view wx:if="{{pendingVoiceMaterials.length}}" class="voice-materials" scroll-x enhanced="{{true}}" show-scrollbar="{{false}}">
         <view class="voice-materials__row">

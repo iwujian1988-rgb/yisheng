@@ -164,7 +164,8 @@ function main() {
     "const js=fs.readFileSync('pages/ai/detail.js','utf8');",
     "const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8');",
     "const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8');",
-    "for(const text of ['选择操作','拍照识别','录音转写','普通问答','文字、图片和录音会用于','补充资料']){if(!wxml.includes(text)) throw new Error('Composer relationship missing: '+text);}",
+    "for(const text of ['选择操作','拍照识别','录音转写','普通问答','普通问答，不会加入整理任务','返回整理','文字、图片和录音会用于','补充资料']){if(!wxml.includes(text)) throw new Error('Composer relationship missing: '+text);}",
+    "if(!wxml.includes(\"selectedTemplateName && composerMode !== 'chat'\") || !js.includes('hasMeaningfulWorkspaceDraft') || !js.includes('handoffTemplateId ? { templateId: handoffTemplateId }')) throw new Error('Ordinary mode exposes a template, empty drafts auto-restore, or explicit template handoff was lost');",
     "if(!js.includes('toggleComposerMorePanel')||!js.includes('openTemplateToolsPanel')||!js.includes('backToComposerMorePanel')||!js.includes('closeComposerPanels')) throw new Error('Composer extension interactions are incomplete');",
     "if(!wxss.includes('.composer-extension__grid')||!wxss.includes('.composer-template-panel')||!wxss.includes('.composer-plus.is-active')) throw new Error('Composer extension visual states are incomplete');"
   ].join(' '));

@@ -149,6 +149,20 @@ function normalizeDetailLevel(value) {
   return ['concise', 'standard', 'detailed'].indexOf(value) >= 0 ? value : 'standard';
 }
 
+function hasMeaningfulWorkspaceDraft(draft, mediaDraft) {
+  var value = draft || {};
+  var hasFields = Object.keys(value.templateFieldValues || {}).some(function (key) {
+    return Boolean(String(value.templateFieldValues[key] || '').trim());
+  });
+  var hasMediaReturn = Boolean(mediaDraft && mediaDraft.workspaceId && mediaDraft.workspaceId === value.workspaceId);
+  return Boolean(
+    String(value.inputText || '').trim()
+    || (Array.isArray(value.voiceMaterials) && value.voiceMaterials.length)
+    || hasFields
+    || hasMediaReturn
+  );
+}
+
 function isGenerateCommand(text) {
   var value = String(text || '').trim().replace(/\s+/g, '').replace(/[！!。,.，]/g, '');
   return /^(就这样吧?|可以了?|开始(写|生成|整理)吧?|直接(写|生成|整理)吧?|按这些(写|生成|整理)吧?|(就这样吧?)?你?开始(写|生成|整理)吧?)$/.test(value);
@@ -503,6 +517,13 @@ Page({
       }
       var initialText = options && options.text ? decodeURIComponent(options.text) : '';
       var workspaceDraft = wx.getStorageSync(AI_WORKSPACE_DRAFT_KEY) || {};
+      var mediaDraft = wx.getStorageSync(AI_MEDIA_INPUT_DRAFT_KEY) || {};
+      var handoffTemplateId = wx.getStorageSync('selectedTemplateId') || '';
+      var restoreWorkspaceDraft = hasMeaningfulWorkspaceDraft(workspaceDraft, mediaDraft);
+      if (!restoreWorkspaceDraft) {
+        workspaceDraft = handoffTemplateId ? { templateId: handoffTemplateId } : {};
+        wx.removeStorageSync(AI_WORKSPACE_DRAFT_KEY);
+      }
       that.setData({
         inputText: initialText || workspaceDraft.inputText || '',
         pendingVoiceMaterials: Array.isArray(workspaceDraft.voiceMaterials) ? workspaceDraft.voiceMaterials : [],
