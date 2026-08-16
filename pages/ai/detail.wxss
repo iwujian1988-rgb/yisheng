@@ -157,8 +157,8 @@
   box-sizing: border-box;
 }
 
-.document-workbench { margin-bottom: 10rpx; padding: 12rpx 16rpx; border: 1rpx solid #DDD5F5; border-radius: 18rpx; background: #FFFFFF; box-sizing: border-box; }
-.document-workbench__head, .document-workbench__title-wrap, .document-workbench__materials, .document-workbench__summary, .document-workbench__actions, .document-workbench__settings-link, .document-workbench__field-actions { display: flex; align-items: center; }
+.document-workbench { margin-bottom: 10rpx; padding: 14rpx 16rpx; border: 1rpx solid #DDD5F5; border-radius: 18rpx; background: #FFFFFF; box-sizing: border-box; }
+.document-workbench__head, .document-workbench__title-wrap, .document-workbench__materials, .document-workbench__summary, .document-workbench__field-actions { display: flex; align-items: center; }
 .document-workbench__head { min-height: 64rpx; justify-content: space-between; }
 .document-workbench__title-wrap { flex: 1; gap: 12rpx; min-width: 0; }
 .document-workbench__title-content { flex: 1; min-width: 0; }
@@ -172,9 +172,12 @@
 .document-workbench__summary { justify-content: space-between; gap: 14rpx; margin-top: 12rpx; }
 .document-workbench__materials { min-width: 0; gap: 7rpx; padding: 9rpx 12rpx; border-radius: 11rpx; background: #F6F4FB; color: #59657F; font-size: 23rpx; line-height: 1.35; }
 .document-workbench__materials.is-ready { background: rgba(24, 210, 139, 0.09); color: #236E55; }
-.document-workbench__settings-link { min-height: 64rpx; padding-left: 16rpx; gap: 3rpx; flex-shrink: 0; color: #5B35CE; font-size: 25rpx; font-weight: 700; }
-.document-workbench__actions { flex-shrink: 0; }
 .document-workbench__close { width: 56rpx; height: 56rpx; margin-left: 4rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+.document-workbench__optional { min-height: 68rpx; margin-top: 10rpx; padding: 10rpx 12rpx; display: flex; align-items: center; justify-content: space-between; gap: 12rpx; border-radius: 12rpx; background: #F7F5FC; box-sizing: border-box; }
+.document-workbench__optional-copy { min-width: 0; flex: 1; }
+.document-workbench__optional-title, .document-workbench__optional-note { display: block; }
+.document-workbench__optional-title { color: #5B35CE; font-size: 24rpx; line-height: 1.35; font-weight: 700; }
+.document-workbench__optional-note { margin-top: 2rpx; overflow: hidden; color: #667089; font-size: 22rpx; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .document-workbench__settings { margin-top: 14rpx; padding-top: 14rpx; border-top: 1rpx solid #ECE8F5; }
 .document-workbench__setting-row { display: flex; align-items: center; justify-content: space-between; gap: 14rpx; }
 .document-workbench__setting-label { flex-shrink: 0; color: #27324D; font-size: 24rpx; font-weight: 600; }
@@ -190,7 +193,6 @@
 .document-workbench__fields { max-height: 360rpx; margin-top: 8rpx; padding-top: 12rpx; overflow-y: auto; border-top: 1rpx solid #F1EEF7; display: flex; flex-direction: column; gap: 8rpx; }
 .document-workbench__field-actions { width: 100%; justify-content: flex-end; margin-top: 8rpx; color: #6F3DFF; font-size: 24rpx; font-weight: 600; }
 .document-workbench__field-note { width: 100%; color: #788198; font-size: 23rpx; line-height: 1.45; }
-.document-workbench__change-link { display: block; min-height: 60rpx; margin-top: 8rpx; border-top: 1rpx solid #F1EEF7; color: #6F3DFF; font-size: 24rpx; font-weight: 600; line-height: 60rpx; text-align: center; }
 
 .composer-box {
   position: relative;
@@ -352,7 +354,7 @@
 .composer-template-panel__summary text { display: block; }
 .composer-template-panel__template { margin-bottom: 3rpx; color: #27324D; font-size: 26rpx; font-weight: 700; }
 .composer-template-panel__settings { padding: 12rpx 0 4rpx; }
-.composer-template-panel__footer { padding-top: 10rpx; border-top: 1rpx solid #E8E5EF; }
+.composer-template-panel__footer { position: sticky; bottom: 0; z-index: 2; margin: 8rpx -2rpx 0; padding: 12rpx 2rpx 2rpx; border-top: 1rpx solid #E8E5EF; background: #FFFFFF; }
 .composer-template-panel__footer > text { display: block; margin-bottom: 10rpx; color: #788198; font-size: 23rpx; line-height: 1.4; text-align: center; }
 .composer-template-panel__primary { width: 100%; height: 76rpx; margin: 0; border-radius: 16rpx; background: #E7E3EF; color: #9A94A8; font-size: 27rpx; font-weight: 700; line-height: 76rpx; }
 .composer-template-panel__primary.is-active { background: #6F3DFF; color: #FFFFFF; }

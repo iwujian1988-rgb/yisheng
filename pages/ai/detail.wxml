@@ -126,13 +126,14 @@
 
   <view class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}" style="{{composerBottomStyle}}">
     <view wx:if="{{selectedTemplateName && composerMode !== 'chat'}}" class="document-workbench">
-      <view class="document-workbench__head" catchtap="openTemplateToolsPanel">
+      <view class="document-workbench__head">
         <view class="document-workbench__title-wrap">
           <view class="document-workbench__icon"><t-icon name="template" size="28rpx" color="#6F3DFF" /></view>
-          <view class="document-workbench__title-content"><text class="document-workbench__title">{{selectedTemplateName}}</text><text class="document-workbench__compact-status">{{workspaceLocked ? '连接设备后可继续，草稿已保留' : (workspaceSyncing ? '正在建立整理任务…' : templateNextStepText)}}</text></view>
+          <view class="document-workbench__title-content"><text class="document-workbench__title">已选：{{selectedTemplateName}}</text><text class="document-workbench__compact-status">{{workspaceLocked ? '连接设备后可继续，草稿已保留' : (workspaceSyncing ? '正在建立整理任务…' : (materialReady ? '资料已加入，可直接核对生成' : '下一步：在下方输入、拍照或录音'))}}</text></view>
         </view>
-        <view class="document-workbench__actions"><view class="document-workbench__settings-link"><text>{{templateFieldFilledCount ? '继续补充' : '填写字段'}}</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view><view class="document-workbench__close" catchtap="requestCloseTemplate"><t-icon name="close" size="28rpx" color="#788198" /></view></view>
+        <view class="document-workbench__close" catchtap="requestCloseTemplate"><t-icon name="close" size="28rpx" color="#788198" /></view>
       </view>
+      <view class="document-workbench__optional" catchtap="openTemplateToolsPanel"><view class="document-workbench__optional-copy"><text class="document-workbench__optional-title">按项补充（可选）</text><text class="document-workbench__optional-note">{{templateNextStepText}}</text></view><t-icon name="chevron-right" size="26rpx" color="#6F3DFF" /></view>
     </view>
 
     <form class="composer-box" bindsubmit="sendMessage">
@@ -223,7 +224,7 @@
           disabled="{{!canSend || sending}}"
         >
           <t-icon name="send-filled" size="28rpx" color="{{canSend ? '#FFFFFF' : 'rgba(0,0,0,0.28)'}}" />
-          <text wx:if="{{selectedTemplateId}}">{{composerMode === 'chat' ? '发送' : '预览并生成'}}</text>
+          <text wx:if="{{selectedTemplateId}}">{{composerMode === 'chat' ? '发送' : '核对并生成'}}</text>
         </button>
       </view>
       <view wx:if="{{composerMoreVisible}}" class="composer-extension">
@@ -238,7 +239,7 @@
       </view>
       <view wx:if="{{templateFieldsPanelVisible}}" class="composer-template-panel">
         <view class="composer-template-panel__head"><text class="composer-template-panel__title">补充资料</text><text class="composer-template-panel__done" catchtap="finishTemplateFields">关闭</text></view>
-        <view class="composer-template-panel__summary"><text class="composer-template-panel__template">{{selectedTemplateName}}</text><text>{{templateNextStepText}}</text></view>
+        <view class="composer-template-panel__summary"><text class="composer-template-panel__template">{{selectedTemplateName}}</text><text>只填你已经知道的内容，其他项目可以跳过。</text></view>
         <scroll-view wx:if="{{templateFieldChoicesVisible}}" scroll-y enable-flex="{{true}}" class="document-workbench__fields">
           <view wx:for="{{visibleTemplateGuideFields}}" wx:key="key" class="template-field {{item.required ? 'template-field--priority' : ''}} {{item.filled ? 'template-field--filled' : ''}}" data-key="{{item.key}}" data-label="{{item.label}}" bindtap="openTemplateFieldEditor"><view class="template-field__content"><text class="template-field__label">{{item.label}}</text><text class="template-field__value">{{item.filled ? item.value : '点击填写，可跳过'}}</text></view><view class="template-field__status"><text>{{item.filled ? '修改' : '填写'}}</text><t-icon name="chevron-right" size="24rpx" color="#6F3DFF" /></view></view>
           <view class="document-workbench__field-actions"><text wx:if="{{templateGuideFields.length > 8}}" bindtap="toggleTemplateGuide">{{templateGuideExpanded ? '收起' : ('查看更多 ' + templateGuideHiddenCount + ' 项')}}</text></view>
@@ -249,7 +250,6 @@
           <view class="document-workbench__setting-row"><text class="document-workbench__setting-label">详细程度</text><view class="document-workbench__segments"><view wx:for="{{detailLevelOptions}}" wx:key="value" class="document-workbench__segment {{detailLevel === item.value ? 'is-active' : ''}}" data-value="{{item.value}}" catchtap="selectDetailLevel">{{item.label}}</view></view></view>
           <view class="document-workbench__structure-detail">{{templateStructureFullText}}</view>
         </view>
-        <text class="document-workbench__change-link" catchtap="openTemplatePicker">更换模板</text>
         <view class="composer-template-panel__footer"><text>填完已知内容即可继续，其他内容可跳过</text><button class="composer-template-panel__primary {{materialReady && !workspaceLocked && !workspaceSyncing ? 'is-active' : ''}}" disabled="{{!materialReady || workspaceLocked || workspaceSyncing}}" catchtap="previewTemplateFromFields">下一步：核对并生成</button></view>
       </view>
     </form>
