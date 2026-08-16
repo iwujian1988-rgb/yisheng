@@ -145,9 +145,9 @@
     </view>
 
     <form class="composer-box" bindsubmit="sendMessage">
-      <view wx:if="{{selectedTemplateId && !workspaceLocked}}" class="composer-mode-strip">
-        <text>{{composerMode === 'chat' ? '本次是普通对话，不加入当前整理' : ('本次内容将加入“' + selectedTemplateName + '”')}}</text>
-        <text class="composer-mode-strip__switch" catchtap="switchComposerMode">{{composerMode === 'chat' ? '返回整理' : '改为普通对话'}}</text>
+      <view wx:if="{{selectedTemplateId && !workspaceLocked && composerMode === 'chat'}}" class="composer-mode-strip">
+        <text>本条仅作普通对话，不加入“{{selectedTemplateName}}”</text>
+        <text class="composer-mode-strip__switch" catchtap="cancelOneShotChat">取消</text>
       </view>
       <scroll-view wx:if="{{pendingVoiceMaterials.length}}" class="voice-materials" scroll-x enhanced="{{true}}" show-scrollbar="{{false}}">
         <view class="voice-materials__row">
@@ -245,6 +245,7 @@
         <view class="composer-extension__grid">
           <view class="composer-extension__item" catchtap="openTemplatePicker"><view class="composer-extension__icon composer-extension__icon--template"><t-icon name="template" size="42rpx" color="#6F3DFF" /></view><text>{{selectedTemplateId ? '更换模板' : '选择模板'}}</text><text class="composer-extension__note">决定生成结构</text></view>
           <view wx:if="{{selectedTemplateId}}" class="composer-extension__item" catchtap="openTemplateToolsPanel"><view class="composer-extension__icon composer-extension__icon--template"><t-icon name="edit" size="42rpx" color="#6F3DFF" /></view><text>补充字段</text><text class="composer-extension__note">已填 {{templateFieldFilledCount}} 项</text></view>
+          <view wx:if="{{selectedTemplateId}}" class="composer-extension__item" catchtap="startOneShotChat"><view class="composer-extension__icon"><t-icon name="chat" size="42rpx" color="#47516A" /></view><text>本次仅对话</text><text class="composer-extension__note">发送后自动返回整理</text></view>
         </view>
         <text class="composer-extension__relation">文字、图片和录音会合并，再按所选模板整理。</text>
       </view>

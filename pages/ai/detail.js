@@ -969,9 +969,20 @@ Page({
     this.setData({ templateStructureExpanded: !this.data.templateStructureExpanded }, this.syncComposerLayout.bind(this));
   },
 
-  switchComposerMode: function () {
-    var next = this.data.composerMode === 'chat' ? 'workspace' : 'chat';
-    this.setData({ composerMode: next }, function () {
+  startOneShotChat: function () {
+    if (wx.hideKeyboard) wx.hideKeyboard({ fail: function () {} });
+    this.setData({
+      composerMode: 'chat',
+      composerMoreVisible: false,
+      templateFieldsPanelVisible: false
+    }, function () {
+      this.refreshSendState();
+      this.syncComposerLayout();
+    }.bind(this));
+  },
+
+  cancelOneShotChat: function () {
+    this.setData({ composerMode: 'workspace' }, function () {
       this.refreshSendState();
       this.syncComposerLayout();
     }.bind(this));
@@ -1208,9 +1219,14 @@ Page({
     var message = options.materialsCombined
       ? String(options.message || '').trim()
       : combineInputMaterials(rawInputText, voiceMaterials);
+    var oneShotChat = Boolean(
+      options.templateId === undefined
+      && this.data.selectedTemplateId
+      && this.data.composerMode === 'chat'
+    );
     var templateId = options.templateId !== undefined
       ? options.templateId
-      : (this.data.composerMode === 'chat' ? '' : (this.data.selectedTemplateId || ''));
+      : (oneShotChat ? '' : (this.data.selectedTemplateId || ''));
     var generateCommand = Boolean(templateId && isGenerateCommand(rawInputText));
     if (generateCommand) rawInputText = '';
     var freeMessage = message;
@@ -1261,10 +1277,10 @@ Page({
       ? (options.contextId || createDocumentContextId())
       : (templateId
         ? (options.workspaceId || this.data.activeWorkspaceId || createDocumentContextId())
-        : (this.data.selectedTemplateId && this.data.composerMode === 'chat'
+        : (oneShotChat
           ? (this.data.sideChatContextId || createDocumentContextId())
           : (this.data.documentContextId || createDocumentContextId())));
-    var taskMessages = templateId || (this.data.selectedTemplateId && this.data.composerMode === 'chat') ? [] : this.data.messages;
+    var taskMessages = templateId || oneShotChat ? [] : this.data.messages;
     var conversationHistory = buildConversationHistory(taskMessages);
 
     var userMessage = createMessage('user', visibleMessage, {
@@ -1311,7 +1327,9 @@ Page({
       materialReady: isDocumentRevision ? this.data.materialReady : false,
       materialRecognizing: false,
       materialFeedbackText: '',
-      documentContextId: documentContextId,
+      documentContextId: oneShotChat ? this.data.documentContextId : documentContextId,
+      composerMode: oneShotChat ? 'workspace' : this.data.composerMode,
+      sideChatContextId: oneShotChat ? createDocumentContextId() : this.data.sideChatContextId,
       sending: true,
       streamingMessageId: streamMessage.id,
       sendingStageLabel: needsServerOcr ? '识别图片并生成中…' : '正在生成回复…',

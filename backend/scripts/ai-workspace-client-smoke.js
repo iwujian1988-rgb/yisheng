@@ -63,6 +63,7 @@ async function main() {
   chatPage.data.selectedTemplateId = 'tpl-client';
   chatPage.data.selectedTemplateName = '测试模板';
   chatPage.data.activeWorkspaceId = 'aiw-client';
+  chatPage.data.documentContextId = 'aiw-client';
   chatPage.data.composerMode = 'chat';
   chatPage.data.sideChatContextId = 'side-chat';
   chatPage.data.inputText = '今天天气怎么样？';
@@ -70,6 +71,9 @@ async function main() {
   chatPage.sendMessage({});
   if (!capturedChat || capturedChat.workspaceId || capturedChat.generationId || capturedChat.contextId !== 'side-chat' || capturedMaterials.length) {
     throw new Error('ordinary chat contaminated the active workspace');
+  }
+  if (chatPage.data.composerMode !== 'workspace' || chatPage.data.sideChatContextId === 'side-chat' || chatPage.data.documentContextId !== 'aiw-client') {
+    throw new Error('one-shot ordinary chat did not automatically return to the document workspace');
   }
   console.log('AI_WORKSPACE_CLIENT_SMOKE_OK');
 }
