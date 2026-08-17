@@ -3,6 +3,7 @@ const apiBase = require('../config/api-base');
 const deviceSession = require('../device/session');
 const liveHeartbeat = require('../device/live-heartbeat');
 const { ENDPOINTS } = require('../api/endpoints');
+const utf8Stream = require('../../utils/utf8-stream');
 
 function getToken() {
   return wx.getStorageSync('token') || '';
@@ -25,25 +26,7 @@ function getBaseUrl() {
 }
 
 function decodeChunk(buffer) {
-  if (!buffer) return '';
-  if (typeof buffer === 'string') return buffer;
-  try {
-    if (typeof TextDecoder !== 'undefined') {
-      return new TextDecoder('utf-8').decode(buffer);
-    }
-  } catch (error) {
-    // fall through
-  }
-  const bytes = new Uint8Array(buffer);
-  let result = '';
-  for (let i = 0; i < bytes.length; i += 1) {
-    result += String.fromCharCode(bytes[i]);
-  }
-  try {
-    return decodeURIComponent(escape(result));
-  } catch (decodeError) {
-    return result;
-  }
+  return utf8Stream.decodeUtf8(buffer);
 }
 
 function parseSseEvents(buffer) {
@@ -110,6 +93,7 @@ function sendChatStream(options, handlers) {
   let settled = false;
   let aborted = false;
   let requestTask = null;
+  const streamDecoder = utf8Stream.createUtf8StreamDecoder();
 
   function startRequest() {
     if (aborted) return;
@@ -140,6 +124,7 @@ function sendChatStream(options, handlers) {
     }, deviceToken ? { 'X-Device-Session': deviceToken } : {}, liveProof ? { 'X-Device-Live': liveProof } : {}),
     success(res) {
       if (settled) return;
+      buffer += streamDecoder.flush();
       if (buffer) {
         const parsed = parseSseEvents(buffer + '\n\n');
         parsed.events.forEach(dispatchEvent);
@@ -179,7 +164,7 @@ function sendChatStream(options, handlers) {
 
     if (requestTask && typeof requestTask.onChunkReceived === 'function') {
       requestTask.onChunkReceived((res) => {
-        buffer += decodeChunk(res.data);
+        buffer += streamDecoder.decode(res.data);
         const parsed = parseSseEvents(buffer);
         buffer = parsed.remainder;
         parsed.events.forEach(dispatchEvent);

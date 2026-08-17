@@ -36,6 +36,7 @@ function main() {
   run('NODE_CHECK_ADMIN_UI', process.execPath, ['--check', 'backend/public/admin/app.js']);
   run('NODE_CHECK_API_CLIENT', process.execPath, ['--check', 'services/api/client.js']);
   run('NODE_CHECK_AGENT_CHAT_CLIENT', process.execPath, ['--check', 'services/agent/chat.js']);
+  run('AI_STREAM_UTF8_SMOKE', process.execPath, ['backend/scripts/ai-stream-utf8-smoke.js']);
   run('AI_FIELD_FLOW_SMOKE', process.execPath, ['backend/scripts/ai-field-flow-smoke.js']);
   run('AI_WORKSPACE_SMOKE', process.execPath, ['backend/scripts/ai-workspace-smoke.js']);
   run('AI_WORKSPACE_CLIENT_SMOKE', process.execPath, ['backend/scripts/ai-workspace-client-smoke.js']);
@@ -180,7 +181,8 @@ function main() {
     "const source=fs.readFileSync('services/agent/chat.js','utf8');",
     "if(!source.includes(\"'X-Device-Session'\")) throw new Error('AI stream missing device session header');",
     "if(!source.includes(\"'X-Device-Live'\")) throw new Error('AI stream missing live proof header');",
-    "if(!source.includes('JSON.parse(decodeChunk(body))')) throw new Error('AI stream does not decode ArrayBuffer errors');"
+    "if(!source.includes('JSON.parse(decodeChunk(body))')) throw new Error('AI stream does not decode ArrayBuffer errors');",
+    "if(!source.includes('createUtf8StreamDecoder') || !source.includes('streamDecoder.decode(res.data)') || !source.includes('streamDecoder.flush()')) throw new Error('AI stream does not preserve UTF-8 code points across network chunks');"
   ].join(' '));
   runNodeEval('VUC_UNICODE_ENCODING', [
     "const encoder=require('./utils/encoder/vuc');",
