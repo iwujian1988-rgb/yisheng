@@ -251,9 +251,21 @@ function presentWorkspaceMaterials(materials) {
     var qualityNeedsReview = item.qualityState === 'needs_review' || item.qualityState === 'failed';
     var relevanceNeedsReview = item.relevanceState === 'needs_review';
     var needsReview = qualityNeedsReview || relevanceNeedsReview;
+    var summary = String(item.text || '').replace(/\s+/g, ' ').trim();
+    // Structured OCR is persisted as JSON. Never expose that JSON blob in the
+    // workbench: give the user a short, readable sample of what was found.
+    if (Array.isArray(item.structuredFacts) && item.structuredFacts.length) {
+      summary = item.structuredFacts.slice(0, 3).map(function (fact) {
+        var name = String(fact.name || fact.code || '').trim();
+        var result = String(fact.result || '').trim();
+        var unit = String(fact.unit || '').trim();
+        return name + (result ? ' ' + result : '') + (unit ? ' ' + unit : '');
+      }).filter(Boolean).join('；');
+      if (item.structuredFacts.length > 3) summary += ' 等 ' + item.structuredFacts.length + ' 项';
+    }
     return Object.assign({}, item, {
       displayLabel: typeLabel + ' ' + counters[bucket],
-      displaySummary: String(item.text || '').replace(/\s+/g, ' ').slice(0, 48),
+      displaySummary: summary.slice(0, 96),
       excluded: excluded,
       needsReview: needsReview,
       qualityNeedsReview: qualityNeedsReview,
@@ -1552,6 +1564,15 @@ Page({
     var templateId = options.templateId !== undefined
       ? options.templateId
       : (oneShotChat ? '' : (this.data.selectedTemplateId || ''));
+    // A material that needs OCR review is still shown in the composer so the
+    // user can retry it. Do not route this click through “加入” again: that
+    // only re-submits the same clientMaterialId and leaves the old review
+    // state untouched.
+    if (templateId && !rawInputText && !options.workspacePrepared && !options.generateExisting
+      && this.data.workspaceNeedsMaterialReview && attachments.length) {
+      this.retryAllPendingReviewImages();
+      return;
+    }
     var generateCommand = Boolean(templateId && (
       options.generateExisting
       || isGenerateCommand(rawInputText)
@@ -2046,6 +2067,20 @@ Page({
       });
     }).catch(function (error) {
       wx.showToast({ title: (error && error.message) || '暂时无法使用图片识别', icon: 'none' });
+    });
+  },
+
+  retryAllPendingReviewImages: function () {
+    var that = this;
+    var targets = (this.data.pendingAttachments || []).filter(function (item) {
+      return item && item.previewUrl && item.ocrStatus !== 'recognizing';
+    });
+    if (!targets.length) {
+      wx.showToast({ title: '没有可重试的图片', icon: 'none' });
+      return;
+    }
+    targets.forEach(function (target) {
+      that.retryPendingImage({ currentTarget: { dataset: { id: target.id } } });
     });
   },
 

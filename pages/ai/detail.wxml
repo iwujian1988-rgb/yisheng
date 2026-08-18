@@ -219,7 +219,7 @@
           disabled="{{!canSend || sending}}"
         >
           <view class="ui-button__icon"><t-icon name="send-filled" size="28rpx" color="{{canSend ? '#FFFFFF' : 'rgba(0,0,0,0.28)'}}" /></view>
-          <text class="ui-button__text" wx:if="{{selectedTemplateId}}">{{composerMode === 'chat' ? '发送' : (workspaceHasMaterials && !inputText && !pendingPreviewItems.length && !pendingVoiceMaterials.length ? '生成' : '加入')}}</text>
+          <text class="ui-button__text" wx:if="{{selectedTemplateId}}">{{composerMode === 'chat' ? '发送' : (workspaceNeedsMaterialReview && !inputText && pendingPreviewItems.length ? '重试识别' : (workspaceHasMaterials && !inputText && !pendingPreviewItems.length && !pendingVoiceMaterials.length ? '生成草稿' : '加入'))}}</text>
         </button>
       </view>
       <view wx:if="{{composerMoreVisible}}" class="composer-extension">
