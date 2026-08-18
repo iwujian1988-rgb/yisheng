@@ -5,6 +5,7 @@ const contentAccess = require('../security/content-access');
 const { buildOcrPayload } = require('../ocr/split-lines');
 const wxContentCheck = require('../security/wx-content-check');
 const medicalContentPolicy = require('../security/medical-content-policy');
+const crypto = require('crypto');
 
 var MODE_CONFIG = {
   organize: {
@@ -34,6 +35,23 @@ var MAX_HISTORY_ROUNDS = 10;
 function createProviderGatewayModule(deps) {
   var auth = deps.auth;
   var store = deps.store;
+  var ocrCache = new Map();
+
+  function ocrCacheKey(imageBase64, documentMode) {
+    return crypto.createHash('sha256').update(String(imageBase64 || '')).digest('hex')
+      + '|' + String(documentMode || '') + '|' + (documentMode === 'table' ? config.ocrStructuredModel : config.ocrCloudModel);
+  }
+
+  function getCachedOcr(key) {
+    var item = ocrCache.get(key);
+    if (!item || Date.now() - item.savedAt > 60 * 60 * 1000) { ocrCache.delete(key); return null; }
+    return item.value;
+  }
+
+  function setCachedOcr(key, value) {
+    if (ocrCache.size >= 100) ocrCache.delete(ocrCache.keys().next().value);
+    ocrCache.set(key, { savedAt: Date.now(), value: value });
+  }
 
   function rejectGeneralMedicalResult(req, res, actor, text) {
     var access = contentAccess.getAccessContext({
@@ -45,6 +63,15 @@ function createProviderGatewayModule(deps) {
     if (access.hasProfessionalAccess || !medicalContentPolicy.containsMedicalContent(text)) return false;
     fail(res, 422, 'PROFESSIONAL_CONTENT_NOT_SUPPORTED', 'This content is not supported in general mode.');
     return true;
+  }
+
+  function requireProfessionalMediaAccess(req, res, actor, body) {
+    var professionalRequest = Boolean(body && (body.workspaceId || body.professional === true || body.mode === 'professional'));
+    if (!professionalRequest) return true;
+    var access = contentAccess.getAccessContext({ store: store, req: req, actor: actor, businessKey: 'aiMode' });
+    if (access.hasProfessionalAccess) return true;
+    fail(res, 403, 'DEVICE_CONNECTION_REQUIRED', 'connect device to continue');
+    return false;
   }
 
   function parseDataUrl(value) {
@@ -94,6 +121,31 @@ function createProviderGatewayModule(deps) {
       }).filter(Boolean).join('\n'));
     }
     return '';
+  }
+
+  function parseJsonObject(value) {
+    var text = normalizeWorkerText(value).replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+    try {
+      var parsed = JSON.parse(text);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (_error) {
+      return {};
+    }
+  }
+
+  function extractCloudOcrRegions(payload) {
+    var choices = payload.output && payload.output.choices;
+    var content = choices && choices[0] && choices[0].message && choices[0].message.content;
+    var first = Array.isArray(content) && content[0] || {};
+    var words = first.ocr_result && Array.isArray(first.ocr_result.words_info) ? first.ocr_result.words_info : [];
+    return words.map(function (item, index) {
+      return {
+        index: index,
+        text: String(item.text || '').trim(),
+        polygon: item.polygon || item.box || item.bbox || item.position || null,
+        confidence: Number(item.confidence || item.score || 0)
+      };
+    }).filter(function (item) { return item.text; });
   }
 
   function resolveImageMimeType(hint, fileType) {
@@ -415,6 +467,7 @@ function createProviderGatewayModule(deps) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
     var body = await parseBody(req, { maxBytes: config.ocrMaxImageBytes * 2 });
+    if (!requireProfessionalMediaAccess(req, res, actor, body)) return;
     if (!body.imageBase64) {
       fail(res, 400, 'OCR_IMAGE_REQUIRED', 'imageBase64 required');
       return;
@@ -429,6 +482,14 @@ function createProviderGatewayModule(deps) {
       fail(res, 413, 'OCR_IMAGE_TOO_LARGE', 'image is too large');
       return;
     }
+    var cacheKey = ocrCacheKey(image.base64, body.documentMode || '');
+    var cachedOcr = getCachedOcr(cacheKey);
+    if (cachedOcr) {
+      ok(res, buildOcrResponse(cachedOcr.text, Object.assign({}, cachedOcr.extra, {
+        elapsedMs: 0, cacheHit: true, sourceId: String(body.sourceId || ''), pageIndex: Number(body.pageIndex || 0)
+      })));
+      return;
+    }
     if (config.agentServiceEnabled) {
       if (!requireMember(actor, res, 'OCR')) return;
       try {
@@ -439,19 +500,28 @@ function createProviderGatewayModule(deps) {
             imageBase64: body.imageBase64,
             mimeType: body.mimeType || image.mimeType || '',
             fileType: body.fileType || '',
-            source: body.source || 'mini_program'
+            source: body.source || 'mini_program',
+            documentMode: body.documentMode || ''
           }
         }, { userId: actor.id });
         var agentResult = agentResponse.result || {};
         if (rejectGeneralMedicalResult(req, res, actor, agentResult.text)) return;
-        ok(res, buildOcrResponse(agentResult.text || '', {
+        var agentExtra = {
           engine: agentResult.engine || config.ocrCloudModel,
           status: agentResult.status || 'ok',
           provider: agentResult.provider || 'agent-service',
           confidence: 0,
           regions: Array.isArray(agentResult.lines) ? agentResult.lines : [],
-          imageBytes: imageBytes
-        }));
+          imageBytes: imageBytes,
+          elapsedMs: Number(agentResult.elapsedMs || 0),
+          sourceId: String(body.sourceId || ''),
+          pageIndex: Number(body.pageIndex || 0),
+          rows: Array.isArray(agentResult.rows) ? agentResult.rows : []
+          ,documentMetadata: agentResult.metadata || {}
+          ,documentDates: agentResult.dates || {}
+        };
+        setCachedOcr(cacheKey, { text: agentResult.text || '', extra: agentExtra });
+        ok(res, buildOcrResponse(agentResult.text || '', agentExtra));
         return;
       } catch (error) {
         fail(res, error.name === 'AbortError' ? 504 : 502, 'AGENT_SERVICE_FAILED', error.message);
@@ -465,20 +535,29 @@ function createProviderGatewayModule(deps) {
     }
     if (isOcrCloudConfigured()) {
       try {
-        var cloudOcr = await callCloudOcr(
-          image.base64,
-          body.mimeType || image.mimeType || '',
-          body.fileType || ''
-        );
+        var cloudOcr;
+        if (body.documentMode === 'table') {
+          cloudOcr = await callStructuredTableVision(image.base64, body.mimeType || image.mimeType || '', body.fileType || '');
+        } else {
+          cloudOcr = await callCloudOcr(image.base64, body.mimeType || image.mimeType || '', body.fileType || '', config.ocrCloudTask);
+        }
         if (rejectGeneralMedicalResult(req, res, actor, cloudOcr.text)) return;
-        ok(res, buildOcrResponse(cloudOcr.text, {
+        var cloudExtra = {
           engine: config.ocrCloudModel,
           status: cloudOcr.status,
           provider: cloudOcr.provider,
           confidence: 0,
-          regions: [],
-          imageBytes: imageBytes
-        }));
+          regions: cloudOcr.regions || [],
+          imageBytes: imageBytes,
+          elapsedMs: cloudOcr.elapsedMs,
+          sourceId: String(body.sourceId || ''),
+          pageIndex: Number(body.pageIndex || 0),
+          rows: cloudOcr.rows || []
+          ,documentMetadata: cloudOcr.metadata || {}
+          ,documentDates: cloudOcr.dates || {}
+        };
+        setCachedOcr(cacheKey, { text: cloudOcr.text, extra: cloudExtra });
+        ok(res, buildOcrResponse(cloudOcr.text, cloudExtra));
         return;
       } catch (error) {
         fail(res, error.name === 'AbortError' ? 504 : 502, 'OCR_CLOUD_FAILED', error.name === 'AbortError' ? 'cloud OCR timed out' : error.message);
@@ -500,7 +579,11 @@ function createProviderGatewayModule(deps) {
           provider: ocrData.provider || config.ocrEngine,
           confidence: Number(ocrData.confidence || 0),
           regions: Array.isArray(ocrData.regions) ? ocrData.regions : [],
-          imageBytes: imageBytes
+          imageBytes: imageBytes,
+          elapsedMs: Number(ocrData.elapsedMs || 0),
+          sourceId: String(body.sourceId || ''),
+          pageIndex: Number(body.pageIndex || 0),
+          rows: Array.isArray(ocrData.rows) ? ocrData.rows : []
         }));
         return;
       } catch (error) {
@@ -526,12 +609,13 @@ function createProviderGatewayModule(deps) {
     return 'audio/mpeg';
   }
 
-  async function callCloudOcr(imageBase64, mimeType, fileType) {
+  async function callCloudOcr(imageBase64, mimeType, fileType, task) {
     var endpoint = config.ocrCloudBaseUrl.replace(/\/$/, '')
       + '/api/v1/services/aigc/multimodal-generation/generation';
     var dataUrl = 'data:' + resolveImageMimeType(mimeType, fileType) + ';base64,' + imageBase64;
     var controller = new AbortController();
     var timer = setTimeout(function () { controller.abort(); }, config.ocrTimeoutMs);
+    var startedAt = Date.now();
     try {
       var response = await fetch(endpoint, {
         method: 'POST',
@@ -553,7 +637,7 @@ function createProviderGatewayModule(deps) {
             }]
           },
           parameters: {
-            ocr_options: { task: config.ocrCloudTask }
+            ocr_options: { task: task || config.ocrCloudTask }
           }
         }),
         signal: controller.signal
@@ -565,8 +649,78 @@ function createProviderGatewayModule(deps) {
       }
       return {
         text: extractCloudOcrText(payload),
+        regions: extractCloudOcrRegions(payload),
         provider: config.ocrCloudModel,
-        status: 'ok'
+        status: 'ok',
+        elapsedMs: Date.now() - startedAt
+      };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function callStructuredTableVision(imageBase64, mimeType, fileType) {
+    var endpoint = config.ocrCloudBaseUrl.replace(/\/$/, '')
+      + '/api/v1/services/aigc/multimodal-generation/generation';
+    var dataUrl = 'data:' + resolveImageMimeType(mimeType, fileType) + ';base64,' + imageBase64;
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, config.ocrTimeoutMs);
+    var startedAt = Date.now();
+    try {
+      var response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + resolveDashscopeApiKey()
+        },
+        body: JSON.stringify({
+          model: config.ocrStructuredModel,
+          input: {
+            messages: [{
+              role: 'user',
+              content: [
+                {
+                  image: dataUrl,
+                  min_pixels: 65536,
+                  max_pixels: 8388608,
+                  enable_rotate: false
+                },
+                {
+                  text: 'Read this laboratory report directly from the image pixels. Return JSON only with keys dates, metadata, rows. dates is an object whose keys are the exact printed date labels and whose values use YYYY-MM-DD when possible. metadata is an object containing every printed report-header field. rows is an array in visual row order. Every row must contain rowNumber, code, name, result, flag, unit, referenceRange. Preserve empty cells as empty strings. Bind each cell only to the same visual row; never shift a neighboring row value into an empty cell. Keep arrows in flag, not in result. Never infer or normalize missing values.'
+                }
+              ]
+            }]
+          },
+          parameters: { max_tokens: 8000 }
+        }),
+        signal: controller.signal
+      });
+      var payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.message || (payload.error && payload.error.message) || 'structured OCR request failed');
+      }
+      var parsed = parseJsonObject(extractCloudOcrText(payload));
+      var rows = Array.isArray(parsed.rows) ? parsed.rows.map(function (row, index) {
+        return {
+          rowIndex: Number(row.rowIndex || row.rowNumber || index + 1),
+          code: row.code || '',
+          name: row.name || row.itemName || '',
+          result: row.result || row.value || '',
+          flag: row.flag || '',
+          unit: row.unit || '',
+          referenceRange: row.referenceRange || row.reference || ''
+        };
+      }) : [];
+      if (!rows.length) throw new Error('structured OCR returned no rows');
+      return {
+        text: JSON.stringify(parsed),
+        rows: rows,
+        metadata: parsed.metadata && typeof parsed.metadata === 'object' ? parsed.metadata : {},
+        dates: parsed.dates && typeof parsed.dates === 'object' ? parsed.dates : {},
+        regions: [],
+        provider: config.ocrStructuredModel,
+        status: 'ok',
+        elapsedMs: Date.now() - startedAt
       };
     } finally {
       clearTimeout(timer);
@@ -624,6 +778,7 @@ function createProviderGatewayModule(deps) {
     var actor = auth.requireUser(req, res);
     if (!actor) return;
     var body = await parseBody(req, { maxBytes: config.asrMaxAudioBytes * 2 });
+    if (!requireProfessionalMediaAccess(req, res, actor, body)) return;
     if (!body.audioBase64) {
       fail(res, 400, 'ASR_AUDIO_REQUIRED', 'audioBase64 required');
       return;

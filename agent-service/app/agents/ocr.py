@@ -40,13 +40,17 @@ class OcrAgent(BaseAgent):
             raise ValueError("image is too large")
 
         client = DashScopeClient(self.settings)
-        result = await client.ocr_image(
-            image_base64=image_base64,
-            mime_type=mime_type or str(data.get("mimeType") or data.get("mime_type") or ""),
-            file_type=str(data.get("fileType") or data.get("file_type") or ""),
-        )
+        request_args = {
+            "image_base64": image_base64,
+            "mime_type": mime_type or str(data.get("mimeType") or data.get("mime_type") or ""),
+            "file_type": str(data.get("fileType") or data.get("file_type") or ""),
+        }
+        if str(data.get("documentMode") or data.get("document_mode") or "") == "table":
+            result = await client.structured_table_image(**request_args)
+        else:
+            result = await client.ocr_image(**request_args, task="")
         text = result.get("text") or ""
-        lines = [{"index": idx, "text": line, "field": None} for idx, line in enumerate(text.split("\n")) if line]
+        lines = result.get("regions") or [{"index": idx, "text": line, "field": None} for idx, line in enumerate(text.split("\n")) if line]
         return {
             "text": text,
             "lines": lines,
@@ -55,4 +59,8 @@ class OcrAgent(BaseAgent):
             "engine": self.settings.ocr_model,
             "status": result.get("status") or "ok",
             "imageBytes": image_bytes,
+            "elapsedMs": result.get("elapsedMs") or 0,
+            "rows": result.get("rows") or [],
+            "metadata": result.get("metadata") or {},
+            "dates": result.get("dates") or {},
         }

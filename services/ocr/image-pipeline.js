@@ -143,6 +143,7 @@ function pickCropAndPrepare() {
 
 module.exports = {
   MAX_IMAGE_BYTES: MAX_IMAGE_BYTES,
+  ensureImageWithinLimit: ensureImageWithinLimit,
   pickImageForCrop: pickImageForCrop,
   pickCropAndPrepare: pickCropAndPrepare
 };

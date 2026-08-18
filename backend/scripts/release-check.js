@@ -37,11 +37,17 @@ function main() {
   run('NODE_CHECK_API_CLIENT', process.execPath, ['--check', 'services/api/client.js']);
   run('NODE_CHECK_AGENT_CHAT_CLIENT', process.execPath, ['--check', 'services/agent/chat.js']);
   run('AI_STREAM_UTF8_SMOKE', process.execPath, ['backend/scripts/ai-stream-utf8-smoke.js']);
+  runNodeEval('AI_PROVIDER_KEY_ROUTING', "process.env.AI_API_KEY='deepseek-key';process.env.DASHSCOPE_API_KEY='dashscope-key';process.env.ASR_CLOUD_API_KEY='asr-key';const c=require('./backend/src/config').config;if(c.aiApiKey!=='deepseek-key'||c.dashscopeApiKey!=='dashscope-key'||c.asrCloudApiKey!=='asr-key')throw new Error('provider keys crossed');");
   run('AI_FIELD_FLOW_SMOKE', process.execPath, ['backend/scripts/ai-field-flow-smoke.js']);
+  run('AI_WORKSPACE_INPUT_SMOKE', process.execPath, ['backend/scripts/ai-workspace-input-smoke.js']);
+  run('AI_WORKSPACE_GOLDEN_SMOKE', process.execPath, ['backend/scripts/ai-workspace-golden-smoke.js']);
+  run('GROUNDING_AUDIT_SMOKE', process.execPath, ['backend/scripts/grounding-audit-smoke.js']);
+  run('AI_WORKSPACE_INTENT_SMOKE', process.execPath, ['backend/scripts/ai-workspace-intent-smoke.js']);
   run('AI_WORKSPACE_SMOKE', process.execPath, ['backend/scripts/ai-workspace-smoke.js']);
   run('AI_WORKSPACE_CLIENT_SMOKE', process.execPath, ['backend/scripts/ai-workspace-client-smoke.js']);
   run('AUTH_SESSION_CLIENT_SMOKE', process.execPath, ['backend/scripts/auth-session-client-smoke.js']);
   run('MINIPROGRAM_COMPONENT_GRAPH_SMOKE', process.execPath, ['backend/scripts/miniprogram-component-graph-smoke.js']);
+  run('MINIPROGRAM_PACKAGE_SIZE_SMOKE', process.execPath, ['backend/scripts/miniprogram-package-size-smoke.js']);
   runNodeEval('AI_CONFIRM_ITEM_NORMALIZATION', [
     "const direct=require('./backend/src/modules/direct-ai-chat');",
     "const items=direct.normalizeConfirmItems(['1. 会诊时间未提供；','会诊时间未提供。','  - 用药剂量待核实  ']);",
@@ -144,7 +150,7 @@ function main() {
     "if(!js.includes('stripEmptyTemplateFields') || !js.includes('wx.onKeyboardHeightChange')) throw new Error('AI composer must filter empty template labels and track keyboard height');",
     "if(!wxml.includes('style=\"{{composerBottomStyle}}\"') || !wxml.includes('adjust-position=\"{{false}}\"') || !wxml.includes('class=\"field-editor-mask\" style=\"{{composerBottomStyle}}\"')) throw new Error('AI composer keyboard positioning regressed');",
     "if(!wxss.includes('.composer-toolbar__left') || !wxss.includes('flex: 0 0 176rpx') || !wxss.includes('z-index: 12000')) throw new Error('AI send button or confirmation dialog layout regressed');",
-    "if(!wxml.includes('按项补充（可选）') || !wxml.includes('材料无误，生成草稿') || !wxml.includes('templateConfirmSources') || !js.includes('looksLikeStandaloneQuestion')) throw new Error('Template workflow guidance or question isolation regressed');",
+    "if(!wxml.includes('按项补充（可选）') || !wxml.includes('添加材料') || !wxml.includes('生成草稿') || !js.includes('looksLikeStandaloneQuestion') || !js.includes('workspaceHasMaterials')) throw new Error('Template workflow guidance or question isolation regressed');",
     "if(!direct.includes('Omit empty sections and field labels') || !agent.includes('正文只保留有事实内容的章节')) throw new Error('Template generation must produce a document instead of echoing empty fields');",
     "if(!direct.includes('writing blueprint') || !agent.includes('当前模板写作蓝图') || !blueprints.includes('standard-rich') || !quality.includes('richnessThin')) throw new Error('Template format imitation or richness signal regressed');",
     "if(!direct.includes('Never infer or add a diagnosis') || !direct.includes('splitSectionedOutput') || !agent.includes('严禁新增诊断')) throw new Error('Medical generation fact boundaries regressed');"
@@ -156,9 +162,19 @@ function main() {
     "const js=fs.readFileSync('pages/ai/detail.js','utf8'); const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8'); const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8');",
     "const fieldMaterial=require('./services/templates/field-material'); const twoFields=[{label:'字段一',value:'内容一'},{label:'字段二',value:'内容二'}]; if(fieldMaterial.countFilledFields(twoFields)!==2 || !fieldMaterial.combineMaterials('',twoFields).includes('字段二：内容二') || fieldMaterial.combineMaterials('',[{label:'空字段',value:''}])) throw new Error('Filled template fields must become sendable material while empty fields stay excluded');",
     "if(!js.includes('buildMaterialSummary') || !js.includes('OCR 已加入') || !js.includes('录音已独立加入') || !js.includes('pendingVoiceMaterials')) throw new Error('Document workbench must keep OCR and separate recordings in the selected template materials');",
-    "for(const text of ['按项补充（可选）','补充资料','详细程度','生成设置','核对并生成','下一步：核对并生成','补充整段记录（可选）','资料已加入，可直接核对生成','templateConfirmSources','编辑正文','让 AI 修改','AI 整理·尚未核对']){if(!wxml.includes(text)) throw new Error('Document workbench missing: '+text);}",
-    "if(!js.includes('buildTemplateConfirmPreview') || !js.includes('documentTaskStartIndex') || !js.includes(\"confirmEditorMode: 'direct'\") || !js.includes('syncComposerLayout') || !js.includes('detailLevel') || !js.includes('templateFieldChoicesVisible') || !js.includes('templateFieldMaterial.combineMaterials')) throw new Error('Document isolation, material review, filled-field routing, progressive disclosure, responsive layout, or detail control regressed');",
+    "for(const text of ['按项补充（可选）','补充资料','详细程度','生成设置','添加材料','生成草稿','完成补充','材料已保存，可继续补充或生成草稿','编辑正文','让 AI 修改','AI 整理·尚未核对']){if(!wxml.includes(text)) throw new Error('Document workbench missing: '+text);}",
+    "if(!js.includes('addCurrentMaterialsToWorkspace') || !js.includes('documentTaskStartIndex') || !js.includes(\"confirmEditorMode: 'direct'\") || !js.includes('syncComposerLayout') || !js.includes('detailLevel') || !js.includes('templateFieldChoicesVisible') || !js.includes('templateFieldMaterial.combineMaterials')) throw new Error('Document isolation, material review, filled-field routing, progressive disclosure, responsive layout, or detail control regressed');",
+    "if(!js.includes('appendAttachmentsFromPaths(res.tempFilePaths || [], sourceWorkspaceId)') || !js.includes('encodeURIComponent(sourceWorkspaceId)')) throw new Error('Image or voice capture must stay bound to the workspace that started the picker');",
+    "if(!js.includes(\"finalResult.status === 'needs_review'\") || !js.includes('生成未通过核对')) throw new Error('Unverified confirmed fields must not be presented as a completed document');",
     "if(!wxss.includes('.document-workbench') || !wxss.includes('.document-workbench__compact-status') || !wxss.includes('.document-workbench__optional') || !wxss.includes('.document-workbench__segment.is-active') || !wxss.includes('.confirm-editor__textarea--document')) throw new Error('Document workbench states are missing');"
+  ].join(' '));
+  runNodeEval('AI_QUALITY_PIPELINE_SOURCE_GUARD', [
+    "const fs=require('fs');",
+    "const direct=fs.readFileSync('backend/src/modules/direct-ai-chat.js','utf8'); const pythonAudit=fs.readFileSync('agent-service/app/utils/grounding_audit.py','utf8'); const pythonOutput=fs.readFileSync('agent-service/app/utils/text_output.py','utf8'); const orchestration=fs.readFileSync('agent-service/app/agents/orchestrator.py','utf8');",
+    "if(!direct.includes('auditSourceGrounding')||!direct.includes('UNSUPPORTED_CLINICAL_CLAIM')||!direct.includes('requiredSourceFacts')) throw new Error('Node grounding or report-header fact audit missing');",
+    "if(!pythonAudit.includes('audit_source_grounding')||!pythonAudit.includes('UNSUPPORTED_CLINICAL_CLAIM')) throw new Error('Python grounding audit missing');",
+    "if(!pythonOutput.includes('remove_unavailable_template_sections')) throw new Error('unsupported empty template section cleanup missing');",
+    "if(!orchestration.includes('repaired_failure_count < current_failure_count')) throw new Error('orchestrator may discard a safer repaired draft');"
   ].join(' '));
   runNodeEval('AI_COMPOSER_EXTENSION_MODEL', [
     "const fs=require('fs');",
@@ -166,7 +182,7 @@ function main() {
     "const wxml=fs.readFileSync('pages/ai/detail.wxml','utf8');",
     "const wxss=fs.readFileSync('pages/ai/detail.wxss','utf8');",
     "for(const text of ['选择操作','拍照识别','录音转写','普通问答','普通问答，不会加入整理任务','返回整理','文字、图片和录音会用于','补充资料']){if(!wxml.includes(text)) throw new Error('Composer relationship missing: '+text);}",
-    "if(!wxml.includes(\"selectedTemplateName && composerMode !== 'chat'\") || !wxml.includes('requestCloseTemplate') || !wxml.includes('previewTemplateFromFields') || !js.includes('hasMeaningfulWorkspaceDraft') || !js.includes('handoffTemplateId ? { templateId: handoffTemplateId }') || !js.includes('已填字段会转成普通文字')) throw new Error('Ordinary mode, template restore, explicit handoff, template close, or direct next-step behavior regressed');",
+    "if(!wxml.includes(\"selectedTemplateName && composerMode !== 'chat'\") || !wxml.includes('requestCloseTemplate') || !wxml.includes('finishTemplateFields') || !js.includes('hasMeaningfulWorkspaceDraft') || !js.includes('handoffTemplateId ? { templateId: handoffTemplateId }') || !js.includes('已填字段会转成普通文字')) throw new Error('Ordinary mode, template restore, explicit handoff, template close, or direct next-step behavior regressed');",
     "if(!js.includes('toggleComposerMorePanel')||!js.includes('openTemplateToolsPanel')||!js.includes('backToComposerMorePanel')||!js.includes('closeComposerPanels')) throw new Error('Composer extension interactions are incomplete');",
     "if(!wxss.includes('.composer-extension__grid')||!wxss.includes('.composer-template-panel')||!wxss.includes('.composer-plus.is-active')) throw new Error('Composer extension visual states are incomplete');"
   ].join(' '));

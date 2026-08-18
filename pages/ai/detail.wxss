@@ -178,6 +178,17 @@
 .document-workbench__optional-title, .document-workbench__optional-note { display: block; }
 .document-workbench__optional-title { color: #5B35CE; font-size: 24rpx; line-height: 1.35; font-weight: 700; }
 .document-workbench__optional-note { margin-top: 2rpx; overflow: hidden; color: #667089; font-size: 22rpx; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.document-workbench__material-entry { min-height: 66rpx; margin-top: 8rpx; padding: 8rpx 12rpx; display: flex; align-items: center; justify-content: space-between; gap: 12rpx; border-radius: 12rpx; background: #F7F8FB; box-sizing: border-box; }
+.workspace-material-list { max-height: 280rpx; margin-top: 8rpx; overflow-y: auto; border: 1rpx solid #ECE8F5; border-radius: 12rpx; background: #FFFFFF; }
+.workspace-material { min-height: 82rpx; padding: 10rpx 12rpx; display: flex; align-items: center; gap: 12rpx; border-bottom: 1rpx solid #F1EEF7; box-sizing: border-box; }
+.workspace-material:last-child { border-bottom: 0; }
+.workspace-material.is-excluded { opacity: 0.62; }
+.workspace-material.needs-review { background: #FFF9EA; }
+.workspace-material__copy { min-width: 0; flex: 1; }
+.workspace-material__title, .workspace-material__summary { display: block; }
+.workspace-material__title { color: #27324D; font-size: 23rpx; line-height: 1.35; font-weight: 600; }
+.workspace-material__summary { margin-top: 2rpx; overflow: hidden; color: #788198; font-size: 21rpx; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-material__action { min-width: 88rpx; height: 52rpx; padding: 0 14rpx; border-radius: 26rpx; background: #F1EDFF; color: #6335DF; font-size: 22rpx; line-height: 1; }
 .document-workbench__settings { margin-top: 14rpx; padding-top: 14rpx; border-top: 1rpx solid #ECE8F5; }
 .document-workbench__setting-row { display: flex; align-items: center; justify-content: space-between; gap: 14rpx; }
 .document-workbench__setting-label { flex-shrink: 0; color: #27324D; font-size: 24rpx; font-weight: 600; }
@@ -633,27 +644,6 @@
 .field-editor__save { flex: 1.6; background: #6F3DFF; color: #FFFFFF; }
 .field-editor__cancel::after, .field-editor__save::after { border: 0; }
 
-.inline-confirm-row { display: flex; align-items: flex-start; gap: 14rpx; padding: 12rpx 20rpx 20rpx; }
-.inline-confirm-card { width: calc(100% - 76rpx); padding: 22rpx; box-sizing: border-box; border: 1rpx solid #E2DAFF; border-radius: 22rpx; background: #FFFFFF; box-shadow: 0 8rpx 24rpx rgba(30, 24, 62, 0.08); }
-.inline-confirm-card__title, .inline-confirm-card__hint, .inline-confirm-card__notice { display: block; }
-.inline-confirm-card__title { color: #101936; font-size: 29rpx; line-height: 1.4; font-weight: 700; }
-.inline-confirm-card__hint { margin-top: 5rpx; color: #6F3DFF; font-size: 23rpx; line-height: 1.4; }
-.inline-confirm-card__settings { margin-top: 14rpx; padding: 4rpx 14rpx; border-radius: 12rpx; background: #F6F4FB; }
-.inline-confirm-card__settings > view { display: flex; align-items: flex-start; justify-content: space-between; gap: 16rpx; padding: 10rpx 0; border-bottom: 1rpx solid #E9E5F2; }
-.inline-confirm-card__settings > view:last-child { border-bottom: 0; }
-.inline-confirm-card__setting-label { flex-shrink: 0; color: #64739A; font-size: 21rpx; }
-.inline-confirm-card__setting-value { color: #27324D; font-size: 21rpx; line-height: 1.4; text-align: right; }
-.inline-confirm-card__sources { display: flex; align-items: center; gap: 8rpx; margin-top: 14rpx; padding: 11rpx 13rpx; border-radius: 12rpx; background: rgba(24, 168, 114, 0.08); color: #236E55; font-size: 22rpx; line-height: 1.4; }
-.inline-confirm-card__images { width: 100%; margin-top: 12rpx; white-space: nowrap; }
-.inline-confirm-card__images-row { display: inline-flex; gap: 10rpx; }
-.inline-confirm-card__image { width: 88rpx; height: 88rpx; flex-shrink: 0; border-radius: 12rpx; background: #F2EDFF; }
-.inline-confirm-card__preview { max-height: 190rpx; min-height: 72rpx; margin-top: 12rpx; padding: 14rpx; box-sizing: border-box; border-radius: 12rpx; background: #F6F4FB; color: #27324D; font-size: 23rpx; line-height: 1.55; white-space: pre-wrap; word-break: break-all; }
-.inline-confirm-card__notice { margin-top: 10rpx; color: #64739A; font-size: 23rpx; line-height: 1.45; }
-.inline-confirm-card__actions { display: flex; align-items: center; gap: 12rpx; margin-top: 16rpx; }
-.inline-confirm-card__back, .inline-confirm-card__submit { height: 68rpx; margin: 0; padding: 0 16rpx; border-radius: 13rpx; font-size: 23rpx; font-weight: 600; line-height: 68rpx; }
-.inline-confirm-card__back { flex: 1; background: #F0F1F5; color: #4D5870; }
-.inline-confirm-card__submit { flex: 1.8; background: #6F3DFF; color: #FFFFFF; }
-.inline-confirm-card__back::after, .inline-confirm-card__submit::after { border: 0; }
 
 .session-footer {
   display: flex;
@@ -705,4 +695,51 @@
   flex: none;
   color: #6f3dff;
   font-weight: 600;
+}
+
+/* V3 single-action composer: the input, plus and contextual action share one axis. */
+.composer-input-row {
+  display: flex;
+  min-height: 84rpx;
+  padding: 10rpx 12rpx;
+  align-items: flex-end;
+  gap: 10rpx;
+  box-sizing: border-box;
+  background: #FFFFFF;
+}
+
+.composer-input-row .composer-textarea {
+  min-width: 0;
+  min-height: 64rpx;
+  max-height: 224rpx;
+  flex: 1;
+  padding: 11rpx 14rpx;
+  border-radius: 12rpx;
+  background: #F4F5F7;
+  font-size: 28rpx;
+  line-height: 42rpx;
+}
+
+.composer-input-row .composer-plus,
+.composer-input-row .composer-send,
+.composer-input-row .composer-stop {
+  margin-bottom: 0;
+  align-self: flex-end;
+}
+
+.composer-input-row .composer-plus {
+  width: 64rpx;
+  height: 64rpx;
+  flex: 0 0 64rpx;
+}
+
+.composer-input-row .composer-send {
+  height: 64rpx;
+  line-height: 1.2;
+}
+
+.composer-input-row .composer-send--document {
+  width: 124rpx;
+  min-width: 124rpx;
+  flex-basis: 124rpx;
 }

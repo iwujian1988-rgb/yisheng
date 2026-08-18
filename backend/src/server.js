@@ -225,6 +225,7 @@ router.post('/api/ai/workspaces/:id/fields', aiWorkspaces.saveField);
 router.post('/api/ai/workspaces/:id/materials', aiWorkspaces.addMaterial);
 router.patch('/api/ai/workspaces/:id/materials/:materialId', aiWorkspaces.updateMaterial);
 router.post('/api/ai/workspaces/:id/generations', aiWorkspaces.createGeneration);
+router.post('/api/ai/workspaces/:id/interpret', aiWorkspaces.interpretInput);
 router.get('/api/templates', templatesModule.listTemplates);
 router.get('/api/templates/:id', templatesModule.getTemplate);
 router.post('/api/templates', templatesModule.saveTemplate);

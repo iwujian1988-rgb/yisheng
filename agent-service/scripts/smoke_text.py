@@ -12,7 +12,7 @@ async def main() -> None:
     try:
         result = await agent.execute(
             {
-                "text": "主诉头痛两天，体温37.8摄氏度。",
+                "sources": {"pastedText": "主诉头痛两天，体温37.8摄氏度。"},
                 "task": "organize",
                 "mode": "general",
             }

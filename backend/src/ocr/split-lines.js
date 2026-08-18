@@ -30,11 +30,31 @@ function splitLinesFromText(text) {
 }
 
 function buildOcrPayload(text, extra) {
+  var structureStartedAt = Date.now();
   var normalized = normalizeText(text);
   var payload = extra && typeof extra === 'object' ? Object.assign({}, extra) : {};
+  var structure = require('./structure-document');
+  payload.document = structure.buildStructuredDocument({
+    text: normalized,
+    sourceId: payload.sourceId || 'source_unknown',
+    pageIndex: payload.pageIndex || 0,
+    reportDate: payload.reportDate || '',
+    regions: payload.regions || [],
+    rows: payload.rows || []
+    ,metadata: payload.documentMetadata || {}
+    ,dates: payload.documentDates || {}
+  });
+  if (/<table[\s>]/i.test(normalized)) {
+    var outsideTables = normalizeText(normalized.replace(/<table[\s\S]*?<\/table>/gi, ' '));
+    var tableText = structure.htmlTableRows(normalized).map(function (cells) {
+      return cells.join(' | ');
+    }).join('\n');
+    normalized = [outsideTables, tableText].filter(Boolean).join('\n\n');
+  }
   payload.text = normalized;
   payload.charCount = normalized.length;
   payload.lines = splitLinesFromText(normalized);
+  payload.structureMs = Date.now() - structureStartedAt;
   return payload;
 }
 

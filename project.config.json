@@ -3,6 +3,106 @@
   "packOptions": {
     "ignore": [
       {
+        "value": ".tmp",
+        "type": "folder"
+      },
+      {
+        "value": ".agents",
+        "type": "folder"
+      },
+      {
+        "value": ".github",
+        "type": "folder"
+      },
+      {
+        "value": "AGENTS.md",
+        "type": "file"
+      },
+      {
+        "value": "deploy-maxnote.bat",
+        "type": "file"
+      },
+      {
+        "value": "project.private.config.json",
+        "type": "file"
+      },
+      {
+        "value": ".gitignore",
+        "type": "file"
+      },
+      {
+        "value": ".gitattributes",
+        "type": "file"
+      },
+      {
+        "value": "pages/admin",
+        "type": "folder"
+      },
+      {
+        "value": "pages/analytics",
+        "type": "folder"
+      },
+      {
+        "value": "pages/backend",
+        "type": "folder"
+      },
+      {
+        "value": "pages/compliance",
+        "type": "folder"
+      },
+      {
+        "value": "pages/demo",
+        "type": "folder"
+      },
+      {
+        "value": "pages/dev",
+        "type": "folder"
+      },
+      {
+        "value": "pages/finance",
+        "type": "folder"
+      },
+      {
+        "value": "pages/integration",
+        "type": "folder"
+      },
+      {
+        "value": "pages/maintenance",
+        "type": "folder"
+      },
+      {
+        "value": "pages/manual",
+        "type": "folder"
+      },
+      {
+        "value": "pages/metrics",
+        "type": "folder"
+      },
+      {
+        "value": "pages/ops",
+        "type": "folder"
+      },
+      {
+        "value": "pages/qa",
+        "type": "folder"
+      },
+      {
+        "value": "pages/register",
+        "type": "folder"
+      },
+      {
+        "value": "pages/release",
+        "type": "folder"
+      },
+      {
+        "value": "pages/sales",
+        "type": "folder"
+      },
+      {
+        "value": "pages/training",
+        "type": "folder"
+      },
+      {
         "value": "backend",
         "type": "folder"
       },
@@ -93,6 +193,10 @@
       {
         "value": "miniprogram_npm/tdesign-miniprogram/.wechatide.ib.json",
         "type": "file"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/icon/fonts",
+        "type": "folder"
       },
       {
         "value": "miniprogram_npm/tdesign-miniprogram/cascader",

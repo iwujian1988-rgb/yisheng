@@ -25,7 +25,7 @@ function blueprint(definition) {
       targetExpansionRatio: '当材料是多个零散短句时，正文通常可达到有效源材料的1.4至2.2倍；这只是参考范围，不是必须凑够的字数。',
       minimumSourceChars: 60,
       minimumBodyChars: 80,
-      minimumBodyToSourceRatio: 1.2,
+      minimumBodyToSourceRatio: 1.05,
       method: '只能通过完整句、时间线、章节组织、术语规范和必要摘要增加可读性，不得重复凑字；材料已规范或无法安全扩写时允许低于参考比例。'
     },
     outputRules: [

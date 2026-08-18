@@ -17,6 +17,7 @@ var capturedChat = null;
 var capturedMaterials = [];
 var createdWorkspaces = [];
 var savedFields = [];
+var workspaceRevisions = {};
 var chatPath = require.resolve('../../services/agent/chat');
 require.cache[chatPath] = { id: chatPath, filename: chatPath, loaded: true, exports: {
   sendChatStream: function (options) { capturedChat = options; return { abort: function () {} }; }
@@ -24,11 +25,26 @@ require.cache[chatPath] = { id: chatPath, filename: chatPath, loaded: true, expo
 var workspacePath = require.resolve('../../services/ai/workspace');
 require.cache[workspacePath] = { id: workspacePath, filename: workspacePath, loaded: true, exports: {
   createWorkspace: function (templateId) { createdWorkspaces.push(templateId); return Promise.resolve({ id: 'aiw-' + templateId }); },
-  getWorkspace: function () { return Promise.resolve(null); },
+  getWorkspace: function (id) {
+    var fields = {};
+    savedFields.filter(function (item) { return item.workspaceId === id; }).forEach(function (item) { fields[item.key] = item.value; });
+    return Promise.resolve({
+      id: id,
+      materialRevision: workspaceRevisions[id] || 0,
+      materials: capturedMaterials.filter(function (item) { return item.workspaceId === id; }).map(function (item) { return item.material; }),
+      fields: fields
+    });
+  },
   updateWorkspace: function () { return Promise.resolve(null); },
-  saveField: function (workspaceId, key, value) { savedFields.push({ workspaceId: workspaceId, key: key, value: value }); return Promise.resolve(null); },
-  addMaterial: function (id, material) { capturedMaterials.push({ workspaceId: id, material: material }); return Promise.resolve({ material: material }); },
-  createGeneration: function () { return Promise.resolve({ id: 'aig-client' }); }
+  saveField: function (workspaceId, key, value) { savedFields.push({ workspaceId: workspaceId, key: key, value: value }); workspaceRevisions[workspaceId] = (workspaceRevisions[workspaceId] || 0) + 1; return Promise.resolve({ materialRevision: workspaceRevisions[workspaceId] }); },
+  addMaterial: function (id, material) { capturedMaterials.push({ workspaceId: id, material: material }); workspaceRevisions[id] = (workspaceRevisions[id] || 0) + 1; return Promise.resolve({ material: material, materialRevision: workspaceRevisions[id] }); },
+  createGeneration: function () { return Promise.resolve({ id: 'aig-client' }); },
+  interpretInput: function (id, payload) {
+    if (id === 'aiw-client') {
+      return Promise.resolve({ disposition: 'side_chat', intents: [{ type: 'general_chat', confidence: 0.99, payload: { text: payload.text } }] });
+    }
+    return Promise.resolve({ disposition: 'execute', intents: [{ type: 'add_fact', confidence: 0.99, payload: { text: payload && payload.text || '' } }] });
+  }
 } };
 
 require('../../pages/ai/detail.js');
@@ -102,10 +118,10 @@ async function main() {
   questionPage.data.inputText = '今天天气怎么样？';
   questionPage.data.canSend = true;
   questionPage.sendMessage({});
-  if (!lastActionSheet || capturedChat) throw new Error('question-like input was not stopped before contaminating a template');
-  lastActionSheet.success({ tapIndex: 0 });
+  await new Promise(function (resolve) { setTimeout(resolve, 0); });
+  await new Promise(function (resolve) { setTimeout(resolve, 0); });
   if (!capturedChat || capturedChat.workspaceId || capturedChat.templateId || capturedChat.contextId !== 'side-question') {
-    throw new Error('confirmed ordinary question was not isolated from the active template');
+    throw new Error('server-classified ordinary question was not isolated from the active template');
   }
 
   var blockedOneShotPage = createPage();
@@ -143,11 +159,10 @@ async function main() {
   if (!confirmPage.data.templateFieldsPanelVisible || !confirmPage.data.templateFieldChoicesVisible || confirmPage.data.templateFieldValues.first !== '值一' || confirmPage.data.templateFieldValues.second !== '值二') {
     throw new Error('filling one template field made the next field hard to continue');
   }
-  confirmPage.previewTemplateFromFields();
-  if (!confirmPage.data.templateConfirmVisible || confirmPage.data.templateFieldsPanelVisible) {
-    throw new Error('filled template fields did not expose a direct next step to review and generate');
+  await confirmPage.finishTemplateFields();
+  if (confirmPage.data.templateFieldsPanelVisible || confirmPage.data.templateFieldChoicesVisible) {
+    throw new Error('finishing template fields did not return to the simple chat composer');
   }
-  confirmPage.closeTemplateConfirm();
 
   lastModal = null;
   confirmPage.data.materialReady = true;
@@ -187,14 +202,13 @@ async function main() {
 
   confirmPage.data.inputText = '一段原始记录';
   confirmPage.refreshSendState();
-  confirmPage.sendMessage({});
-  if (!confirmPage.data.templateConfirmVisible || capturedMaterials.length || capturedChat) {
-    throw new Error('first document send skipped the user confirmation step');
+  await confirmPage.sendMessage({});
+  if (!confirmPage.data.workspaceHasMaterials || confirmPage.data.inputText || capturedChat
+    || !capturedMaterials.some(function (item) { return item.workspaceId === 'aiw-confirm' && item.material.kind === 'typed'; })) {
+    throw new Error('typed document material was not added before generation: ' + JSON.stringify({ workspaceHasMaterials: confirmPage.data.workspaceHasMaterials, inputText: confirmPage.data.inputText, capturedChat: Boolean(capturedChat), capturedMaterials: capturedMaterials }));
   }
-  confirmPage.closeTemplateConfirm();
-  if (confirmPage.data.inputText !== '一段原始记录') throw new Error('returning from confirmation lost the user input');
+  confirmPage.refreshSendState();
   confirmPage.sendMessage({});
-  confirmPage.confirmTemplateSubmission();
   await new Promise(function (resolve) { setTimeout(resolve, 0); });
   await new Promise(function (resolve) { setTimeout(resolve, 0); });
   if (!capturedChat || capturedChat.workspaceId !== 'aiw-confirm' || !capturedChat.generationId || !capturedMaterials.some(function (item) { return item.workspaceId === 'aiw-confirm' && item.material.kind === 'typed'; })) {

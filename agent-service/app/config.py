@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     ai_chat_completions_url: str = ""
     ai_api_key: str = ""
     ai_model: str = "default-chat-model"
+    ai_thinking_mode: str = "disabled"
     ai_timeout_ms: int = 60000
 
     orchestrator_model: str = ""
@@ -39,6 +40,7 @@ class Settings(BaseSettings):
     dashscope_base_url: str = "https://dashscope.aliyuncs.com"
 
     ocr_model: str = "qwen-vl-ocr-2025-11-20"
+    ocr_structured_model: str = "qwen3-vl-flash"
     ocr_task: str = "text_recognition"
     ocr_timeout: int = 60000
     ocr_max_bytes: int = 5242880
@@ -70,8 +72,8 @@ class Settings(BaseSettings):
 
     @property
     def effective_dashscope_api_key(self) -> str:
-        # Prefer AI_API_KEY so project .env wins over stale machine-level DASHSCOPE_API_KEY.
-        return self.ai_api_key or self.dashscope_api_key
+        # OCR/ASR are DashScope-native and must not receive a separate text-provider key.
+        return self.dashscope_api_key or self.ai_api_key
 
     @property
     def effective_ai_base_url(self) -> str:

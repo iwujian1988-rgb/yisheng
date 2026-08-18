@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import logging
+import json
 import re
+import time
 from typing import Any
 
 import httpx
@@ -69,23 +71,33 @@ class DashScopeClient:
     def _generation_url(self) -> str:
         return self._settings.dashscope_base_url.rstrip("/") + "/api/v1/services/aigc/multimodal-generation/generation"
 
-    def _extract_ocr_text(self, payload: dict[str, Any]) -> str:
+    def _extract_ocr_content(self, payload: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
         choices = (payload.get("output") or {}).get("choices") or []
         if not choices:
-            return ""
+            return "", []
         message = choices[0].get("message") or {}
         content = message.get("content")
         if not isinstance(content, list) or not content:
-            return ""
+            return "", []
         first = content[0]
         if first.get("text"):
-            return _normalize_text(_strip_code_fence(str(first["text"])))
+            return _normalize_text(_strip_code_fence(str(first["text"]))), []
         ocr_result = first.get("ocr_result") or {}
         words_info = ocr_result.get("words_info") or []
         if isinstance(words_info, list):
             lines = [str(item.get("text") or "").strip() for item in words_info if item.get("text")]
-            return _normalize_text("\n".join(lines))
-        return ""
+            regions = [
+                {
+                    "index": index,
+                    "text": str(item.get("text") or "").strip(),
+                    "polygon": item.get("polygon") or item.get("box") or item.get("bbox") or item.get("position"),
+                    "confidence": float(item.get("confidence") or item.get("score") or 0),
+                }
+                for index, item in enumerate(words_info)
+                if item.get("text")
+            ]
+            return _normalize_text("\n".join(lines)), regions
+        return "", []
 
     async def ocr_image(
         self,
@@ -93,6 +105,7 @@ class DashScopeClient:
         image_base64: str,
         mime_type: str = "",
         file_type: str = "",
+        task: str = "",
     ) -> dict[str, Any]:
         if not self.configured:
             raise RuntimeError("DashScope API key is not configured")
@@ -114,18 +127,77 @@ class DashScopeClient:
                     }
                 ]
             },
-            "parameters": {"ocr_options": {"task": self._settings.ocr_task}},
+            "parameters": {"ocr_options": {"task": task or self._settings.ocr_task}},
         }
         timeout = self._settings.ocr_timeout / 1000
+        started_at = time.perf_counter()
         async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(self._generation_url(), json=payload, headers=self._headers())
             raise_for_provider_response(response)
             data = response.json()
-        text = self._extract_ocr_text(data)
+        text, regions = self._extract_ocr_content(data)
         return {
             "text": text,
+            "regions": regions,
             "provider": self._settings.ocr_model,
             "status": "ok" if text else "empty",
+            "elapsedMs": round((time.perf_counter() - started_at) * 1000),
+        }
+
+    async def structured_table_image(
+        self,
+        *,
+        image_base64: str,
+        mime_type: str = "",
+        file_type: str = "",
+    ) -> dict[str, Any]:
+        if not self.configured:
+            raise RuntimeError("DashScope API key is not configured")
+        data_url = f"data:{_resolve_image_mime(mime_type, file_type)};base64,{image_base64}"
+        prompt = (
+            "Read this laboratory report directly from the image pixels. Return JSON only with keys dates, metadata, rows. "
+            "dates is an object whose keys are the exact printed date labels and whose values use YYYY-MM-DD when possible. "
+            "metadata is an object containing every printed report-header field. rows is an array in visual row order. "
+            "Every row must contain rowNumber, code, name, result, flag, unit, referenceRange. Preserve empty cells as empty strings. "
+            "Bind each cell only to the same visual row; never shift a neighboring row value into an empty cell. "
+            "Keep arrows in flag, not in result. Never infer or normalize missing values."
+        )
+        payload = {
+            "model": self._settings.ocr_structured_model,
+            "input": {
+                "messages": [{
+                    "role": "user",
+                    "content": [
+                        {"image": data_url, "min_pixels": 65536, "max_pixels": 8388608, "enable_rotate": False},
+                        {"text": prompt},
+                    ],
+                }]
+            },
+            "parameters": {"max_tokens": 8000},
+        }
+        timeout = self._settings.ocr_timeout / 1000
+        started_at = time.perf_counter()
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.post(self._generation_url(), json=payload, headers=self._headers())
+            raise_for_provider_response(response)
+            data = response.json()
+        text, _regions = self._extract_ocr_content(data)
+        try:
+            parsed = json.loads(_strip_code_fence(text))
+        except (json.JSONDecodeError, TypeError) as exc:
+            raise RuntimeError("structured OCR returned invalid JSON") from exc
+        rows = parsed.get("rows") if isinstance(parsed, dict) else None
+        if not isinstance(rows, list) or not rows:
+            raise RuntimeError("structured OCR returned no rows")
+        return {
+            "text": json.dumps(parsed, ensure_ascii=False),
+            "rows": rows,
+            "metadata": parsed.get("metadata") if isinstance(parsed.get("metadata"), dict) else {},
+            "dates": parsed.get("dates") if isinstance(parsed.get("dates"), dict) else {},
+            "regions": [],
+            "provider": self._settings.ocr_structured_model,
+            "status": "ok",
+            "elapsedMs": round((time.perf_counter() - started_at) * 1000),
         }
 
     async def asr_audio(

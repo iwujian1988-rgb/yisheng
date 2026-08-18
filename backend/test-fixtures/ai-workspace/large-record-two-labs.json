@@ -1,0 +1,31 @@
+{
+  "fixtureVersion": 1,
+  "name": "large-record-two-labs",
+  "templateId": "professional-large-record",
+  "confirmedFields": [
+    { "key": "patient_name", "label": "姓名", "value": "王大力" }
+  ],
+  "materials": [
+    {
+      "id": "material_lab_a",
+      "kind": "ocr",
+      "sourceMeta": { "sourceId": "image_a", "pageIndex": 0, "reportDate": "" },
+      "structuredFacts": [
+        { "factId": "fact_a_tp", "sourceId": "image_a", "pageIndex": 0, "rowIndex": 1, "reportDate": "", "code": "TP", "name": "总蛋白", "result": "77.4", "unit": "g/L", "referenceRange": "60-84", "flag": "" },
+        { "factId": "fact_a_ck", "sourceId": "image_a", "pageIndex": 0, "rowIndex": 16, "reportDate": "", "code": "CK", "name": "肌酸激酶", "result": "1292", "unit": "IU/L", "referenceRange": "22-195", "flag": "high" },
+        { "factId": "fact_a_ua", "sourceId": "image_a", "pageIndex": 0, "rowIndex": 21, "reportDate": "", "code": "UA", "name": "尿酸", "result": "501", "unit": "umol/L", "referenceRange": "130-400", "flag": "high" },
+        { "factId": "fact_a_tg", "sourceId": "image_a", "pageIndex": 0, "rowIndex": 33, "reportDate": "", "code": "TG", "name": "甘油三酯", "result": "3.10", "unit": "mmol/L", "referenceRange": "0.4-1.8", "flag": "high" }
+      ]
+    },
+    {
+      "id": "material_lab_b",
+      "kind": "ocr",
+      "sourceMeta": { "sourceId": "image_b", "pageIndex": 0, "reportDate": "2024-04-03" },
+      "structuredFacts": [
+        { "factId": "fact_b_glu", "sourceId": "image_b", "pageIndex": 0, "rowIndex": 1, "reportDate": "2024-04-03", "code": "GLU", "name": "葡萄糖", "result": "18.32", "unit": "mmol/L", "referenceRange": "3.89-6.11", "flag": "high" },
+        { "factId": "fact_b_na", "sourceId": "image_b", "pageIndex": 0, "rowIndex": 21, "reportDate": "2024-04-03", "code": "Na", "name": "钠", "result": "128.00", "unit": "mmol/L", "referenceRange": "137-147", "flag": "low" },
+        { "factId": "fact_b_cl", "sourceId": "image_b", "pageIndex": 0, "rowIndex": 22, "reportDate": "2024-04-03", "code": "Cl", "name": "氯", "result": "90.00", "unit": "mmol/L", "referenceRange": "99-110", "flag": "low" }
+      ]
+    }
+  ]
+}

@@ -36,10 +36,10 @@ function addMaterial(id, material) {
   });
 }
 
-function updateMaterial(id, materialId, status) {
+function updateMaterial(id, materialId, changes) {
   return apiClient.request({
     url: path(endpoints.ENDPOINTS.aiWorkspaces.materialDetail, { id: id, materialId: materialId }),
-    method: 'PATCH', data: { status: status }
+    method: 'PATCH', data: typeof changes === 'string' ? { status: changes } : (changes || {})
   });
 }
 
@@ -51,4 +51,10 @@ function createGeneration(id, options) {
   }).then(function (data) { return data.generation; });
 }
 
-module.exports = { addMaterial, createGeneration, createWorkspace, getWorkspace, saveField, updateMaterial, updateWorkspace };
+function interpretInput(id, payload) {
+  return apiClient.request({
+    url: path(endpoints.ENDPOINTS.aiWorkspaces.interpret, { id: id }), method: 'POST', data: payload || {}
+  });
+}
+
+module.exports = { addMaterial, createGeneration, createWorkspace, getWorkspace, interpretInput, saveField, updateMaterial, updateWorkspace };

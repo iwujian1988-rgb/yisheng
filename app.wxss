@@ -80,6 +80,38 @@ button[disabled] {
   opacity: 0.48;
 }
 
+.ui-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.ui-button__icon {
+  display: flex;
+  width: 1em;
+  height: 1em;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.ui-button__text {
+  display: block;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Keep TDesign icon hosts on the same visual axis as text across every page. */
+t-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  vertical-align: middle;
+}
+
 @media (prefers-reduced-motion: reduce) {
   button {
     transition: none;

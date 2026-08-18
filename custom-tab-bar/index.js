@@ -2,6 +2,7 @@ const featureEntitlements = require('../services/entitlements/features');
 
 Component({
   data: {
+    hidden: false,
     selected: 0,
     color: '#64739A',
     selectedColor: '#6F3DFF',

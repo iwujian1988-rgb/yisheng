@@ -96,19 +96,6 @@
         </view>
       </block>
 
-      <view wx:if="{{templateConfirmVisible}}" class="inline-confirm-row">
-        <view class="ai-msg-avatar">智</view>
-        <view class="inline-confirm-card">
-          <text class="inline-confirm-card__title">材料无误后生成草稿</text>
-          <text class="inline-confirm-card__hint">按“{{selectedTemplateName}}”整理</text>
-          <view class="inline-confirm-card__sources"><t-icon name="check-circle" size="25rpx" color="#168761" /><text>{{templateConfirmSources}}</text></view>
-          <scroll-view wx:if="{{templateConfirmImages.length}}" scroll-x class="inline-confirm-card__images" enhanced="{{true}}" show-scrollbar="{{false}}"><view class="inline-confirm-card__images-row"><image wx:for="{{templateConfirmImages}}" wx:key="id" class="inline-confirm-card__image" src="{{item.url}}" mode="aspectFill" data-url="{{item.url}}" bindtap="previewPendingImage" /></view></scroll-view>
-          <scroll-view scroll-y class="inline-confirm-card__preview"><text selectable>{{templateConfirmPreview}}</text></scroll-view>
-          <text class="inline-confirm-card__notice">AI 只整理你提供的内容，不会猜测空缺信息。</text>
-          <view class="inline-confirm-card__actions"><button class="inline-confirm-card__back" bindtap="closeTemplateConfirm">返回修改</button><button class="inline-confirm-card__submit" bindtap="confirmTemplateSubmission">材料无误，生成草稿</button></view>
-        </view>
-      </view>
-
       <view wx:if="{{sending && sendingStageLabel}}" class="sending-status">
         <text class="sending-status__text">{{sendingStageLabel}}</text>
       </view>
@@ -124,16 +111,26 @@
     </scroll-view>
   </view>
 
-  <view class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}" style="{{composerBottomStyle}}">
+  <view wx:if="{{!templateFieldEditorVisible}}" class="detail-composer {{pendingPreviewItems.length ? 'detail-composer--with-thumbs' : ''}}" style="{{composerBottomStyle}}">
     <view wx:if="{{selectedTemplateName && composerMode !== 'chat'}}" class="document-workbench">
       <view class="document-workbench__head">
         <view class="document-workbench__title-wrap">
           <view class="document-workbench__icon"><t-icon name="template" size="28rpx" color="#6F3DFF" /></view>
-          <view class="document-workbench__title-content"><text class="document-workbench__title">已选：{{selectedTemplateName}}</text><text class="document-workbench__compact-status">{{workspaceLocked ? '连接设备后可继续，草稿已保留' : (workspaceSyncing ? '正在建立整理任务…' : (materialReady ? '资料已加入，可直接核对生成' : '下一步：在下方输入、拍照或录音'))}}</text></view>
+          <view class="document-workbench__title-content"><text class="document-workbench__title">已选：{{selectedTemplateName}}</text><text class="document-workbench__compact-status">{{workspaceLocked ? '连接设备后可继续，草稿已保留' : (workspaceSyncing ? '正在建立整理任务…' : (workspaceNeedsMaterialReview ? '有材料需先确认，点击下方“管理”' : (workspaceHasMaterials ? '材料已保存，可继续补充或生成草稿' : '下一步：输入、拍照或录音添加材料')))}}</text></view>
         </view>
         <view class="document-workbench__close" catchtap="requestCloseTemplate"><t-icon name="close" size="28rpx" color="#788198" /></view>
       </view>
       <view class="document-workbench__optional" catchtap="openTemplateToolsPanel"><view class="document-workbench__optional-copy"><text class="document-workbench__optional-title">按项补充（可选）</text><text class="document-workbench__optional-note">{{templateNextStepText}}</text></view><t-icon name="chevron-right" size="26rpx" color="#6F3DFF" /></view>
+      <view wx:if="{{workspaceMaterials.length}}" class="document-workbench__material-entry" catchtap="toggleWorkspaceMaterials">
+        <view><text class="document-workbench__field-toggle-title">已加入 {{workspaceMaterials.length}} 份材料</text><text class="document-workbench__field-toggle-note">图片、录音和文字会一起用于生成</text></view>
+        <view class="document-workbench__row-action"><text>{{workspaceMaterialsPanelVisible ? '收起' : '管理'}}</text><t-icon name="chevron-{{workspaceMaterialsPanelVisible ? 'up' : 'down'}}" size="24rpx" color="#6F3DFF" /></view>
+      </view>
+      <view wx:if="{{workspaceMaterialsPanelVisible}}" class="workspace-material-list">
+        <view wx:for="{{workspaceMaterials}}" wx:key="id" class="workspace-material {{item.excluded ? 'is-excluded' : ''}} {{item.needsReview ? 'needs-review' : ''}}">
+          <view class="workspace-material__copy"><text class="workspace-material__title">{{item.displayLabel}} · {{item.stateLabel}}</text><text class="workspace-material__summary">{{item.displaySummary || '已识别内容'}}</text></view>
+          <button class="workspace-material__action ui-button" disabled="{{item.actionDisabled}}" data-id="{{item.id}}" catchtap="toggleWorkspaceMaterial">{{item.actionLabel}}</button>
+        </view>
+      </view>
     </view>
 
     <form class="composer-box" bindsubmit="sendMessage">
@@ -195,27 +192,25 @@
         </view>
       </scroll-view>
 
-      <textarea
-        class="composer-textarea {{pendingPreviewItems.length || pendingVoiceMaterials.length ? 'composer-textarea--with-thumbs' : ''}}"
-        placeholder="{{selectedTemplateId && composerMode === 'chat' ? '输入普通问题，本次内容不会加入整理' : (selectedTemplateId ? '补充整段记录（可选）' : '输入、粘贴或补充要整理的原始内容')}}"
-        placeholder-class="composer-placeholder"
-        value="{{inputText}}"
-        bindinput="onInput"
-        bindfocus="closeComposerPanels"
-        bindconfirm="sendMessage"
-        confirm-type="send"
-        confirm-hold="false"
-        maxlength="5000"
-        show-confirm-bar="{{true}}"
-        adjust-position="{{false}}"
-        cursor-spacing="16"
-        hold-keyboard="{{false}}"
-      />
-      <view class="composer-toolbar">
-        <view class="composer-toolbar__left">
-          <view wx:if="{{composerMode !== 'chat'}}" class="composer-plus {{composerMoreVisible || templateFieldsPanelVisible ? 'is-active' : ''}}" catchtap="toggleComposerMorePanel"><t-icon name="add" size="38rpx" color="{{composerMoreVisible || templateFieldsPanelVisible ? '#FFFFFF' : '#47516A'}}" /></view>
-          <text class="composer-plus__hint">{{composerMode === 'chat' ? '本条发送后自动返回整理' : '添加材料或选择模板'}}</text>
-        </view>
+      <view class="composer-input-row">
+        <view wx:if="{{composerMode !== 'chat'}}" class="composer-plus ui-button {{composerMoreVisible || templateFieldsPanelVisible ? 'is-active' : ''}}" catchtap="toggleComposerMorePanel"><view class="ui-button__icon"><t-icon name="add" size="38rpx" color="{{composerMoreVisible || templateFieldsPanelVisible ? '#FFFFFF' : '#47516A'}}" /></view></view>
+        <textarea
+          class="composer-textarea"
+          placeholder="{{selectedTemplateId && composerMode === 'chat' ? '输入普通问题' : (selectedTemplateId ? '输入情况或修改要求' : '输入要整理的内容')}}"
+          placeholder-class="composer-placeholder"
+          value="{{inputText}}"
+          auto-height="{{true}}"
+          bindinput="onInput"
+          bindfocus="onComposerFocus"
+          bindconfirm="sendMessage"
+          confirm-type="send"
+          confirm-hold="false"
+          maxlength="5000"
+          show-confirm-bar="{{false}}"
+          adjust-position="{{false}}"
+          cursor-spacing="16"
+          hold-keyboard="{{false}}"
+        />
         <button wx:if="{{sending}}" class="composer-stop {{selectedTemplateId ? 'composer-stop--wide' : ''}}" bindtap="stopGeneration"><t-icon name="pause" size="28rpx" color="#FFFFFF" /><text wx:if="{{selectedTemplateId}}">停止</text></button>
         <button
           wx:else
@@ -223,8 +218,8 @@
           form-type="submit"
           disabled="{{!canSend || sending}}"
         >
-          <t-icon name="send-filled" size="28rpx" color="{{canSend ? '#FFFFFF' : 'rgba(0,0,0,0.28)'}}" />
-          <text wx:if="{{selectedTemplateId}}">{{composerMode === 'chat' ? '发送' : '核对并生成'}}</text>
+          <view class="ui-button__icon"><t-icon name="send-filled" size="28rpx" color="{{canSend ? '#FFFFFF' : 'rgba(0,0,0,0.28)'}}" /></view>
+          <text class="ui-button__text" wx:if="{{selectedTemplateId}}">{{composerMode === 'chat' ? '发送' : (workspaceHasMaterials && !inputText && !pendingPreviewItems.length && !pendingVoiceMaterials.length ? '生成' : '加入')}}</text>
         </button>
       </view>
       <view wx:if="{{composerMoreVisible}}" class="composer-extension">
@@ -250,7 +245,7 @@
           <view class="document-workbench__setting-row"><text class="document-workbench__setting-label">详细程度</text><view class="document-workbench__segments"><view wx:for="{{detailLevelOptions}}" wx:key="value" class="document-workbench__segment {{detailLevel === item.value ? 'is-active' : ''}}" data-value="{{item.value}}" catchtap="selectDetailLevel">{{item.label}}</view></view></view>
           <view class="document-workbench__structure-detail">{{templateStructureFullText}}</view>
         </view>
-        <view class="composer-template-panel__footer"><text>填完已知内容即可继续，其他内容可跳过</text><button class="composer-template-panel__primary {{materialReady && !workspaceLocked && !workspaceSyncing ? 'is-active' : ''}}" disabled="{{!materialReady || workspaceLocked || workspaceSyncing}}" catchtap="previewTemplateFromFields">下一步：核对并生成</button></view>
+        <view class="composer-template-panel__footer"><text>填完已知内容即可继续，其他内容可跳过</text><button class="composer-template-panel__primary {{templateFieldFilledCount && !workspaceLocked && !workspaceSyncing ? 'is-active' : ''}}" disabled="{{!templateFieldFilledCount || workspaceLocked || workspaceSyncing}}" catchtap="finishTemplateFields">完成补充</button></view>
       </view>
     </form>
   </view>
@@ -285,7 +280,7 @@
       <text class="field-editor__eyebrow">填写模板字段</text>
       <text class="field-editor__title">{{templateFieldEditorLabel}}</text>
       <textarea class="field-editor__textarea" value="{{templateFieldEditorValue}}" placeholder="输入已确认的内容，留空表示不提供" maxlength="3000" auto-focus="{{true}}" adjust-position="{{false}}" cursor-spacing="24" bindinput="onTemplateFieldEditorInput" />
-      <view class="field-editor__actions"><button class="field-editor__cancel" bindtap="closeTemplateFieldEditor">取消</button><button class="field-editor__save" bindtap="saveTemplateFieldValue">保存字段</button></view>
+      <view class="field-editor__actions"><button class="field-editor__cancel ui-button" bindtap="closeTemplateFieldEditor">退出填写</button><button class="field-editor__save ui-button" bindtap="saveTemplateFieldValue">保存并继续</button></view>
     </view>
   </view>
 </view>

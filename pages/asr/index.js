@@ -377,7 +377,12 @@ Page({
       resultText: this.data.editableText || ''
     });
 
-    asrTranscriber.transcribeAudio({ path: audioPath, format: nextFormat })
+    asrTranscriber.transcribeAudio({
+      path: audioPath,
+      format: nextFormat,
+      workspaceId: this.data.returnWorkspaceId || '',
+      professional: Boolean(this.data.returnWorkspaceId)
+    })
       .then((result) => {
         const text = result && result.text ? result.text : '';
         const nextText = appendMode ? joinTranscript(this.data.editableText, text) : text;
@@ -483,6 +488,9 @@ Page({
         text,
         source: 'asr',
         durationText: this.data.recordDurationText || '',
+        confidence: Number(this.data.resultMeta && this.data.resultMeta.confidence || 0),
+        engine: String(this.data.resultMeta && this.data.resultMeta.engine || ''),
+        userConfirmed: true,
         workspaceId: this.data.returnWorkspaceId || '',
         updatedAt: new Date().toISOString()
       });

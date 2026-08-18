@@ -25,8 +25,10 @@ from app.utils.prompts import load_prompt
 from app.utils.session_store import get_session_store
 from app.utils.source_summary import truncate_sources_dict
 from app.utils.sse import format_sse
-from app.utils.text_output import split_sectioned_output
-from app.utils.text_quality import assess_text_quality
+from app.utils.text_output import filter_resolved_grounding_errors, keep_actionable_confirm_items, remove_misplaced_report_facts, remove_resolved_identity_questions, remove_unavailable_template_sections, remove_unsupported_judgment_sections, split_sectioned_output
+from app.utils.text_quality import assess_text_quality, format_quality_warning
+from app.utils.grounding_audit import audit_source_grounding
+from app.utils.structured_facts import materialize_required_source_facts, materialize_structured_facts
 
 logger = logging.getLogger(__name__)
 
@@ -478,6 +480,10 @@ class OrchestratorAgent(BaseAgent):
             "messages": history,
             "plan": plan,
             "detailLevel": str(data.get("detailLevel") or "standard"),
+            "confirmedFields": data.get("confirmedFields") if isinstance(data.get("confirmedFields"), list) else [],
+            "structuredFacts": data.get("structuredFacts") if isinstance(data.get("structuredFacts"), list) else [],
+            "requiredSourceFacts": data.get("requiredSourceFacts") if isinstance(data.get("requiredSourceFacts"), list) else [],
+            "qualitySourceText": str(data.get("qualitySourceText") or ""),
         }
         if template:
             text_payload["template"] = template
@@ -640,6 +646,8 @@ class OrchestratorAgent(BaseAgent):
             "messages": history,
             "plan": plan,
             "detailLevel": str(data.get("detailLevel") or "standard"),
+            "confirmedFields": data.get("confirmedFields") if isinstance(data.get("confirmedFields"), list) else [],
+            "structuredFacts": data.get("structuredFacts") if isinstance(data.get("structuredFacts"), list) else [],
         }
         if template:
             text_payload["template"] = template
@@ -662,14 +670,73 @@ class OrchestratorAgent(BaseAgent):
 
         raw = "".join(raw_parts)
         sectioned = split_sectioned_output(raw)
-        quality = assess_text_quality(sources.combined_text(source_priority), sectioned["body_text"], template)
-        confirm_items = list(sectioned["confirm_items"])
-        confirm_items.extend(
-            item["message"] for item in quality["warnings"] if item["message"] not in confirm_items
+        sectioned["body_text"] = remove_unavailable_template_sections(sectioned["body_text"], template)
+        sectioned["body_text"] = remove_unsupported_judgment_sections(sectioned["body_text"], sources.combined_text(source_priority), template)
+        sectioned["body_text"] = materialize_structured_facts(sectioned["body_text"], data.get("structuredFacts") if isinstance(data.get("structuredFacts"), list) else [])
+        sectioned["body_text"] = remove_misplaced_report_facts(sectioned["body_text"], text_payload.get("requiredSourceFacts"), template)
+        sectioned["body_text"] = materialize_required_source_facts(sectioned["body_text"], text_payload.get("requiredSourceFacts"), text_payload.get("structuredFacts"))
+        quality = assess_text_quality(
+            str(data.get("qualitySourceText") or sources.combined_text(source_priority)), sectioned["body_text"], template, text_payload.get("confirmedFields"), text_payload.get("structuredFacts"), text_payload.get("requiredSourceFacts")
         )
+        grounding_errors = await audit_source_grounding(
+            ChatClient(self.settings), self.settings, sources.combined_text(source_priority), sectioned["body_text"], template, plan_mode
+        )
+        quality["hardErrors"].extend(filter_resolved_grounding_errors(
+            grounding_errors, sectioned["body_text"], text_payload.get("requiredSourceFacts")
+        ))
+        quality["status"] = "needs_review" if quality["hardErrors"] or quality["warnings"] else "passed"
+        if quality.get("hardErrors") or quality.get("missingConfirmedFields"):
+            exact_fields = "\n".join(
+                f"{field.get('label') or field.get('key')}：{field.get('value')}"
+                for field in text_payload.get("confirmedFields") or []
+                if isinstance(field, dict) and field.get("value")
+            )
+            repair_payload = dict(text_payload)
+            repair_payload["disableRepair"] = True
+            repair_payload["userInstruction"] = (
+                str(user_instruction or "")
+                + "\n请确保以下已确认字段逐字出现在语义对应栏目，不能保留占位符或遗漏：\n"
+                + exact_fields
+            ).strip()
+            try:
+                repaired = await text_agent.execute(repair_payload)
+                repaired_quality = repaired.get("quality") if isinstance(repaired, dict) else None
+                current_failure_count = (
+                    len(quality.get("hardErrors") or [])
+                    + len(quality.get("sourceConflicts") or [])
+                    + len(quality.get("missingConfirmedFields") or [])
+                )
+                repaired_failure_count = (
+                    len(repaired_quality.get("hardErrors") or [])
+                    + len(repaired_quality.get("sourceConflicts") or [])
+                    + len(repaired_quality.get("missingConfirmedFields") or [])
+                ) if isinstance(repaired_quality, dict) else current_failure_count
+                if isinstance(repaired_quality, dict) and repaired_failure_count < current_failure_count:
+                    sectioned = {
+                        "result_text": repaired.get("resultText") or repaired.get("bodyText") or "",
+                        "body_text": repaired.get("bodyText") or "",
+                        "confirm_items": repaired.get("confirmItems") or [],
+                    }
+                    quality = repaired_quality
+            except Exception:
+                logger.exception("confirmed_field_repair_failed")
+        confirm_items = remove_resolved_identity_questions(list(sectioned["confirm_items"]), text_payload.get("confirmedFields") or [])
+        confirm_items.extend(
+            text for item in quality["warnings"]
+            if (text := format_quality_warning(item)) and text not in confirm_items
+        )
+        missing_sections = quality.get("missingSections") or []
+        if missing_sections:
+            summary = "、".join(str(item) for item in missing_sections[:5]) + ("等" if len(missing_sections) > 5 else "")
+            suggestion = f"当前草稿已按模板整理现有材料；如需继续完善，可补充：{summary}。"
+            if suggestion not in confirm_items:
+                confirm_items.append(suggestion)
+        confirm_items = keep_actionable_confirm_items(confirm_items)
+        result_text = "【正文】\n" + sectioned["body_text"] + "\n\n【待确认】\n" + ("\n".join(confirm_items) if confirm_items else "无")
         final = {
             "type": "text",
-            "resultText": sectioned["result_text"],
+            "status": "needs_review" if quality.get("hardErrors") or quality.get("sourceConflicts") or quality.get("missingConfirmedFields") else "ok",
+            "resultText": result_text,
             "bodyText": sectioned["body_text"],
             "confirmItems": confirm_items,
             "quality": quality,

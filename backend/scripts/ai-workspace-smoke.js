@@ -75,13 +75,14 @@ async function main() {
     throw new Error('materials leaked into another workspace');
   }
 
-  const snapshot = { workspaceId: first.id, fields: firstRestored.fieldValues, materials: [material], inputRevision: 3 };
+  const currentRevision = (await repository.getWorkspace(first.id, user.id)).materialRevision;
+  const snapshot = { workspaceId: first.id, fields: firstRestored.fieldValues, materials: [duplicate], inputRevision: currentRevision };
   const generation = await repository.createGeneration({
-    workspaceId: first.id, userId: user.id, inputRevision: 3,
+    workspaceId: first.id, userId: user.id, inputRevision: currentRevision,
     idempotencyKey: 'generate-1', snapshot
   });
   const sameGeneration = await repository.createGeneration({
-    workspaceId: first.id, userId: user.id, inputRevision: 3,
+    workspaceId: first.id, userId: user.id, inputRevision: currentRevision,
     idempotencyKey: 'generate-1', snapshot: { changed: true }
   });
   if (generation.id !== sameGeneration.id || sameGeneration.snapshot.changed) {

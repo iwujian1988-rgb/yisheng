@@ -69,6 +69,7 @@ const ENDPOINTS = {
     materials: '/api/ai/workspaces/{id}/materials',
     materialDetail: '/api/ai/workspaces/{id}/materials/{materialId}',
     generations: '/api/ai/workspaces/{id}/generations'
+    ,interpret: '/api/ai/workspaces/{id}/interpret'
   },
   templates: {
     list: '/api/templates',

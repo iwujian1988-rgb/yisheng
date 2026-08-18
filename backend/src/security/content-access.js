@@ -10,7 +10,7 @@ const AUDIENCE_ACCESS_RULES = {
   professional: {
     requireMember: true,
     requireDeviceSession: true,
-    allowConnectedBoundDeviceFallback: true,
+    allowConnectedBoundDeviceFallback: false,
     listWhenNoProfessionalAccess: false,
     capability: ''
   }
@@ -106,9 +106,7 @@ function getAccessContext(options) {
     hasBoundDevice: boundDevice,
     hasConnectedBoundDevice: connectedBoundDevice,
     hasLiveProof,
-    hasProfessionalAccess: Boolean(
-      memberActive && (deviceAccess.ok || connectedBoundDevice) && hasLiveProof
-    ),
+    hasProfessionalAccess: Boolean(memberActive && deviceAccess.ok && hasLiveProof),
     deviceAccess
   };
 }
@@ -126,12 +124,8 @@ function canAccessAudience(audience, context, overrideRule) {
 
   if (rule.requireMember && !ctx.memberActive) return false;
   if (rule.requireDeviceSession) {
-    // professional 内容必须：设备会话 或（允许回退时）绑定设备在线，且 活体证明通过。
-    // 与 hasProfessionalAccess 对齐——单条获取路径不能仅凭 ?connected=true + 绑定设备记录
-    // 就放行，必须有真实在线设备的活体证明，否则 professional（医疗）模板可被绕过列表按 id 取走。
-    var deviceOk = ctx.deviceAccess.ok
-      || (rule.allowConnectedBoundDeviceFallback && ctx.hasConnectedBoundDevice);
-    if (!deviceOk) return false;
+    // professional 内容必须同时具备有效设备会话和活体证明；URL connected 参数与绑定记录都不能替代会话。
+    if (!ctx.deviceAccess.ok) return false;
     if (!ctx.hasLiveProof) return false;
   }
   return true;

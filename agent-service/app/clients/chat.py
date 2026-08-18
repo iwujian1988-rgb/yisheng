@@ -42,6 +42,13 @@ class ChatClient:
             return base_url.rstrip("/") + "/v1/chat/completions"
         raise RuntimeError("AI chat completions endpoint is not configured")
 
+    def _apply_provider_controls(self, url: str, payload: dict[str, Any]) -> dict[str, Any]:
+        if "api.deepseek.com" in url:
+            payload["thinking"] = {
+                "type": "enabled" if self._settings.ai_thinking_mode == "enabled" else "disabled"
+            }
+        return payload
+
     async def chat_completions(
         self,
         *,
@@ -54,12 +61,12 @@ class ChatClient:
             raise RuntimeError("AI provider is not configured (AI_API_KEY and endpoint required)")
 
         url = self._endpoint()
-        payload: dict[str, Any] = {
+        payload: dict[str, Any] = self._apply_provider_controls(url, {
             "model": resolve_ai_model(model),
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-        }
+        })
         headers = {
             "Authorization": f"Bearer {self._settings.effective_ai_api_key}",
             "Content-Type": "application/json",
@@ -91,13 +98,13 @@ class ChatClient:
             raise RuntimeError("AI provider is not configured (AI_API_KEY and endpoint required)")
 
         url = self._endpoint()
-        payload: dict[str, Any] = {
+        payload: dict[str, Any] = self._apply_provider_controls(url, {
             "model": resolve_ai_model(model),
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
             "stream": True,
-        }
+        })
         headers = {
             "Authorization": f"Bearer {self._settings.effective_ai_api_key}",
             "Content-Type": "application/json",

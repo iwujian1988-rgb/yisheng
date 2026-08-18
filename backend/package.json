@@ -14,6 +14,7 @@
     "smoke:ocr-worker": "node scripts/ocr-worker-smoke.js",
     "smoke:ai-workspace": "node scripts/ai-workspace-smoke.js",
     "eval:template-quality": "node scripts/template-quality-eval.js",
+    "eval:workspace-real": "node scripts/ai-workspace-real-quality-eval.js",
     "release:check": "node scripts/release-check.js",
     "test:ocr-image": "node scripts/ocr-image-test.js",
     "worker:ocr": "node workers/ocr-worker.example.js",

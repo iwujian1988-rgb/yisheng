@@ -45,7 +45,9 @@ function transcribeAudio(audioFile) {
       return {
         audioBase64: base64Data,
         source: file.source || 'mini_program',
-        format: file.format || 'mp3'
+        format: file.format || 'mp3',
+        workspaceId: file.workspaceId || '',
+        professional: file.professional === true
       };
     },
     normalizeResult: normalizeResult,

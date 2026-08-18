@@ -14,6 +14,9 @@ function normalizeResult(data) {
     charCount: Number(payload.charCount || text.length || 0),
     confidence: payload.confidence || 0,
     regions: Array.isArray(payload.regions) ? payload.regions : [],
+    document: payload.document && typeof payload.document === 'object' ? payload.document : { documentType: 'unknown', reportDate: '', facts: [], uncertainRows: [] },
+    elapsedMs: Number(payload.elapsedMs || 0),
+    structureMs: Number(payload.structureMs || 0),
     imageBytes: Number(payload.imageBytes || 0),
     raw: payload
   };
@@ -51,7 +54,12 @@ function recognizeImage(imageFile) {
     buildPayload: function (base64Data, file) {
       return {
         imageBase64: base64Data,
-        source: file.source || 'mini_program'
+        source: file.source || 'mini_program',
+        workspaceId: file.workspaceId || '',
+        professional: file.professional === true,
+        sourceId: file.sourceId || '',
+        pageIndex: Number(file.pageIndex || 0)
+        ,documentMode: file.documentMode || ''
       };
     },
     normalizeResult: normalizeResult,

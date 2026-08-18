@@ -103,6 +103,11 @@ async function run() {
     body: JSON.stringify({ kind: 'typed', text: '仅属于第一个工作区的材料', clientMaterialId: 'smoke-material-1' })
   });
   assert(addedMaterial.material && addedMaterial.material.text, 'workspace material missing');
+  await requestExpectError('/api/ai/workspaces/' + workspaceId + '/materials/' + addedMaterial.material.id, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+    body: JSON.stringify({ qualityState: 'ready', expectedRevision: addedMaterial.materialRevision })
+  }, 'AI_MATERIAL_QUALITY_READ_ONLY');
   const generation = await request('/api/ai/workspaces/' + workspaceId + '/generations', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
@@ -113,6 +118,22 @@ async function run() {
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token }
   });
   assert(restoredWorkspace.workspace.materials.length === 1, 'workspace did not restore its material');
+
+  const reviewWorkspaceResult = await request('/api/ai/workspaces', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+    body: JSON.stringify({ templateId: generalTemplate.id, detailLevel: 'standard' })
+  });
+  await request('/api/ai/workspaces/' + reviewWorkspaceResult.workspace.id + '/materials', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+    body: JSON.stringify({ kind: 'ocr', text: 'uncertain OCR', clientMaterialId: 'uncertain-material', qualityState: 'needs_review' })
+  });
+  await requestExpectError('/api/ai/workspaces/' + reviewWorkspaceResult.workspace.id + '/generations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+    body: JSON.stringify({ idempotencyKey: 'uncertain-generation' })
+  }, 'AI_MATERIAL_REVIEW_REQUIRED');
 
   await requestExpectError('/api/ai/workspaces', {
     method: 'POST',
@@ -128,6 +149,24 @@ async function run() {
       Authorization: 'Bearer ' + demoLogin.token
     }
   }, 'TEMPLATE_NOT_FOUND');
+
+  await requestExpectError('/api/agent/text', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+    body: JSON.stringify({ text: '整理这段普通文字', templateId: 'tpl_official_first_course' })
+  }, 'TEMPLATE_NOT_FOUND');
+
+  await requestExpectError('/api/ocr/recognize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+    body: JSON.stringify({ imageBase64: 'data:image/png;base64,AA==', professional: true, workspaceId: 'aiw-denied' })
+  }, 'DEVICE_CONNECTION_REQUIRED');
+
+  await requestExpectError('/api/asr/transcribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + demoLogin.token },
+    body: JSON.stringify({ audioBase64: 'data:audio/mpeg;base64,AA==', professional: true, workspaceId: 'aiw-denied' })
+  }, 'DEVICE_CONNECTION_REQUIRED');
 
   await requestExpectError('/api/agent/text', {
     method: 'POST',
@@ -415,6 +454,37 @@ async function run() {
     },
     body: JSON.stringify({ templateId: 'tpl_official_first_course' })
   });
+  const professionalHeaders = {
+    'Content-Type': 'application/json', Authorization: 'Bearer ' + activatedUser.token,
+    'X-Device-Session': deviceSession.deviceSessionToken, 'X-Device-Live': heartbeat.liveProof
+  };
+  const professionalField = (professionalWorkspace.workspace.fields || [])[0];
+  if (professionalField) {
+    const savedProfessionalField = await request('/api/ai/workspaces/' + professionalWorkspace.workspace.id + '/fields', {
+      method: 'POST',
+      headers: professionalHeaders,
+      body: JSON.stringify({ fieldKey: professionalField.key, value: '王大力' })
+    });
+    assert(savedProfessionalField.workspace.fields.some((item) => item.key === professionalField.key && item.value === '王大力'), 'professional confirmed field must reach the workspace without placeholder replacement');
+  }
+  const savedProfessionalMaterial = await request('/api/ai/workspaces/' + professionalWorkspace.workspace.id + '/materials', {
+    method: 'POST',
+    headers: professionalHeaders,
+    body: JSON.stringify({ kind: 'typed', text: '患者姓名王大力', clientMaterialId: 'professional-raw-name' })
+  });
+  assert(savedProfessionalMaterial.material.text === '患者姓名王大力', 'professional material must reach the workspace without placeholder replacement');
+  const professionalOcr = await request('/api/ocr/recognize', {
+    method: 'POST',
+    headers: professionalHeaders,
+    body: JSON.stringify({ imageBase64: 'data:image/png;base64,AA==', professional: true, workspaceId: professionalWorkspace.workspace.id })
+  });
+  assert(professionalOcr.status === 'not_configured', 'authorized professional OCR request should pass the access gate');
+  const professionalAsr = await request('/api/asr/transcribe', {
+    method: 'POST',
+    headers: professionalHeaders,
+    body: JSON.stringify({ audioBase64: 'data:audio/mpeg;base64,AA==', professional: true, workspaceId: professionalWorkspace.workspace.id })
+  });
+  assert(professionalAsr.status === 'not_configured', 'authorized professional ASR request should pass the access gate');
   const lockedWorkspace = await request('/api/ai/workspaces/' + professionalWorkspace.workspace.id, {
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + activatedUser.token }
   });

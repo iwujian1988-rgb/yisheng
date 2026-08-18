@@ -2,10 +2,29 @@ const { fail, ok, parseBody } = require('../http');
 const { createId } = require('../security/ids');
 const { redactSensitiveText } = require('../security/redaction');
 const medicalContentPolicy = require('../security/medical-content-policy');
+const workspaceIntent = require('./workspace-intent');
 
 const DETAIL_LEVELS = ['concise', 'standard', 'detailed'];
-const MATERIAL_KINDS = ['typed', 'ocr', 'asr', 'field'];
+const MATERIAL_KINDS = ['typed', 'ocr', 'asr', 'field', 'instruction', 'correction'];
 const MATERIAL_STATUSES = ['pending', 'included', 'excluded', 'failed'];
+
+function buildMaterialCatalog(materials) {
+  var counters = { ocr: 0, asr: 0, other: 0 };
+  return (materials || []).map(function (material) {
+    var bucket = material.kind === 'ocr' ? 'ocr' : (material.kind === 'asr' ? 'asr' : 'other');
+    counters[bucket] += 1;
+    var kindLabel = bucket === 'ocr' ? '张图片' : (bucket === 'asr' ? '段录音' : '份文字');
+    return {
+      id: material.id,
+      index: counters[bucket],
+      kind: material.kind,
+      label: '第' + counters[bucket] + kindLabel,
+      summary: String(material.text || '').replace(/\s+/g, ' ').slice(0, 120),
+      status: material.status,
+      relevanceState: material.relevanceState || 'relevant'
+    };
+  });
+}
 
 function collectTemplateFields(fields) {
   var result = [];
@@ -168,7 +187,10 @@ function createAiWorkspacesModule(deps) {
     if (!fieldKey) {
       return fail(res, 400, 'AI_FIELD_INVALID', 'field is not part of this template');
     }
-    var guarded = redactSensitiveText(String(body.value || '').trim());
+    var rawValue = String(body.value || '').trim();
+    var guarded = loaded.workspace.audience === 'professional'
+      ? { text: rawValue, hits: [], changed: false }
+      : redactSensitiveText(rawValue);
     var workspace = await repository.saveField(loaded.workspace.id, actor.id, fieldKey, guarded.text);
     var materials = await repository.listMaterials(workspace.id, actor.id);
     ok(res, { workspace: publicWorkspace(workspace, loaded.template, materials, false), redactionHits: guarded.hits || [] });
@@ -186,7 +208,22 @@ function createAiWorkspacesModule(deps) {
     if (loaded.workspace.audience !== 'professional' && medicalContentPolicy.containsMedicalContent(text)) {
       return fail(res, 422, 'PROFESSIONAL_CONTENT_NOT_SUPPORTED', 'This content is not supported in general mode.');
     }
-    var guarded = redactSensitiveText(text);
+    var guarded = loaded.workspace.audience === 'professional'
+      ? { text: text, hits: [], changed: false }
+      : redactSensitiveText(text);
+    var structuredFacts = Array.isArray(body.structuredFacts) ? body.structuredFacts : [];
+    var sourceMeta = body.sourceMeta && typeof body.sourceMeta === 'object' ? body.sourceMeta : {};
+    var relevance = await workspaceIntent.classifyMaterialRelevance({
+      kind: kind,
+      text: guarded.text,
+      structuredFacts: structuredFacts,
+      templateName: loaded.template.name || '',
+      templateSections: ((loaded.template.generation_contract || {}).sections || []).map(function (item) { return item.title || item.name || item; })
+    });
+    sourceMeta = Object.assign({}, sourceMeta, {
+      relevanceReason: relevance.reason,
+      relevanceConfidence: relevance.confidence
+    });
     var material = await repository.addMaterial({
       workspaceId: loaded.workspace.id,
       userId: actor.id,
@@ -195,7 +232,10 @@ function createAiWorkspacesModule(deps) {
       fieldKey: '',
       clientMaterialId: String(body.clientMaterialId || createId('client')).slice(0, 96),
       status: MATERIAL_STATUSES.indexOf(body.status) >= 0 ? body.status : 'included',
-      sourceMeta: body.sourceMeta && typeof body.sourceMeta === 'object' ? body.sourceMeta : {}
+      sourceMeta: sourceMeta,
+      structuredFacts: structuredFacts,
+      qualityState: ['ready', 'needs_review', 'failed'].indexOf(body.qualityState) >= 0 ? body.qualityState : 'ready',
+      relevanceState: relevance.state
     });
     var workspace = await repository.getWorkspace(loaded.workspace.id, actor.id);
     ok(res, { material: material, materialRevision: workspace.materialRevision, redactionHits: guarded.hits || [] });
@@ -208,8 +248,25 @@ function createAiWorkspacesModule(deps) {
     if (!loaded) return;
     var body = await parseBody(req);
     var status = String(body.status || '');
-    if (['included', 'excluded'].indexOf(status) === -1) return fail(res, 400, 'AI_MATERIAL_STATUS_INVALID', 'invalid material status');
-    var material = await repository.updateMaterial(ctx.params.materialId, loaded.workspace.id, actor.id, status);
+    var relevanceState = String(body.relevanceState || '');
+    if (Object.prototype.hasOwnProperty.call(body, 'qualityState')) {
+      return fail(res, 400, 'AI_MATERIAL_QUALITY_READ_ONLY', 'material quality can only be updated by server recognition');
+    }
+    if (status && ['included', 'excluded'].indexOf(status) === -1) return fail(res, 400, 'AI_MATERIAL_STATUS_INVALID', 'invalid material status');
+    if (relevanceState && ['relevant', 'irrelevant', 'needs_review'].indexOf(relevanceState) === -1) return fail(res, 400, 'AI_MATERIAL_RELEVANCE_INVALID', 'invalid relevance state');
+    if (!status && !relevanceState) return fail(res, 400, 'AI_MATERIAL_UPDATE_REQUIRED', 'material update is required');
+    var expectedRevision = Number(body.expectedRevision);
+    var material;
+    try {
+      material = await repository.updateMaterial(ctx.params.materialId, loaded.workspace.id, actor.id, {
+        status: status,
+        relevanceState: relevanceState,
+        expectedRevision: Number.isFinite(expectedRevision) ? expectedRevision : undefined
+      });
+    } catch (error) {
+      if (error && error.code === 'AI_WORKSPACE_REVISION_CONFLICT') return fail(res, 409, error.code, 'workspace changed; refresh before continuing');
+      throw error;
+    }
     if (!material) return fail(res, 404, 'AI_MATERIAL_NOT_FOUND', 'material not found');
     var workspace = await repository.getWorkspace(loaded.workspace.id, actor.id);
     ok(res, { material: material, materialRevision: workspace.materialRevision });
@@ -222,7 +279,15 @@ function createAiWorkspacesModule(deps) {
     if (!loaded) return;
     var body = await parseBody(req);
     var materials = await repository.listMaterials(loaded.workspace.id, actor.id);
-    var included = materials.filter(function (item) { return item.status === 'included'; });
+    var included = materials.filter(function (item) { return item.status === 'included' && item.relevanceState !== 'irrelevant'; });
+    var unresolvedMaterials = included.filter(function (item) { return item.qualityState && item.qualityState !== 'ready'; });
+    if (unresolvedMaterials.length) {
+      return fail(res, 409, 'AI_MATERIAL_REVIEW_REQUIRED', 'one or more materials must be recognized again or reviewed before generating');
+    }
+    var relevanceReview = included.filter(function (item) { return item.relevanceState === 'needs_review'; });
+    if (relevanceReview.length) {
+      return fail(res, 409, 'AI_MATERIAL_RELEVANCE_REVIEW_REQUIRED', 'choose whether to keep or remove the uncertain material before generating');
+    }
     var fieldValues = loaded.workspace.fieldValues || {};
     if (!included.length && !Object.keys(fieldValues).some(function (key) { return String(fieldValues[key] || '').trim(); })) {
       return fail(res, 400, 'AI_WORKSPACE_EMPTY', 'add material before generating');
@@ -233,7 +298,18 @@ function createAiWorkspacesModule(deps) {
       template: template,
       detailLevel: loaded.workspace.detailLevel,
       fields: fieldValues,
-      materials: included.map(function (item) { return { id: item.id, kind: item.kind, text: item.text, fieldKey: item.fieldKey || '' }; }),
+      materials: included.map(function (item) {
+        return {
+          id: item.id,
+          kind: item.kind,
+          text: item.text,
+          fieldKey: item.fieldKey || '',
+          sourceMeta: item.sourceMeta || {},
+          structuredFacts: item.structuredFacts || [],
+          qualityState: item.qualityState || 'ready',
+          relevanceState: item.relevanceState || 'relevant'
+        };
+      }),
       inputRevision: loaded.workspace.materialRevision
     };
     var baseGenerationId = String(body.baseGenerationId || '').trim();
@@ -246,7 +322,9 @@ function createAiWorkspacesModule(deps) {
       if (!baseGeneration || baseGeneration.status !== 'completed' || !baseGeneration.bodyText) {
         return fail(res, 400, 'AI_REVISION_BASE_INVALID', 'completed base generation required');
       }
-      var guardedRevision = redactSensitiveText(revisionInstruction);
+      var guardedRevision = loaded.workspace.audience === 'professional'
+        ? { text: revisionInstruction, hits: [], changed: false }
+        : redactSensitiveText(revisionInstruction);
       snapshot.revision = {
         baseGenerationId: baseGeneration.id,
         baseBody: baseGeneration.bodyText,
@@ -254,14 +332,47 @@ function createAiWorkspacesModule(deps) {
       };
     }
     var idempotencyKey = String(body.idempotencyKey || createId('genreq')).slice(0, 96);
-    var generation = await repository.createGeneration({
-      workspaceId: loaded.workspace.id,
-      userId: actor.id,
-      inputRevision: loaded.workspace.materialRevision,
-      idempotencyKey: idempotencyKey,
-      snapshot: snapshot
-    });
+    var generation;
+    try {
+      generation = await repository.createGeneration({
+        workspaceId: loaded.workspace.id,
+        userId: actor.id,
+        inputRevision: loaded.workspace.materialRevision,
+        idempotencyKey: idempotencyKey,
+        snapshot: snapshot
+      });
+    } catch (error) {
+      if (error && error.code === 'AI_WORKSPACE_REVISION_CONFLICT') return fail(res, 409, error.code, 'workspace changed; retry generation');
+      throw error;
+    }
     ok(res, { generation: generation });
+  }
+
+  async function interpretInput(req, res, ctx) {
+    var actor = auth.requireUser(req, res);
+    if (!actor || !requireMember(actor, res)) return;
+    var loaded = await loadOwnedWorkspace(req, res, actor, ctx.params.id);
+    if (!loaded) return;
+    var body = await parseBody(req);
+    var text = String(body.text || '').trim();
+    if (!text) return fail(res, 400, 'AI_INPUT_REQUIRED', 'text is required');
+    var expectedRevision = Number(body.expectedRevision);
+    if (!Number.isFinite(expectedRevision) || expectedRevision !== loaded.workspace.materialRevision) {
+      return fail(res, 409, 'AI_WORKSPACE_REVISION_CONFLICT', 'workspace changed; refresh before continuing');
+    }
+    var fields = collectTemplateFields(loaded.template.fields);
+    var materials = await repository.listMaterials(loaded.workspace.id, actor.id);
+    var materialCatalog = buildMaterialCatalog(materials);
+    var decision = await workspaceIntent.interpret({
+      text: text,
+      clientInputId: String(body.clientInputId || '').slice(0, 96),
+      workspace: loaded.workspace,
+      expectedRevision: expectedRevision,
+      fieldKeys: fields.map(function (field) { return field.key; }),
+      materialCatalog: materialCatalog,
+      uiContext: body.uiContext && typeof body.uiContext === 'object' ? body.uiContext : {}
+    });
+    ok(res, decision);
   }
 
   return {
@@ -270,6 +381,7 @@ function createAiWorkspacesModule(deps) {
     createGeneration: createGeneration,
     createWorkspace: createWorkspace,
     getWorkspace: getWorkspace,
+    interpretInput: interpretInput,
     loadOwnedWorkspace: loadOwnedWorkspace,
     saveField: saveField,
     updateMaterial: updateMaterial,
@@ -277,4 +389,4 @@ function createAiWorkspacesModule(deps) {
   };
 }
 
-module.exports = { collectTemplateFields, createAiWorkspacesModule, resolveTemplateFieldKey };
+module.exports = { buildMaterialCatalog, collectTemplateFields, createAiWorkspacesModule, resolveTemplateFieldKey };

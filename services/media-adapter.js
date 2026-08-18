@@ -58,7 +58,11 @@ function callMediaService(config) {
     });
   }).then(function (data) {
     var result = config.normalizeResult(data);
-    result.elapsedMs = Date.now() - startedAt;
+    var totalMs = Date.now() - startedAt;
+    result.providerMs = Number(result.elapsedMs || 0);
+    result.requestMs = totalMs;
+    result.uploadMs = Math.max(0, totalMs - result.providerMs - Number(result.structureMs || 0));
+    result.elapsedMs = totalMs;
     if (!result.text && result.status === 'not_configured') {
       return Promise.reject({
         code: config.notConfiguredCode || 'MEDIA_NOT_CONFIGURED',
