@@ -142,7 +142,10 @@ function createProviderGatewayModule(deps) {
       return {
         index: index,
         text: String(item.text || '').trim(),
-        polygon: item.polygon || item.box || item.bbox || item.position || null,
+        // qwen-vl-ocr returns the four-point polygon as `location`.
+        // Keep it instead of flattening the result to text; the table
+        // structurer uses these coordinates to preserve row/column scope.
+        polygon: item.polygon || item.location || item.box || item.bbox || item.position || null,
         confidence: Number(item.confidence || item.score || 0)
       };
     }).filter(function (item) { return item.text; });
@@ -517,6 +520,7 @@ function createProviderGatewayModule(deps) {
           sourceId: String(body.sourceId || ''),
           pageIndex: Number(body.pageIndex || 0),
           rows: Array.isArray(agentResult.rows) ? agentResult.rows : []
+          ,uncertainRows: Array.isArray(agentResult.uncertainRows) ? agentResult.uncertainRows : []
           ,documentMetadata: agentResult.metadata || {}
           ,documentDates: agentResult.dates || {}
         };
@@ -553,9 +557,29 @@ function createProviderGatewayModule(deps) {
           sourceId: String(body.sourceId || ''),
           pageIndex: Number(body.pageIndex || 0),
           rows: cloudOcr.rows || []
+          ,uncertainRows: cloudOcr.uncertainRows || []
           ,documentMetadata: cloudOcr.metadata || {}
           ,documentDates: cloudOcr.dates || {}
         };
+        if (body.documentMode === 'auto' && isLikelyLabReport(cloudOcr.text)) {
+          try {
+            var autoStructured = await callStructuredTableVision(image.base64, body.mimeType || image.mimeType || '', body.fileType || '');
+            if (autoStructured && Array.isArray(autoStructured.rows) && autoStructured.rows.length) {
+              cloudOcr = Object.assign({}, cloudOcr, autoStructured, {
+                provider: config.ocrCloudModel + '+' + config.ocrStructuredModel,
+                elapsedMs: Number(cloudOcr.elapsedMs || 0) + Number(autoStructured.elapsedMs || 0)
+              });
+              cloudExtra.engine = cloudOcr.provider;
+              cloudExtra.rows = autoStructured.rows;
+              cloudExtra.documentMetadata = autoStructured.metadata || {};
+              cloudExtra.documentDates = autoStructured.dates || {};
+              cloudExtra.uncertainRows = autoStructured.uncertainRows || [];
+            }
+          } catch (_structureError) {
+            // Plain OCR remains usable for non-table documents. The client
+            // receives the original text and can retry table parsing later.
+          }
+        }
         setCachedOcr(cacheKey, { text: cloudOcr.text, extra: cloudExtra });
         ok(res, buildOcrResponse(cloudOcr.text, cloudExtra));
         return;
@@ -659,6 +683,14 @@ function createProviderGatewayModule(deps) {
     }
   }
 
+  function isLikelyLabReport(text) {
+    var value = String(text || '');
+    if (!value) return false;
+    var headers = (value.match(/(?:项目|名称|结果|参考值|参考范围|单位|检验|化验|白细胞|血红蛋白|葡萄糖)/g) || []).length;
+    var numericLines = (value.match(/(?:^|\n).*\d+(?:\.\d+)?[^\n]*/g) || []).length;
+    return headers >= 3 && numericLines >= 3;
+  }
+
   async function callStructuredTableVision(imageBase64, mimeType, fileType) {
     var endpoint = config.ocrCloudBaseUrl.replace(/\/$/, '')
       + '/api/v1/services/aigc/multimodal-generation/generation';
@@ -686,7 +718,7 @@ function createProviderGatewayModule(deps) {
                   enable_rotate: false
                 },
                 {
-                  text: 'Read this laboratory report directly from the image pixels. Return JSON only with keys dates, metadata, rows. dates is an object whose keys are the exact printed date labels and whose values use YYYY-MM-DD when possible. metadata is an object containing every printed report-header field. rows is an array in visual row order. Every row must contain rowNumber, code, name, result, flag, unit, referenceRange. Preserve empty cells as empty strings. Bind each cell only to the same visual row; never shift a neighboring row value into an empty cell. Keep arrows in flag, not in result. Never infer or normalize missing values.'
+                  text: 'Read this laboratory report directly from the image pixels. Return JSON only with keys dates, metadata, rows, uncertainRows. dates is an object whose keys are the exact printed date labels and whose values use YYYY-MM-DD when possible. metadata is an object containing every printed report-header field. rows is an array in visual row order. Every row must contain rowNumber, code, name, result, flag, unit, referenceRange, confidence, evidence. Preserve empty cells as empty strings. Bind each cell only to the same visual row; never shift a neighboring row value into an empty cell. Keep arrows in flag, not in result. Never infer, calculate, normalize, or borrow a missing value, unit, date, or reference range from another row or another report. If a row has an unclear column relationship, put that row in uncertainRows and leave the uncertain cell empty. evidence must be the exact visible row text used for the binding.'
                 }
               ]
             }]
@@ -708,13 +740,16 @@ function createProviderGatewayModule(deps) {
           result: row.result || row.value || '',
           flag: row.flag || '',
           unit: row.unit || '',
-          referenceRange: row.referenceRange || row.reference || ''
+          referenceRange: row.referenceRange || row.reference || '',
+          confidence: Number(row.confidence || row.score || 0),
+          evidence: row.evidence || row.sourceText || ''
         };
       }) : [];
       if (!rows.length) throw new Error('structured OCR returned no rows');
       return {
         text: JSON.stringify(parsed),
         rows: rows,
+        uncertainRows: Array.isArray(parsed.uncertainRows) ? parsed.uncertainRows : [],
         metadata: parsed.metadata && typeof parsed.metadata === 'object' ? parsed.metadata : {},
         dates: parsed.dates && typeof parsed.dates === 'object' ? parsed.dates : {},
         regions: [],

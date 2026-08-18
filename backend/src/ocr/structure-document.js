@@ -132,6 +132,9 @@ function validateLabFactBindings(facts) {
     var rowIndex = Number(fact.rowIndex || 0);
     if (rowIndex && seenRows[rowIndex]) issues.push({ code: 'DUPLICATE_ROW', rowIndex: rowIndex });
     if (rowIndex) seenRows[rowIndex] = true;
+    if (fact.confidence > 0 && fact.confidence < 0.8) {
+      issues.push({ code: 'LOW_CONFIDENCE_ROW', rowIndex: rowIndex, factId: fact.factId, confidence: fact.confidence });
+    }
     var code = clean(fact.code).replace(/\s+/g, '').toUpperCase();
     var name = clean(fact.name);
     var ratio = /(?:\/|比值|比例)/.test(code + name);
@@ -143,6 +146,15 @@ function validateLabFactBindings(facts) {
     }
     if (fact.unit && !/^(?:%|(?:u|m|n)?mol\/L|(?:m|u)?g\/L|(?:I?U)\/L|mosm\/L|fL|pg)$/i.test(fact.unit.replace(/\s+/g, ''))) {
       issues.push({ code: 'INVALID_UNIT', rowIndex: rowIndex, factId: fact.factId });
+    }
+    if (fact.evidence) {
+      var evidence = fact.evidence.replace(/\s+/g, '');
+      var result = String(fact.result || '').replace(/\s+/g, '');
+      var unit = String(fact.unit || '').replace(/\s+/g, '');
+      var reference = String(fact.referenceRange || '').replace(/\s+/g, '');
+      if (result && evidence.indexOf(result) < 0) issues.push({ code: 'RESULT_NOT_IN_EVIDENCE', rowIndex: rowIndex, factId: fact.factId });
+      if (unit && evidence.indexOf(unit) < 0) issues.push({ code: 'UNIT_NOT_IN_EVIDENCE', rowIndex: rowIndex, factId: fact.factId });
+      if (reference && evidence.indexOf(reference) < 0) issues.push({ code: 'REFERENCE_NOT_IN_EVIDENCE', rowIndex: rowIndex, factId: fact.factId });
     }
   });
   return issues;
@@ -184,7 +196,8 @@ function rowFromObject(row, context) {
     unit: normalizeUnit(row.unit),
     referenceRange: referenceRange,
     flag: flag,
-    confidence: Number(row.confidence || 0)
+    confidence: Number(row.confidence || 0),
+    evidence: clean(row.evidence || row.sourceText || '')
   };
 }
 
@@ -318,7 +331,7 @@ function buildStructuredDocument(input) {
       return parseDelimitedRow(line, index, context);
     }).filter(Boolean);
   }
-  var uncertainRows = [];
+  var uncertainRows = Array.isArray(payload.uncertainRows) ? payload.uncertainRows.slice() : (Array.isArray(embedded.uncertainRows) ? embedded.uncertainRows.slice() : []);
   facts = facts.filter(function (fact) {
     var complete = Boolean(fact.name && fact.result && fact.sourceId);
     if (!complete) uncertainRows.push(fact);

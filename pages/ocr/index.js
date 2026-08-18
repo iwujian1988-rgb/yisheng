@@ -7,6 +7,18 @@ const featureEntitlements = require('../../services/entitlements/features');
 const imagePipeline = require('../../services/ocr/image-pipeline');
 
 function buildLinesFromResult(result) {
+  var document = result && result.document && typeof result.document === 'object' ? result.document : null;
+  var facts = document && Array.isArray(document.facts) ? document.facts : [];
+  if (facts.length) {
+    return facts.map(function (fact, index) {
+      var value = [fact.name || fact.code || '未命名项目', fact.result || ''].filter(Boolean).join('：');
+      if (fact.unit) value += ' ' + fact.unit;
+      if (fact.referenceRange) value += '（参考范围：' + fact.referenceRange + '）';
+      if (fact.flag === 'high') value += ' ↑';
+      if (fact.flag === 'low') value += ' ↓';
+      return { index: fact.rowIndex || index, text: value, field: fact.code || '', checked: true };
+    }).filter(function (item) { return item.text; });
+  }
   var rawLines = result && Array.isArray(result.lines) ? result.lines : [];
   if (rawLines.length) {
     return rawLines.map(function (item, index) {
@@ -137,7 +149,9 @@ Page({
             confidence: result.confidence || 0,
             elapsedMs: result.elapsedMs || 0,
             imageBytes: result.imageBytes || 0,
-            charCount: result.charCount || (result.text ? result.text.length : 0)
+            charCount: result.charCount || (result.text ? result.text.length : 0),
+            document: result.document || null,
+            uncertainRows: result.document && Array.isArray(result.document.uncertainRows) ? result.document.uncertainRows : []
           } : null,
           recognizing: false,
           errorMessage: '',

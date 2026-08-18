@@ -20,7 +20,8 @@
       <text wx:if="{{resultMeta.regionCount}}" class="meta-item">{{resultMeta.regionCount}} 处文本</text>
     </view>
     <view class="safety-note">
-      <text>请核对提取内容，确认无误后再使用。</text>
+      <text wx:if="{{resultMeta && resultMeta.uncertainRows && resultMeta.uncertainRows.length}}">有 {{resultMeta.uncertainRows.length}} 行表格关系不确定，请先核对原图后再使用。</text>
+      <text wx:else>请核对提取内容，确认无误后再使用。</text>
     </view>
     <view class="result-box">
       <textarea

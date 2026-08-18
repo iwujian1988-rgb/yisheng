@@ -22,6 +22,17 @@ async function main() {
   assert.strictEqual(parsed.reportDate, '2024-04-03');
   assert.deepStrictEqual(parsed.facts[0] && [parsed.facts[0].code, parsed.facts[0].name, parsed.facts[0].result, parsed.facts[0].unit, parsed.facts[0].referenceRange, parsed.facts[0].flag], ['GLU', '葡萄糖', '18.32', 'mmol/L', '3.89-6.11', 'high']);
 
+  var evidenceChecked = buildStructuredDocument({
+    sourceId: 'evidence_source',
+    rows: [{ rowNumber: 1, code: 'UREA', name: '尿素', result: '4.80', unit: 'mmol/L', referenceRange: '2.0-7.5', evidence: 'UREA 尿素 4.80 mmol/L 2.0-7.5' }]
+  });
+  assert.deepStrictEqual(evidenceChecked.qualityIssues, [], 'a row whose values are present in its evidence should pass');
+  var wrongEvidence = buildStructuredDocument({
+    sourceId: 'evidence_source',
+    rows: [{ rowNumber: 1, code: 'UREA', name: '尿素', result: '4.80', unit: 'mmol/L', referenceRange: '40-135', evidence: 'UREA 尿素 4.80 mmol/L 2.0-7.5' }]
+  });
+  assert.ok(wrongEvidence.uncertainRows.some(function (item) { return item.code === 'REFERENCE_NOT_IN_EVIDENCE'; }), 'a reference range absent from the row evidence must be held for review');
+
   var header = buildStructuredDocument({
     sourceId: 'header_source',
     text: '\u59d3\u540d\uff1a \u767b\u8bb0\u53f7\uff1a0000776092 \u60a3\u8005\u7c7b\u578b\uff1a\u4f4f\u9662 \u6027\u522b\uff1a\u7537 \u5e74\u9f84\uff1a35\u5c81 \u79d1\u522b\uff1a\u666e\u5916\u79d1 \u4f4f\u9662\u53f7\uff1a354065 \u6807\u672c\u7c7b\u578b\uff1a\u8840\u6e05 \u521d\u6b65\u8bca\u65ad\uff1a\u809d\u8113\u80bf'

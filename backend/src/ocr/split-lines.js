@@ -41,6 +41,7 @@ function buildOcrPayload(text, extra) {
     reportDate: payload.reportDate || '',
     regions: payload.regions || [],
     rows: payload.rows || []
+    ,uncertainRows: payload.uncertainRows || []
     ,metadata: payload.documentMetadata || {}
     ,dates: payload.documentDates || {}
   });

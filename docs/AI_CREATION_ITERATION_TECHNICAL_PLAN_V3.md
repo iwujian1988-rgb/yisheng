@@ -585,3 +585,12 @@ Node 直连和 Python Agent 都返回相同结构：
 - 材料目录按类型独立编号；文字、录音、图片混排时，“第二张图片”在前端、确定性解析和 AI 目录中指向同一材料。
 - 最终连续两次真实 DeepSeek 生成均为 `status=ok`：63/63 检验 tuple、王大力、来源1日期未提供、来源2申请日期、来源2表头和初步诊断全部正确；`hardErrors=0`、`missingConfirmedFields=0`、`sourceConflicts=0`，生成耗时约 2.3 秒与 3.1 秒。
 - 最新 `npm.cmd run release:check` 为 `RELEASE_CHECK_OK`，小程序原始主包约 1806.3 KiB。
+
+### 17.6 2026-08-18 普通 OCR 表格结构化补强
+
+- 普通 OCR 默认使用 `documentMode=auto`：识别到疑似检验/化验表时，自动复用既有表格结构化模型；普通文本仍保留原始 OCR 路径。
+- 千问 OCR 返回的 `location` 坐标不再被丢弃，统一保存在 `regions`，供行列重建和人工核对使用。
+- 表格行增加 `confidence` 与 `evidence`，结构化结果必须能在对应视觉行证实结果、单位和参考区间；证据缺失或低置信度进入 `uncertainRows`。
+- 结构化 OCR 的 `uncertainRows` 在普通 OCR、Chat 和工作区材料之间贯通，不能被当作 `ready` 材料生成。
+- 新增 golden 回归：参考区间不在同一行证据中时必须进入待核对，正确行绑定保持通过。
+- 本轮离线验证：`node backend/scripts/ai-workspace-golden-smoke.js`、`node backend/scripts/ocr-worker-smoke.js`、`npm.cmd run release:check` 全部通过；真实千问服务和真机视觉仍需单独验收。

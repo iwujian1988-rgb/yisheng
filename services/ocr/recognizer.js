@@ -59,7 +59,10 @@ function recognizeImage(imageFile) {
         professional: file.professional === true,
         sourceId: file.sourceId || '',
         pageIndex: Number(file.pageIndex || 0)
-        ,documentMode: file.documentMode || ''
+        // Let the gateway recognize ordinary text normally and promote
+        // likely laboratory tables to the structured path. Callers may
+        // still force `table` for a known table/document workflow.
+        ,documentMode: file.documentMode || 'auto'
       };
     },
     normalizeResult: normalizeResult,
